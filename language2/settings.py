@@ -60,7 +60,7 @@ BLEACH_DEFAULT_WIDGET = 'tinymce.models.HTMLField'
 MANDRILL_API_KEY = 'bGma5A35VBJarb0i2DY-FA'
 EMAIL_BACKEND = 'djrill.mail.backends.djrill.DjrillBackend'
 
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
