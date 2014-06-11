@@ -1,0 +1,63 @@
+{% extends 'bizi/base.html' %}
+
+{% block title %} Language Lambada {% endblock %}
+
+{% load i18n %}
+{% load tz %}
+
+{% block top_menu %}
+<li><a href="/topic/add/">{% trans "Create a Topic" %}</a></li>
+	<li class="active"><a href="#">{% trans "Manage My Topics" %}</a></li>
+{% endblock %}
+
+{% block left_menu %}
+	<li><a href="/practice/">{% trans "Practice a Language" %}</a></li>
+	<li><a href="#">{% trans "Guide a Learner" %}</a></li>
+	<li class="active"><a href="/topic/add/">{% trans "Create a Topic" %}</a></li>
+	<li><a href="#">{% trans "How does this work?" %}</a></li>
+	<li><a href="#">{% trans "My Profile" %}</a></li>
+{% endblock %}
+
+
+{% block body %}
+
+	<br>	
+	<div class="panel panel-primary">
+		<div class="panel-heading">{% trans "Topics created by " %} {{ user.username }}</div>
+		<div class="panel-body">
+			<p>{% trans "This is a list of all the topics you have created. You can view, update or delete these topics." %}</p>
+		</div>
+		<ul>
+			{% for topic in topic_list %}
+			<li>{{topic.headline}}
+				<a href="/topic/{{ topic.pk }}/">{% trans "View" %}</a>
+				<a href="/topic/{{ topic.pk }}/update/">{% trans "Edit" %}</a>
+				<form action="/topic/{{ topic.pk }}/delete/" method="post" accept-charset="utf-8">
+				{% csrf_token %}
+				<p><input type="submit" value={% trans "Delete" %}></p>
+				</form>	
+			</li>
+			<br>
+			{% endfor %}
+		</ul>
+	</div>	
+
+	{% if is_paginated %}
+	<div class="pagination">
+		    <span class="page-links">
+			    {% if page_obj.has_previous %}
+		                <a href="?page={{ page_obj.previous_page_number }}">{% trans "previous" %}</a>
+		            {% endif %}
+
+			    <span class="page-current">
+		                - Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}-
+       		            </span>
+
+			    {% if page_obj.has_next %}
+		                <a href="?page={{ page_obj.next_page_number }}">{% trans "next" %}</a>
+	   	            {% endif %}
+		    </span>
+	 </div>
+	{% endif %}
+
+{% endblock%}

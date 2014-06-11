@@ -1,0 +1,22 @@
+{% extends 'bizi/base.html' %}
+
+{% block title %} Welcome to Language Lambada {% endblock %}
+
+{% block body %}
+{% load i18n %}
+{% load tz %}
+
+<h1>Language Lambada {{ user.username }}</h1>
+
+	{% if user.is_authenticated %}
+	<li><a href="/topic/add/">{% trans "Create a Topic" %}</a></li>
+	       	<li><a href="/topic/list/">{% trans "Manage My Topics" %}</a></li>
+		<li><a href="/practice/">{% trans "Book a Practice" %}</a></li>
+		<li><a href="/profile/">{% trans "My Profile" %}</a></li>
+	       	<li><a href="/user_logout/">{% trans "Logout" %}</a></li>
+	{% else %}
+		<li><a href="/register/">{% trans "Register Here" %}</a></li>
+	       	<li><a href="/user_login/">{% trans "Login" %}</a></li>
+	{% endif %}
+
+{% endblock%}

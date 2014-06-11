@@ -1,0 +1,32 @@
+{% extends 'bizi/base.html' %}
+
+{% block title %} Language Lambada {% endblock %}
+{% load i18n %}
+{% load tz %}
+
+{% block top_menu %}
+<li class="active"><a href="/topic/add/">{% trans "Create a Topic" %}</a></li>
+	<li><a href="/topic/list/">{% trans "Manage My Topics" %}</a></li>
+{% endblock %}
+
+
+{% block left_menu %}
+	<li><a href="/practice/">{% trans "Practice a Language" %}</a></li>
+	<li><a href="#">{% trans "Guide a Learner" %}</a></li>
+	<li class="active"><a href="/topic/add/">{% trans "Create a Topic" %}</a></li>
+	<li><a href="#">{% trans "How does this work?" %}</a></li>
+	<li><a href="#">{% trans "My Profile" %}</a></li>
+{% endblock %}
+
+
+
+{% block body %}
+
+<h1>{% trans "Edit topic" %}: {{ object.headline }} </h1>
+	<form action="/topic/{{ object.pk }}/update/" method="post" accept-charset="utf-8">
+		{% csrf_token %}
+		{{ form.as_p }} 
+		<p><input class="btn btn-primary" type="submit" value={% trans "Update" %}></p>
+	</form>
+
+{% endblock%}

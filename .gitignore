@@ -1,0 +1,4 @@
+devEnv
+testEnv
+*.pyc
+requirements

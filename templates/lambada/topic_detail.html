@@ -1,0 +1,39 @@
+{% extends 'bizi/base.html' %}
+
+{% block title %} Language Lambada {% endblock %}
+
+{% load i18n %}
+{% load tz %}
+
+{% block top_menu %}
+<li class="active"><a href="/topic/add/">{% trans "Create a Topic" %}</a></li>
+	<li><a href="/topic/list/">{% trans "Manage My Topics" %}</a></li>
+{% endblock %}
+
+
+{% block left_menu %}
+	<li><a href="/practice/">{% trans "Practice a Language" %}</a></li>
+	<li><a href="#">{% trans "Guide a Learner" %}</a></li>
+	<li class="active"><a href="/topic/add/">{% trans "Create a Topic" %}</a></li>
+	<li><a href="#">{% trans "How does this work?" %}</a></li>
+	<li><a href="#">{% trans "My Profile" %}</a></li>
+{% endblock %}
+
+
+{% block body %}
+
+<h1>{{ object.headline }}</h1>
+	{% trans "Created by" %}: {{ object.created_by  }}<br>
+	{% trans "Language" %}: {{ object.language  }}<br>
+	{% trans "Date" %}: {{ object.creation_date  }}<br>
+	{% trans "Learner's Text" %}: {{ object.learners_text|safe  }}<br>
+	{% trans "Guide's Text" %}: {{ object.guides_text|safe  }}<br>
+	<br><br>
+	
+	<a href="/topic/{{ object.pk }}/update/">{% trans "Edit the Topic" %}</a><br>
+	<form action="/topic/{{ topic.pk }}/delete/" method="post" accept-charset="utf-8">
+		{% csrf_token %}
+		<p><input type="submit" value={% trans "Delete" %}></p>
+	</form>
+
+{% endblock%}
