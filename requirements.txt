@@ -9,4 +9,6 @@ pystache==0.5.4
 static==1.0.2
 wsgiref==0.1.2
 djrill==1.0.0
+South==0.8.4
+django-tinymce==1.5.2
 -r requirements/prod.txt
