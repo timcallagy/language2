@@ -1,0 +1,320 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-06-03 20:16+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: lambada/forms.py:10
+msgid "Repeat Password"
+msgstr ""
+
+#: lambada/forms.py:16
+msgid "Passwords don't match"
+msgstr ""
+
+#: lambada/forms.py:38 templates/lambada/topic_detail.html:27
+msgid "Language"
+msgstr ""
+
+#: lambada/models.py:43
+msgid "Topic Headline"
+msgstr ""
+
+#: lambada/models.py:44
+msgid "Topic Language"
+msgstr ""
+
+#: lambada/models.py:46
+msgid "Enter the Learner's information below. Click here to see an example."
+msgstr ""
+
+#: lambada/models.py:47
+msgid "Enter the Guide's information below. Click here to see an example."
+msgstr ""
+
+#: lambada/views.py:74
+msgid "Invalid login details"
+msgstr ""
+
+#: mce_filebrowser/models.py:8
+msgid "Image"
+msgstr ""
+
+#: mce_filebrowser/models.py:9
+msgid "Document"
+msgstr ""
+
+#: mce_filebrowser/models.py:15
+msgid "File / Image"
+msgstr ""
+
+#: mce_filebrowser/models.py:18
+msgid "Create date"
+msgstr ""
+
+#: mce_filebrowser/templates/filebrowser.html:6
+msgid "File browser"
+msgstr ""
+
+#: mce_filebrowser/templates/filebrowser.html:64
+msgid "Images list"
+msgstr ""
+
+#: mce_filebrowser/templates/filebrowser.html:73
+msgid "Documents list"
+msgstr ""
+
+#: mce_filebrowser/templates/filebrowser.html:80
+msgid "Upload new"
+msgstr ""
+
+#: mce_filebrowser/templates/filebrowser.html:91
+msgid "Previosly uploaded images"
+msgstr ""
+
+#: mce_filebrowser/templates/filebrowser.html:101
+#: mce_filebrowser/templates/filebrowser.html:122
+msgid "Remove"
+msgstr ""
+
+#: mce_filebrowser/templates/filebrowser.html:106
+msgid "No images uploaded"
+msgstr ""
+
+#: mce_filebrowser/templates/filebrowser.html:114
+msgid "Previosly uploaded documents"
+msgstr ""
+
+#: mce_filebrowser/templates/filebrowser.html:127
+msgid "No documents uploaded"
+msgstr ""
+
+#: mce_filebrowser/templates/filebrowser.html:135
+msgid "Upload file"
+msgstr ""
+
+#: mce_filebrowser/templates/filebrowser.html:142
+msgid "Insert"
+msgstr ""
+
+#: mce_filebrowser/templates/filebrowser.html:143
+msgid "Cancel"
+msgstr ""
+
+#: templates/lambada/base.html:27 templates/lambada/index.html:16
+msgid "Logout"
+msgstr "Sortir"
+
+#: templates/lambada/base.html:30
+msgid "Logged in as"
+msgstr ""
+
+#: templates/lambada/base.html:46
+msgid "Username"
+msgstr ""
+
+#: templates/lambada/base.html:47
+msgid "password"
+msgstr ""
+
+#: templates/lambada/base.html:48 templates/lambada/index.html:19
+#: templates/lambada/login.html:25
+msgid "Login"
+msgstr "Entrer"
+
+#: templates/lambada/base.html:51 templates/lambada/base.html.py:69
+#: templates/lambada/base.html:79 templates/lambada/login.html:10
+#: templates/lambada/register.html:11 templates/lambada/register.html.py:19
+msgid "Register"
+msgstr ""
+
+#: templates/lambada/base.html:55 templates/lambada/login.html:26
+msgid "Forgot password?"
+msgstr ""
+
+#: templates/lambada/base.html:57
+msgid "Welcome, Guest"
+msgstr ""
+
+#: templates/lambada/base.html:78
+msgid "Close"
+msgstr ""
+
+#: templates/lambada/base.html:113
+msgid "About"
+msgstr ""
+
+#: templates/lambada/base.html:113
+msgid "Help"
+msgstr ""
+
+#: templates/lambada/base.html:113
+msgid "Privacy"
+msgstr ""
+
+#: templates/lambada/base.html:113
+msgid "Terms"
+msgstr ""
+
+#: templates/lambada/index.html:12 templates/lambada/practice.html:18
+#: templates/lambada/topic_detail.html:9 templates/lambada/topic_detail.html:17
+#: templates/lambada/topic_form.html:11 templates/lambada/topic_form.html.py:18
+#: templates/lambada/topic_form.html:26 templates/lambada/topic_list.html:9
+#: templates/lambada/topic_list.html.py:16 templates/lambada/topic_update.html:8
+#: templates/lambada/topic_update.html:16
+msgid "Create a Topic"
+msgstr ""
+
+#: templates/lambada/index.html:13 templates/lambada/topic_detail.html:10
+#: templates/lambada/topic_form.html:12 templates/lambada/topic_list.html:10
+#: templates/lambada/topic_update.html:9
+msgid "Manage My Topics"
+msgstr ""
+
+#: templates/lambada/index.html:14 templates/lambada/practice.html:9
+msgid "Book a Practice"
+msgstr ""
+
+#: templates/lambada/index.html:15 templates/lambada/practice.html:20
+#: templates/lambada/topic_detail.html:19 templates/lambada/topic_form.html:20
+#: templates/lambada/topic_list.html:18 templates/lambada/topic_update.html:18
+msgid "My Profile"
+msgstr ""
+
+#: templates/lambada/index.html:18
+msgid "Register Here"
+msgstr ""
+
+#: templates/lambada/login.html:10
+msgid "You must log in or"
+msgstr ""
+
+#: templates/lambada/login.html:10
+msgid "to see this page"
+msgstr ""
+
+#: templates/lambada/login.html:16
+msgid "Username:"
+msgstr ""
+
+#: templates/lambada/login.html:21
+msgid "Password:"
+msgstr ""
+
+#: templates/lambada/practice.html:10
+msgid "Manage bookings"
+msgstr ""
+
+#: templates/lambada/practice.html:11
+msgid "My Reports"
+msgstr ""
+
+#: templates/lambada/practice.html:16 templates/lambada/topic_detail.html:15
+#: templates/lambada/topic_form.html:16 templates/lambada/topic_list.html:14
+#: templates/lambada/topic_update.html:14
+msgid "Practice a Language"
+msgstr ""
+
+#: templates/lambada/practice.html:17 templates/lambada/topic_detail.html:16
+#: templates/lambada/topic_form.html:17 templates/lambada/topic_list.html:15
+#: templates/lambada/topic_update.html:15
+msgid "Guide a Learner"
+msgstr ""
+
+#: templates/lambada/practice.html:19 templates/lambada/topic_detail.html:18
+#: templates/lambada/topic_form.html:19 templates/lambada/topic_list.html:17
+#: templates/lambada/topic_update.html:17
+msgid "How does this work?"
+msgstr ""
+
+#: templates/lambada/practice.html:26
+msgid "Welcome to Language Lambada"
+msgstr ""
+
+#: templates/lambada/practice.html:30
+msgid "This page is under construction."
+msgstr ""
+
+#: templates/lambada/practice.html:32
+msgid "You need to be logged in to see this page."
+msgstr ""
+
+#: templates/lambada/topic_detail.html:26
+msgid "Created by"
+msgstr ""
+
+#: templates/lambada/topic_detail.html:28
+msgid "Date"
+msgstr ""
+
+#: templates/lambada/topic_detail.html:29
+msgid "Learner's Text"
+msgstr ""
+
+#: templates/lambada/topic_detail.html:30
+msgid "Guide's Text"
+msgstr ""
+
+#: templates/lambada/topic_detail.html:33
+msgid "Edit the Topic"
+msgstr ""
+
+#: templates/lambada/topic_detail.html:36 templates/lambada/topic_list.html:37
+msgid "Delete"
+msgstr ""
+
+#: templates/lambada/topic_form.html:30
+msgid "Save"
+msgstr ""
+
+#: templates/lambada/topic_list.html:26
+msgid "Topics created by "
+msgstr ""
+
+#: templates/lambada/topic_list.html:28
+msgid ""
+"This is a list of all the topics you have created. You can view, update or "
+"delete these topics."
+msgstr ""
+
+#: templates/lambada/topic_list.html:33
+msgid "View"
+msgstr ""
+
+#: templates/lambada/topic_list.html:34
+msgid "Edit"
+msgstr ""
+
+#: templates/lambada/topic_list.html:49
+msgid "previous"
+msgstr ""
+
+#: templates/lambada/topic_list.html:57
+msgid "next"
+msgstr ""
+
+#: templates/lambada/topic_update.html:25
+msgid "Edit topic"
+msgstr ""
+
+#: templates/lambada/topic_update.html:29
+msgid "Update"
+msgstr ""
+
+#: tinymce/views.py:74
+msgid "Error running spellchecker"
+msgstr ""
