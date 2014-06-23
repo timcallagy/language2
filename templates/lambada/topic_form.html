@@ -8,23 +8,25 @@
 {% load bootstrap %}
 
 {% block top_menu %}
-<li class="active"><a href="#">{% trans "Create a Topic" %}</a></li>
-<li><a href="/topic/list/">{% trans "Manage My Topics" %}</a></li>
-{% endblock %}
-
-{% block left_menu %}
-	<li><a href="/practice/">{% trans "Practice a Language" %}</a></li>
-	<li><a href="#">{% trans "Guide a Learner" %}</a></li>
-	<li class="active"><a href="/topic/add/">{% trans "Create a Topic" %}</a></li>
-	<li><a href="#">{% trans "How does this work?" %}</a></li>
-	<li><a href="#">{% trans "My Profile" %}</a></li>
+	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
+	<li><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
+	<li><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
+	<li class="active"><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
+	<li><a href="/help/">{% trans "How does this work?" %}</a></li>
 {% endblock %}
 
 
 {% block body %}
 
-<h1>{% trans "Create a Topic" %}</h1>
+	<div class="pull-right">
+		<ol class="breadcrumb">
+			<li><a href="/topic/list/">{% trans "My Topics" %}</a></li>
+			<li class="active">{% trans "Design Topic" %}</li>
+		</ol>
+	</div>
+<h1>{% trans "Design Topic" %}</h1>
 	<form class="form form-horizontal" action="/topic/add/" method="post" accept-charset="utf-8">
+		<p><input class="btn btn-primary" type="submit" value={% trans "Save" %}></p>
 		{% csrf_token %}
 		{{ form|bootstrap_horizontal }} 
 		<p><input class="btn btn-primary" type="submit" value={% trans "Save" %}></p>

@@ -4,53 +4,56 @@
 
 {% load i18n %}
 {% load tz %}
+{% load likes_inclusion_tags %}
+{% load bootstrap %}
+
+	{{ form.media }}
 
 {% block top_menu %}
 	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
-	<li><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
+	<li class="active"><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
 	<li><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
-	<li class="active"><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
+	<li><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
 	<li><a href="/help/">{% trans "How does this work?" %}</a></li>
 {% endblock %}
 
-
 {% block body %}
-
 	<div class="pull-right">
 		<ol class="breadcrumb">
-			<li class="active">{% trans "My Topics" %}</li>
+			<li class="active">{% trans "Practice Sessions" %}</li>
 		</ol>
 	</div>
-	<h1>{% trans "My Topics" %}</h1>
-	<a class="btn btn-primary" href="/topic/add/">{% trans "Create a Topic" %}</a>
-	<br>
+	<h1>{% trans "Practice Sessions" %}</h1>
 	<br>
 	<div class="panel panel-primary">
-		<div class="panel-heading">{% trans "Topics created by " %} {{ user.username }}</div>
+		<div class="panel-heading">{% trans "Practice Sessions" %}</div>
 		{% if topic_list %}
 			<div class="panel-body">
-				<p>{% trans "This is a list of all the topics you have created. You can view, update or delete these topics." %}</p>
+				<p>{% trans "Choose a Topic for your Practice Session." %}</p>
 			</div>
 		{% else %}
 			<div class="panel-body">
-				<p>{% trans "You have not created any topics. Get started!" %}</p>
-				<a class="btn btn-primary" href="/topic/add/">{% trans "Create a Topic" %}</a>
+				<p>{% trans "There are no Topics available!" %}</p>
 			</div>
 		{% endif %}
 		<ul class="list-group">
 			{% for topic in topic_list %}
 				<li class="list-group-item">
 					<h3>{{topic.headline}}</h3>
-					<strong>{% trans "Language" %}: </strong>{{topic.language}}<br>
-					<strong>{% trans "Creation date" %}: </strong>{{topic.creation_date}}<br>
-					<strong>{% trans "Published" %}: </strong>{{topic.published}}<br><br>
-					<form action="/topic/{{ topic.pk }}/delete/" method="post" accept-charset="utf-8">
-					<a class="btn btn-primary" href="/topic/{{ topic.pk }}/">{% trans "View" %}</a>
-					<a class="btn btn-primary" href="/topic/{{ topic.pk }}/update/">{% trans "Edit" %}</a>
-					<a class="btn btn-primary" href="/topic/{{ topic.pk }}/publish/">{% trans "Publish" %}</a>
-					{% csrf_token %}
-					<input class="btn btn-primary" type="submit" value={% trans "Delete" %}>
-					</form>	
+					<strong>{% trans "Language" %}: </strong>{{topic.language}}
+
+					<br>
+					<a class="btn btn-primary" href="/topic/{{ topic.pk }}/">{% trans "View" %}</a><br>
+					{% localtime on %}
+					<form id="booking-form" class="form form-horizontal" action="/practice/{{ topic.pk }}/add/" method="post" accept-charset="utf-8">
+						{% csrf_token %}
+						{{ practice_form.as_table }} 
+						<p><input id="booking-btn" class="btn btn-primary" type="submit" value={% trans "Book Session" %}></p>
+					</form>
+
+					{% endlocaltime %}
+					
+					{% likes topic %}
 				</li>
 			{% endfor %}
 		</ul>
@@ -75,5 +78,6 @@
 	   	            {% endif %}
 		 </ul>
 	{% endif %}
+
 
 {% endblock%}

@@ -1,9 +1,10 @@
 from django import forms
-from lambada.models import UserProfile, Topic
+from lambada.models import UserProfile, Topic, Practice
 from django.contrib.auth.models import User
 import pytz
 from django.utils.translation import ugettext_lazy as _
 from language2 import settings
+from datetimewidget.widgets import DateTimeWidget
 #from crispy_forms.helper import FormHelper
 #from crispy_forms.layout import MultiField, Layout, Alert
 
@@ -46,3 +47,18 @@ class TopicForm(forms.ModelForm):
 		model = Topic
 		fields = ('headline', 'language', 'learners_text', 'guides_text')
 
+
+class PracticeForm(forms.ModelForm):
+	dateTime = forms.DateTimeField(widget=DateTimeWidget({'id':"dateTime"},{'minuteStep':"30"},{'minView':"0"}))
+	# Uncomment line below to get Internationalisation of dates at the expense of minuteStep. 
+	#dateTime = forms.DateTimeField(widget=DateTimeWidget({'id':"dateTime"},{'minView':"0"},usel10n = True))
+	
+	def clean(self):
+		return self.cleaned_data
+
+	class Meta:
+		model = Practice
+		#widgets = {
+		#	'dateTime': DateTimeWidget(attrs={'id':"dateTime"}, usel10n = True)
+		#}
+		fields = ('dateTime',)

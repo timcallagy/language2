@@ -140,14 +140,20 @@ SECRET_KEY = 'os2w$q-28srwsoqn8fixhd@t0=bc_qhkz*0h&amp;75r2j$!ohg6!c'
 #)
 
 MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'likes.middleware.SecretBallotUserIpUseragentMiddleware',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.request',
 )
 
 ROOT_URLCONF = 'language2.urls'
@@ -171,13 +177,23 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'south',
     'lambada',
+    'debug_toolbar',
     'djrill',
     'tinymce',
     #'sorl.thumbnail',
     #'mce_filebrowser',
     #'django_bleach',
     'bootstrapform',
+    'secretballot',
+    'likes',
+    'datetimewidget',
 )
+# !! This is needed for Debug Toolbar to work with Gunicorn.
+#DEBUG_TOOLBAR_PATCH_SETTINGS = False
+#INTERNAL_IPS = ('127.0.0.1',)
+#DEBUG_TOOLBAR_CONFIG = {
+#	'SHOW_TEMPLATE_CONTEXT': True,
+#}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/

@@ -5,11 +5,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.utils.translation import ugettext_lazy as _
 from django.shortcuts import render
 from django.views.generic import TemplateView, CreateView, DeleteView, UpdateView, DetailView, ListView
-from lambada.forms import UserForm, UserProfileForm, TopicForm
+from lambada.forms import UserForm, UserProfileForm, TopicForm, PracticeForm
 from django.contrib.auth.decorators import login_required
 import pytz
 from django.http import HttpResponseRedirect, HttpResponse
-from lambada.models import Topic, UserProfile
+from lambada.models import Topic, TopicLikes, UserProfile, Practice
 import datetime
 from django.utils.translation import ugettext as _
 from django.utils import translation
@@ -48,7 +48,7 @@ def register(request):
 				user = authenticate(username=user.username, password=request.POST['password'])
 				request.session['django_language'] = request.POST['language']
 				login(request, user)
-				return HttpResponseRedirect('/practice/')
+				return HttpResponseRedirect('/dashboard/')
 			else:
 				return HttpResponse('Error saving to the database.')
 		else:
@@ -72,11 +72,24 @@ def user_login(request):
 			login(request, user)
 			language = UserProfile.objects.get(user=request.user.id).language
 			request.session['django_language'] = language
-			return HttpResponseRedirect('/practice/')
+			return HttpResponseRedirect('/dashboard/')
 		else:
 			return render_to_response('lambada/invalid_login.html', context)
 	else:
-		return render_to_response('/login.html', {'user_form': user_form, 'userprofile_form': userprofile_form}, context)
+		return render_to_response('lambada/login.html', {'user_form': user_form, 'userprofile_form': userprofile_form}, context)
+
+@login_required
+def topic_publish(request, pk):
+	context = RequestContext(request)
+	try:
+		print("start try")
+		topic=Topic.objects.get(pk=pk)
+		topic.published=True
+		topic.save()
+		print("end try")
+		return HttpResponseRedirect('/topic/list/')
+	except Topic.DoesNotExist:
+		return HttpResponse('Error: Topic does not exist.')
 
 @login_required
 def user_logout(request):
@@ -154,14 +167,16 @@ class TopicDetail(DetailView):
 		context = super(TopicDetail, self).get_context_data(**kwargs)
 		context['user_form'] = UserForm()
 		context['userprofile_form'] = UserProfileForm()
+		context['likes'] = 3
 		return context
 
 
 class TopicList(ListView):
-	paginate_by = 3
-	
+	paginate_by = 10
+		
 	def get_queryset (self):
 		return Topic.objects.filter(created_by=self.request.user)
+ 
 	
 	# This code gets User and Profile forms to display in the Registration popup box.
 	def get_context_data(self, **kwargs):
@@ -171,12 +186,69 @@ class TopicList(ListView):
 		return context
 
 
-class Practice(TemplateView):
-	template_name = 'lambada/practice.html'
+@login_required
+def like_topic(request):
+	print("####### 1")
+	user = request.user 
+	userProfile = UserProfile.objects.get(user=user)
+	topic_id = request.GET['topic_id']
+	topic = Topic.objects.get(id=topic_id)
+	print("####### 2")
+	like, created = TopicLikes.objects.get_or_create(
+			userProfile = userProfile,
+			topic = topic
+	)
+	if not created:
+		print("This is the second time this user has like this topic.")
+		return HttpResponse('4')
+	else:
+		print("This is the first time this user has liked this topic.")
+		likes = TopicLikes.objects.filter(topic=topic).count()
+		return HttpResponse(likes)
+
+@login_required
+def practice_add(request, pk):
+	context = RequestContext(request)
+	user_id=request.user.id
+	user = User.objects.get(pk=user_id)
+	topic = Topic.objects.get(pk=pk)
+	dateTime = datetime.datetime.strptime(request.POST.get('dateTime_0', datetime.datetime.now), '%d/%m/%Y %H:%M')
+	practice, created = Practice.objects.get_or_create(
+			user = request.user,
+			topic = topic,
+			dateTime = dateTime
+	)
+	print(practice.id)
+
+	return HttpResponseRedirect('/practice/' + str(practice.id))
+				
+
+class PracticeList(ListView):
+	paginate_by = 3
+	template_name = 'lambada/practice_list.html'
+
+	def get_queryset (self):
+		return Topic.objects.filter(published=True).exclude(created_by=self.request.user)
 
 	# This code gets User and Profile forms to display in the Registration popup box.
 	def get_context_data(self, **kwargs):
-		context = super(Practice, self).get_context_data(**kwargs)
+		context = super(PracticeList, self).get_context_data(**kwargs)
+		context['user_form'] = UserForm()
+		context['userprofile_form'] = UserProfileForm()
+		context['practice_form'] = PracticeForm()
+		return context
+
+
+class PracticeDetail(DetailView):
+	model = Practice
+
+
+class Dashboard(TemplateView):
+	template_name = 'lambada/dashboard.html'
+
+	# This code gets User and Profile forms to display in the Registration popup box.
+	def get_context_data(self, **kwargs):
+		context = super(Dashboard, self).get_context_data(**kwargs)
 		context['user_form'] = UserForm()
 		context['userprofile_form'] = UserProfileForm()
 		return context

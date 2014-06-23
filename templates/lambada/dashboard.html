@@ -1,0 +1,27 @@
+{% extends 'lambada/base.html' %}
+
+{% block title %} Language Lambada {% endblock %}
+
+{% load i18n %}
+{% load tz %}
+
+{% block top_menu %}
+	<li class="active"><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
+	<li><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
+	<li><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
+	<li><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
+	<li><a href="/help/">{% trans "How does this work?" %}</a></li>
+{% endblock %}
+
+{% block body %}
+
+<h1>{% trans "Welcome to Language Lambada" %} {{ user.username }}</h1>
+
+        {% if user.is_authenticated %}
+	     <h5>{% trans "This page is under construction." %}</h5>
+  {% else %}
+             <h5>{% trans "You need to be logged in to see this page." %}</h5>
+        {% endif %}
+
+
+{% endblock%}

@@ -10,11 +10,20 @@
 	<title>{% block title %} Default Title {% endblock %}</title>
 	<link rel="stylesheet" href="{% static "css/bootstrap.css" %}" /> <!-- CSS -->
 	<link rel="stylesheet" href="{% static "css/sticky-footer-navbar.css"%}" />
+	<link rel="stylesheet" href="{% static "css/datetimepicker.css"%}" />
 	<script src="{% static "js/jquery.js" %}"></script> <!-- JavaScript --> 
 	<script src="{% static "js/bootstrap.js" %}"></script>
+	<script src="{% static "js/language2.js" %}"></script>
+	<script src="{% static "js/likes.js" %}"></script>
+	<script src="{% static "js/bootstrap-datetimepicker.js" %}"></script>
 	<script type="text/javascript" src={% static "js/tiny_mce/tiny_mce.js" %}></script>
+	<script src="https://www.webrtc-experiment.com/firebase.js"> </script>
+        <script src="https://www.webrtc-experiment.com/RTCMultiConnection-v1.7.js"> </script>
 </head>
 	<body>
+
+
+
 	<nav class="navbar navbar-default navbar-inverse">
 		<div class="container-fluid">
 			<div class="navbar-header">
@@ -69,26 +78,19 @@
 		</div>
 	</nav>
 
-	<div class="row">	
-		<div class="col-md-3">
-		</div>
-		<div class="col-md-8-offset3">
+
+	<div class="container-fluid">
+		<div class="row">	
 			<ul class="nav nav-tabs nav-justified">
+				<br>
 				{% block top_menu %}{% endblock %}
 			</ul>
 		</div>
-	</div>
 
-
-	<div class="row">	
-		<div class="col-md-3">
-			<ul class="nav nav-pills nav-stacked">
-				<br>
-				{% block left_menu %}{% endblock %}
-			</ul>
-		</div>
-		<div class="col-md-8">
-			{% block body %} Default Body {% endblock %}	
+		<div class="row-fluid">	
+			<div class="span10 offset1">
+				{% block body %} Default Body {% endblock %}
+			</div>	
 		</div>
 	</div>
 

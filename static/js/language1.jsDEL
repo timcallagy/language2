@@ -1,4 +1,0 @@
-$(document).ready(function() {
-$('.alert-error').addClass('alert-danger');
-$('.alert-error').removeClass('alert-error');
-});

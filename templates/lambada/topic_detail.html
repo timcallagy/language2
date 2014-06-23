@@ -6,34 +6,49 @@
 {% load tz %}
 
 {% block top_menu %}
-<li class="active"><a href="/topic/add/">{% trans "Create a Topic" %}</a></li>
-	<li><a href="/topic/list/">{% trans "Manage My Topics" %}</a></li>
-{% endblock %}
-
-
-{% block left_menu %}
-	<li><a href="/practice/">{% trans "Practice a Language" %}</a></li>
-	<li><a href="#">{% trans "Guide a Learner" %}</a></li>
-	<li class="active"><a href="/topic/add/">{% trans "Create a Topic" %}</a></li>
-	<li><a href="#">{% trans "How does this work?" %}</a></li>
-	<li><a href="#">{% trans "My Profile" %}</a></li>
+	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
+	<li><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
+	<li><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
+	<li class="active"><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
+	<li><a href="/help/">{% trans "How does this work?" %}</a></li>
 {% endblock %}
 
 
 {% block body %}
 
+	<div class="pull-right">
+		<ol class="breadcrumb">
+			<li><a href="/topic/list/">{% trans "My Topics" %}</a></li>
+			<li><a href="/topic/{{ object.pk }}/update/">{% trans "Design Topic" %}</a></li>
+			<li class="active">{% trans "Topic Preview" %}</li>
+		</ol>
+	</div>
+	<br>
+	<a class="btn btn-primary" href="/topic/{{ object.pk }}/update/">{% trans "Modify" %}</a>
+	{% if topic.published == False %}
+		<a class="btn btn-primary" href="/topic/{{ object.pk }}/publish/">{% trans "Publish" %}</a>
+	{% else %}
+		<a class="btn btn-primary" href="/topic/{{ object.pk }}/unpublish/">{% trans "Un-Publish" %}</a>
+	{% endif %}
 <h1>{{ object.headline }}</h1>
 	{% trans "Created by" %}: {{ object.created_by  }}<br>
 	{% trans "Language" %}: {{ object.language  }}<br>
 	{% trans "Date" %}: {{ object.creation_date  }}<br>
 	{% trans "Learner's Text" %}: {{ object.learners_text|safe  }}<br>
 	{% trans "Guide's Text" %}: {{ object.guides_text|safe  }}<br>
-	<br><br>
+	<br>
 	
-	<a href="/topic/{{ object.pk }}/update/">{% trans "Edit the Topic" %}</a><br>
-	<form action="/topic/{{ topic.pk }}/delete/" method="post" accept-charset="utf-8">
+	<a class="btn btn-primary" href="/topic/{{ object.pk }}/update/">{% trans "Modify" %}</a>
+	{% if topic.published == False %}
+		<a class="btn btn-primary" href="/topic/{{ object.pk }}/publish/">{% trans "Publish" %}</a>
+	{% else %}
+		<a class="btn btn-primary" href="/topic/{{ object.pk }}/unpublish/">{% trans "Un-Publish" %}</a>
+	{% endif %}
+	<br>
+	<br>
+<!--	<form action="/topic/{{ topic.pk }}/delete/" method="post" accept-charset="utf-8">
 		{% csrf_token %}
-		<p><input type="submit" value={% trans "Delete" %}></p>
-	</form>
+		<p><input class="btn btn-primary" type="submit" value={% trans "Delete" %}></p>
+	</form> -->
 
 {% endblock%}

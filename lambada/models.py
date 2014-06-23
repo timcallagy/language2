@@ -6,6 +6,7 @@ from django.utils.timezone import utc
 from django.core.urlresolvers import reverse
 from tinymce.models import HTMLField
 from django.utils.translation import ugettext_lazy as _
+import secretballot
 
 # blank=True means the field will NOT be required in forms.
 # null=True means you are going to allow a field to be blank in your DB.
@@ -43,12 +44,42 @@ class Topic(models.Model):
 	creation_date = models.DateTimeField(blank=False, null=False, default=datetime.now())
 	learners_text = HTMLField(_("Enter the Learner's information below. Click here to see an example.")) 
 	guides_text = HTMLField(_("Enter the Guide's information below. Click here to see an example.")) 
+	published = models.NullBooleanField(blank=True, null=True, default=False)
 #	text = BleachField()
 	def get_absolute_url(self):
 		return reverse('topic_detail', kwargs={'pk': self.pk})
+#	@property
+#	def likes(self):
+#		return TopicLikes.objects.filter(topic=self).count()
+#	@property
+#	def already_liked(self):
+#		user = User.objects.filter(username=self.created_by)
+#		print(user)
+#		userProfile = UserProfile.objects.filter(user=user)
+#		print(userProfile)
+#		print("#### 1 ")
+#		print("User: " + self)
+#		return TopicLikes.objects.filter(topic=self).exists()
+#		return TopicLikes.objects.filter(userProfile=userProfile).exists()
+
+secretballot.enable_voting_on(Topic)
+
+class TopicLikes(models.Model):
+	class Meta:
+		unique_together = (('userProfile','topic'),)
+	userProfile = models.ForeignKey(UserProfile, default=1)
+	topic = models.ForeignKey(Topic, default=1)
+
+#class PracticeDateTime(models.Model):
+#	dateTime = models.DateTimeField(_(u"Practice Session Time"))
+ 
 
 class Practice(models.Model):
-	userProfile = models.ForeignKey(UserProfile)
+	user = models.ForeignKey(User)
+	topic = models.ForeignKey(Topic)
+	dateTime= models.DateTimeField(_(u"Practice Session Time"))
+	#dateTime = models.ForeignKey(PracticeDateTime)
+
 
 class Report(models.Model):
 	userProfile = models.ForeignKey(UserProfile)
