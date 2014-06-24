@@ -177,7 +177,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'south',
     'lambada',
-    'debug_toolbar',
+    #'debug_toolbar',
     'djrill',
     'tinymce',
     #'sorl.thumbnail',
@@ -189,7 +189,7 @@ INSTALLED_APPS = (
     'datetimewidget',
 )
 # !! This is needed for Debug Toolbar to work with Gunicorn.
-#DEBUG_TOOLBAR_PATCH_SETTINGS = False
+DEBUG_TOOLBAR_PATCH_SETTINGS = False
 #INTERNAL_IPS = ('127.0.0.1',)
 #DEBUG_TOOLBAR_CONFIG = {
 #	'SHOW_TEMPLATE_CONTEXT': True,
