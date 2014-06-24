@@ -30,8 +30,7 @@
 	<a class="btn btn-primary" href="/topic/{{ object.pk }}/delete/">{% trans "Delete" %}</a>
 	<!--	<a id="setup-new-conference" class="btn btn-primary setup" href="/topic/{{ object.pk }}/start/">{% trans "Start" %}</a> -->
 	<section>
-		<input type="text" id="conference-name">
-		<a id="setup-new-conference" class="btn btn-primary setup">{% trans "Start" %}</a> 
+		<button id="setup-new-conference" class="btn btn-primary setup">{% trans "Start Session" %}</button> 
 	</section>
 	<h1>{{ object.topic.headline }}</h1>
 	{% trans "Language" %}: {{ object.topic.language  }}<br>
@@ -52,11 +51,11 @@
 
 		var sessions = {};
 		connection.onNewSession = function(session) {
-			if (sessions[sessions.sessionid]) return;
+			if (sessions[session.sessionid]) return;
 			sessions[session.sessionid] = session;
 
 			var tr = document.createElement('tr');
-			tr.innerHTML = 'td><strong>' + session.extra['session-name'] + '</strong> is running a conference!</td>' + '<td><button class="join">Join</button></td>';
+			tr.innerHTML = '<td>The Session has already started. </td>' + '<td><button class="join btn btn-primary">Join</button></td>';
 			roomsList.insertBefore(tr, roomsList.firstChild);
 
 			var joinRoomButton = tr.querySelector('.join');
@@ -74,26 +73,17 @@
 		var roomsList = document.getElementById('rooms-list');
 		document.getElementById('setup-new-conference').onclick = function() {
 			this.disabled = true;
-			connection.extra = {
-				'session-name': document.getElementById('conference-name').value || 'Anonymous'
-					 };
-			 connection.open();
+			connection.open();
 		};
 		// setup signaling to search existing sessions
 		connection.connect();
-		(function() {
-		 var uniqueToken = document.getElementById('unique-token');
-		 if (uniqueToken)
-		 if (location.hash.length > 2) uniqueToken.parentNode.parentNode.parentNode.innerHTML = '<h2 style="text-align:center;"><a href="' + location.href + '" target="_blank">Share this link</a></h2>';
-		 else uniqueToken.innerHTML = uniqueToken.parentNode.parentNode.href = '#' + (Math.random() * new Date().getTime()).toString(36).toUpperCase().replace( /\./g , '-');
-		 })();
 	</script>
 
 
 	<br>
 	<a class="btn btn-primary" href="/practice/{{ object.pk }}/update/">{% trans "Modify" %}</a>
 	<a class="btn btn-primary" href="/topic/{{ object.pk }}/delete/">{% trans "Delete" %}</a>
-	<a class="btn btn-primary" href="/topic/{{ object.pk }}/start/">{% trans "Start" %}</a>
+	<a id="setup-new-conference" class="btn btn-primary" href="/topic/{{ object.pk }}/start/">{% trans "Start" %}</a>
 	
 	<br>
 	<br>
