@@ -50,7 +50,6 @@ class Migration(SchemaMigration):
             ('creation_date', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2014, 6, 25, 0, 0))),
             ('learners_text', self.gf('tinymce.models.HTMLField')()),
             ('guides_text', self.gf('tinymce.models.HTMLField')()),
-            ('published', self.gf('django.db.models.fields.NullBooleanField')(default=False, null=True, blank=True)),
         ))
         db.send_create_signal(u'lambada', ['Topic'])
 
@@ -183,8 +182,7 @@ class Migration(SchemaMigration):
             'headline': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'language': ('django.db.models.fields.CharField', [], {'default': "'en'", 'max_length': '255'}),
-            'learners_text': ('tinymce.models.HTMLField', [], {}),
-            'published': ('django.db.models.fields.NullBooleanField', [], {'default': 'False', 'null': 'True', 'blank': 'True'})
+            'learners_text': ('tinymce.models.HTMLField', [], {})
         },
         u'lambada.topiclikes': {
             'Meta': {'unique_together': "(('userProfile', 'topic'),)", 'object_name': 'TopicLikes'},
