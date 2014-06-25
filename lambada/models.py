@@ -44,7 +44,7 @@ class Topic(models.Model):
 	creation_date = models.DateTimeField(blank=False, null=False, default=datetime.now())
 	learners_text = HTMLField(_("Enter the Learner's information below. Click here to see an example.")) 
 	guides_text = HTMLField(_("Enter the Guide's information below. Click here to see an example.")) 
-	published = models.NullBooleanField(blank=True, null=True, default=False)
+	#published = models.NullBooleanField(blank=True, null=True, default=False)
 #	text = BleachField()
 	def get_absolute_url(self):
 		return reverse('topic_detail', kwargs={'pk': self.pk})
