@@ -148,7 +148,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'likes.middleware.SecretBallotUserIpUseragentMiddleware',
+    #'likes.middleware.SecretBallotUserIpUseragentMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -185,7 +185,7 @@ INSTALLED_APPS = (
     #'django_bleach',
     'bootstrapform',
     'secretballot',
-    'likes',
+    #'likes',
     'datetimewidget',
 )
 # !! This is needed for Debug Toolbar to work with Gunicorn.
