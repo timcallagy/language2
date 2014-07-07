@@ -32,9 +32,9 @@ LOGIN_URL = os.path.join(TEMPLATE_PATH, '/user_login/')
 
 gettext = lambda s: s
 LANGUAGES = (
-	        ('en', 'English'),
-	        ('ru', 'Russian'),
-	        ('fr', 'French'),
+        ('en', 'English'),
+        ('ru', 'Russian'),
+        ('fr', 'French'),
 )
 
 TINYMCE_JS_ROOT = os.path.join(STATIC_URL, "js/tiny_mce")
@@ -154,6 +154,11 @@ MIDDLEWARE_CLASSES = (
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.core.context_processors.request',
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.media",
+    "django.core.context_processors.static",
+    "django.core.context_processors.tz",
+    "django.contrib.messages.context_processors.messages",
 )
 
 ROOT_URLCONF = 'language2.urls'
@@ -184,7 +189,7 @@ INSTALLED_APPS = (
     #'mce_filebrowser',
     #'django_bleach',
     'bootstrapform',
-    'secretballot',
+    #'secretballot',
     #'likes',
     'datetimewidget',
 )
@@ -202,11 +207,11 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 
-USE_I18N = True
+#USE_I18N = True
 
-USE_L10N = True
+#USE_L10N = True
 
-USE_TZ = True
+#USE_TZ = True
 
 
 # A sample logging configuration. The only tangible logging
