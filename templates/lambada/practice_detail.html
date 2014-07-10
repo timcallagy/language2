@@ -28,9 +28,7 @@
 	<a class="btn btn-primary" href="/practice/{{ object.pk }}/update/">{% trans "Modify" %}</a>
 	<a class="btn btn-primary" href="/topic/{{ object.pk }}/delete/">{% trans "Delete" %}</a>
 	<!--	<a id="setup-new-conference" class="btn btn-primary setup" href="/topic/{{ object.pk }}/start/">{% trans "Start" %}</a> -->
-	<section>
-		<button id="setup-new-conference" class="btn btn-primary setup">{% trans "Start Session" %}</button> 
-	</section>
+	<button id="setup-new-conference" class="btn btn-primary setup">{% trans "Start Session" %}</button> 
 	<h1>{{ object.topic.headline }}</h1>
 	{% trans "Language" %}: {{ object.topic.language  }}<br>
 	{% trans "Date and Time" %}: {{ object.dateTime  }}<br>
@@ -38,51 +36,11 @@
 	<table style="width: 100%;" id="rooms-list"></table>
 	<div id="audios-container"></div>
 
-	<script>
-		var connection = new RTCMultiConnection();
-		connection.session = {
-			audio: true
-		};
-
-		connection.onstream = function(e) {
-			audioContainer.insertBefore(e.mediaElement, audioContainer.firstChild);
-		};
-
-		var sessions = {};
-		connection.onNewSession = function(session) {
-			if (sessions[session.sessionid]) return;
-			sessions[session.sessionid] = session;
-
-			var tr = document.createElement('tr');
-			tr.innerHTML = '<td>The Session has already started. </td>' + '<td><button class="join btn btn-primary">Join</button></td>';
-			roomsList.insertBefore(tr, roomsList.firstChild);
-
-			var joinRoomButton = tr.querySelector('.join');
-			joinRoomButton.setAttribute('data-sessionid', session.sessionid);
-			joinRoomButton.onclick = function() {
-				this.disabled = true;
-				var sessionid = this.getAttribute('data-sessionid');
-				session = sessions[sessionid];
-				if (!session) throw 'No such session exists.';
-				connection.join(session);
-			};
-		};
-
-		var audioContainer = document.getElementById('audios-container') || document.body;
-		var roomsList = document.getElementById('rooms-list');
-		document.getElementById('setup-new-conference').onclick = function() {
-			this.disabled = true;
-			connection.open();
-		};
-		// setup signaling to search existing sessions
-		connection.connect();
-	</script>
-
 
 	<br>
 	<a class="btn btn-primary" href="/practice/{{ object.pk }}/update/">{% trans "Modify" %}</a>
 	<a class="btn btn-primary" href="/topic/{{ object.pk }}/delete/">{% trans "Delete" %}</a>
-	<a id="setup-new-conference" class="btn btn-primary" href="/topic/{{ object.pk }}/start/">{% trans "Start" %}</a>
+	<button id="setup-new-conference" class="btn btn-primary setup">{% trans "Start Session" %}</button> 
 	
 	<br>
 	<br>
