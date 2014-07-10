@@ -29,6 +29,7 @@
 	<a class="btn btn-primary" href="/topic/{{ object.pk }}/delete/">{% trans "Delete" %}</a>
 	<!--	<a id="setup-new-conference" class="btn btn-primary setup" href="/topic/{{ object.pk }}/start/">{% trans "Start" %}</a> -->
 	<button id="setup-new-conference" class="btn btn-primary setup">{% trans "Start Session" %}</button> 
+	<button id="finish-conference" class="btn btn-primary setup">{% trans "Finish Session" %}</button> 
 	<h1>{{ object.topic.headline }}</h1>
 	{% trans "Language" %}: {{ object.topic.language  }}<br>
 	{% trans "Date and Time" %}: {{ object.dateTime  }}<br>
@@ -41,6 +42,7 @@
 	<a class="btn btn-primary" href="/practice/{{ object.pk }}/update/">{% trans "Modify" %}</a>
 	<a class="btn btn-primary" href="/topic/{{ object.pk }}/delete/">{% trans "Delete" %}</a>
 	<button id="setup-new-conference" class="btn btn-primary setup">{% trans "Start Session" %}</button> 
+	<button id="finish-conference" class="btn btn-primary setup">{% trans "Finish Session" %}</button> 
 	
 	<br>
 	<br>
