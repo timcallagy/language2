@@ -57,17 +57,21 @@ $(document).ready(function() {
 		connection.open();
 		$("[id^=setup-new-conference]").hide();
 		$("[id^=finish-conference]").show();
-		navigator.getUserMedia({audio: true}, function(mediaStream) {
-			window.recordRTC = RecordRTC(mediaStream);
-			recordRTC.startRecording();
-		}, function(){alert('Error when trying to record!')} );
+//		navigator.getUserMedia(connection, function(mediaStream) {
+//			alert('In function');
+//			window.recordRTC = RecordRTC(mediaStream);
+//			recordRTC.startRecording();
+//		}, function(){alert('Error when trying to record!')} );
+//		var mediaStream = new MediaStream();
+//		window.recordRTC = RecordRTC(mediaStream);
+//		recordRTC.startRecording();
 	});
 
 	$("[id^=finish-conference]").click(function(){
 		$("[id^=finish-conference]").hide();
-		recordRTC.stopRecording(function(audioURL) {
-			window.open(audioURL);
-		});
+//		recordRTC.stopRecording(function(audioURL) {
+//			window.open(audioURL);
+//		});
 		connection.close();
 	});
 
