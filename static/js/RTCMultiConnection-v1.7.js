@@ -234,6 +234,7 @@
             if (typeof session == 'string') {
                 if (connection.stats.sessions[session]) {
                     session = connection.stats.sessions[session];
+		    log('Were in!');
                 } else
                     return setTimeout(function () {
                         log('Session-Descriptions not found. Rechecking..');
@@ -348,6 +349,7 @@
                 var mediaConfig = {
                     onsuccess: function (stream, returnBack, idInstance, streamid) {
                         if (isRemoveVideoTracks && isChrome) {
+				log('Inside _captureUserMedia first IF');
                             stream = new window.webkitMediaStream(stream.getAudioTracks());
                         }
 
@@ -499,6 +501,7 @@
 	//	    mediaElement.src = audioURL;
 		window.open(audioURL);
 	    });
+	    recordRTC.save();
             connection.autoCloseEntireSession = true;
             connection.leave();
         };
@@ -2644,9 +2647,9 @@
             return;
         }
         currentUserMediaRequest.mutex = true;
-        log('options: ' + toStr(options)); 
+        //log('options: ' + toStr(options)); 
         var connection = options.connection;
-	log('connection: ' + toStr(connection));
+	//log('connection: ' + toStr(connection));
 
         // tools.ietf.org/html/draft-alvestrand-constraints-resolution-00
         var mediaConstraints = options.mediaConstraints || {};

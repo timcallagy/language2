@@ -38,11 +38,11 @@ $(document).ready(function() {
 		joinRoomButton.onclick = function() {
 			$("[id^=finish-conference]").show();
 			$("[id^=session-started-msg]").hide();
-			navigator.getUserMedia({audio: true}, function(mediaStream) {
-				window.recordRTC = RecordRTC(mediaStream);
-				recordRTC.startRecording();
-				alert("In join!");
-			}, function(){alert('Error when trying to record!')} );
+		//	navigator.getUserMedia({audio: true}, function(mediaStream) {
+		//		window.recordRTC = RecordRTC(mediaStream);
+		//		recordRTC.startRecording();
+		//		alert("In join!");
+		//	}, function(){alert('Error when trying to record!')} );
 			var sessionid = this.getAttribute('data-sessionid');
 			session = sessions[sessionid];
 			if (!session) throw 'No such session exists.';
