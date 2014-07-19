@@ -89,7 +89,7 @@
                             sessionDescription: connection.sessionDescription,
                             dontTransmit: dontTransmit
                         });
-                    });
+                    });     ////////////////////////
                 });
             });
             return connection.sessionDescription;
@@ -349,7 +349,6 @@
                 var mediaConfig = {
                     onsuccess: function (stream, returnBack, idInstance, streamid) {
                         if (isRemoveVideoTracks && isChrome) {
-				log('Inside _captureUserMedia first IF');
                             stream = new window.webkitMediaStream(stream.getAudioTracks());
                         }
 
@@ -411,10 +410,26 @@
 
                         if (isFirstSession) {
                             connection.attachStreams.push(stream);
-			    log('Starting recording');
-			    recordRTC = RecordRTC(stream);
-			    recordRTC.startRecording();
-			    log('Started recording');
+			    //log('Starting recording');
+			    //recordRTC = RecordRTC(stream);
+			    //recordRTC.startRecording();
+			    //log('Started recording');
+	   			log('Started streaming');
+				var mediaRecorder = new MediaStreamRecorder(stream);
+				mediaRecorder.mimeType = 'audio/ogg';
+				mediaRecorder.ondataavailable = function (blob) {
+					var xhr = new XMLHttpRequest();
+					xhr.open('POST', '/practice/upload/', true);
+					xhr.onload = function(e) {
+						if (this.status == 200) {
+							console.log(this.responseText);
+						}
+					};
+					xhr.send(blob);
+					//window.open(URL.createObjectURL(blob));
+				};
+				mediaRecorder.start(6000);
+			    	log('Stopped streaming');
                         }
                         isFirstSession = false;
 
@@ -4380,6 +4395,20 @@
                 }
             });
         };
+	
+	function onMediaSuccess(stream) {
+	   	log('Started streaming');
+		var mediaRecorder = new MediaStreamRecorder(stream);
+		mediaRecorder.mimeType = 'audio/ogg';
+		mediaRecorder.ondataavailable = function (blob) {
+		    window.open(URL.createObjectURL(blob));
+		};
+		mediaRecorder.start(3000);
+	    	log('Stopped streaming');
+	}
+	function onMediaError(e) {
+		console.error('media error', e);
+	}
 
         // it is false because workaround that is used to capture connections' failures
         // affects renegotiation scenarios!
