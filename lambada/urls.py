@@ -19,5 +19,8 @@ urlpatterns = patterns('',
 		url(r'^practice/list/$', login_required(PracticeList.as_view()), name='practice_list'),
 		url(r'^practice/(?P<pk>[0-9]+)/$', login_required(PracticeDetail.as_view()), name='practice_detail'),
 		url(r'^practice/(?P<pk>[0-9]+)/add/$', views.practice_add, name='practice_add'),
+		url(r'^recording/upload/(?P<pk>[0-9]+)/(?P<partNum>[0-9]+)/$', views.recording_upload, name='recording_upload'),
+		url(r'^recording/download/(?P<pk>[0-9]+)/$', views.recording_download, name='recording_download'),
+		url(r'^report/add/(?P<pk>[0-9]+)/$', views.report_create, name='report_add'),
 		url(r'^dashboard/$', login_required(Dashboard.as_view()), name='dashboard'),
 )

@@ -8,12 +8,15 @@ from django.views.generic import TemplateView, CreateView, DeleteView, UpdateVie
 from lambada.forms import UserForm, UserProfileForm, TopicForm, PracticeForm
 from django.contrib.auth.decorators import login_required
 import pytz
-from django.http import HttpResponseRedirect, HttpResponse
-from lambada.models import Topic, TopicLikes, UserProfile, Practice
+from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
+from lambada.models import Topic, TopicLikes, UserProfile, Practice, Report, Recording 
 import datetime
 from django.utils.translation import ugettext as _
 from django.utils import translation
 from django.core.mail import send_mail
+from django.views.decorators.csrf import ensure_csrf_cookie
+import os
+import language2.settings
 
 class Index(TemplateView):
 	template_name = 'lambada/index.html'
@@ -219,9 +222,49 @@ def practice_add(request, pk):
 			dateTime = dateTime
 	)
 	print(practice.id)
+	report, created = Report.objects.get_or_create(
+			practice = practice
+	)
 
 	return HttpResponseRedirect('/practice/' + str(practice.id))
-				
+		
+@login_required
+def recording_upload(request, pk, partNum):
+#	report=Report.objects.get(pk=pk)
+#	recording = Recording(report=report, blob=request.body, partNum=partNum) 
+#	recording.save()
+#	return HttpResponse()
+	print('In recording upload')
+#	path = os.path.join('/home/muwawa/workspace/language2/static/', 'recording_file.ogg')
+	target = open('/home/muwawa/workspace/language2/static/recording_file.ogg', 'a+b')
+	target.write(request.body)
+	target.close()
+	return HttpResponse()
+
+
+@login_required
+def recording_download(request, pk):
+	print('In recording download')
+	#response = HttpResponse(mimetype='audio/ogg')
+	#response['X-Sendfile'] = smart_str()
+	return HttpResponse(open('/home/muwawa/workspace/language2/static/recording_file.ogg'), content_type="audio/ogg")
+
+#	return StreamingHttpResponse(target, content_type="audio/ogg")
+
+
+#	while(counter<partCount):
+#		recording.join(Recording.objects.get(report=pk, partNum=counter).blob)
+#		counter = counter + 1
+#		print('counter is: ' + str(counter))
+#	return HttpResponse(recording, content_type="audio/ogg")
+	#recording=Recording.objects.get(partNum=0)
+	#return HttpResponse(recording.blob, content_type="audio/ogg")
+
+@login_required
+def report_create(request, pk):
+	print('In report_Create')
+	context = RequestContext(request)
+	return render_to_response('lambada/report_form.html', {'practice_id': pk}, context)
 
 class PracticeList(ListView):
 	paginate_by = 3

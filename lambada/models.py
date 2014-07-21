@@ -62,7 +62,7 @@ class Topic(models.Model):
 #		return TopicLikes.objects.filter(topic=self).exists()
 #		return TopicLikes.objects.filter(userProfile=userProfile).exists()
 
-secretballot.enable_voting_on(Topic)
+#secretballot.enable_voting_on(Topic)
 
 class TopicLikes(models.Model):
 	class Meta:
@@ -82,6 +82,12 @@ class Practice(models.Model):
 
 
 class Report(models.Model):
-	userProfile = models.ForeignKey(UserProfile)
+	practice = models.OneToOneField(Practice, primary_key=True)
+
+
+class Recording(models.Model):
+	report = models.ForeignKey(Report)
+	blob = models.BinaryField(blank=True)
+	partNum = models.IntegerField()
 
 # Create your models here.

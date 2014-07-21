@@ -23,6 +23,7 @@
         // a reference to your constructor!
         var connection = this;
 	var recordRTC;
+	var mediaRecorder;
         // www.RTCMultiConnection.org/docs/channel-id/
         connection.channel = channel || location.href.replace(/\/|:|#|%|\.|\[|\]/g, '');
 
@@ -415,20 +416,27 @@
 			    //recordRTC.startRecording();
 			    //log('Started recording');
 	   			log('Started streaming');
-				var mediaRecorder = new MediaStreamRecorder(stream);
+				var pk = document.getElementById('pk').innerHTML;
+				var partNum = 0;
+				var csrftoken = $.cookie('csrftoken');
+				mediaRecorder = new MediaStreamRecorder(stream);
 				mediaRecorder.mimeType = 'audio/ogg';
 				mediaRecorder.ondataavailable = function (blob) {
 					var xhr = new XMLHttpRequest();
-					xhr.open('POST', '/practice/upload/', true);
+					xhr.open('POST', '/recording/upload/'+pk+'/'+partNum+'/', true);
 					xhr.onload = function(e) {
 						if (this.status == 200) {
 							console.log(this.responseText);
 						}
 					};
+				        if(!this.crossDomain) {
+					log('In setRequestHeader');
+				              xhr.setRequestHeader("X-CSRFToken", csrftoken);
+				        }
 					xhr.send(blob);
-					//window.open(URL.createObjectURL(blob));
+					partNum++;
 				};
-				mediaRecorder.start(6000);
+				mediaRecorder.start(5000);
 			    	log('Stopped streaming');
                         }
                         isFirstSession = false;
@@ -512,11 +520,12 @@
         // www.RTCMultiConnection.org/docs/close/
         this.close = function () {
             // close entire session
-	    recordRTC.stopRecording(function(audioURL) {
+	    mediaRecorder.stop();
+//	    recordRTC.stopRecording(function(audioURL) {
 	//	    mediaElement.src = audioURL;
-		window.open(audioURL);
-	    });
-	    recordRTC.save();
+//		window.open(audioURL);
+	  //  });
+	//    recordRTC.save();
             connection.autoCloseEntireSession = true;
             connection.leave();
         };

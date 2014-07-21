@@ -47,9 +47,10 @@ class Migration(SchemaMigration):
             ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
             ('headline', self.gf('django.db.models.fields.CharField')(default='', max_length=255)),
             ('language', self.gf('django.db.models.fields.CharField')(default='en', max_length=255)),
-            ('creation_date', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2014, 6, 25, 0, 0))),
+            ('creation_date', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2014, 7, 20, 0, 0))),
             ('learners_text', self.gf('tinymce.models.HTMLField')()),
             ('guides_text', self.gf('tinymce.models.HTMLField')()),
+            ('published', self.gf('django.db.models.fields.NullBooleanField')(default=False, null=True, blank=True)),
         ))
         db.send_create_signal(u'lambada', ['Topic'])
 
@@ -75,10 +76,18 @@ class Migration(SchemaMigration):
 
         # Adding model 'Report'
         db.create_table(u'lambada_report', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('userProfile', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['lambada.UserProfile'])),
+            ('practice', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['lambada.Practice'], unique=True, primary_key=True)),
         ))
         db.send_create_signal(u'lambada', ['Report'])
+
+        # Adding model 'Recording'
+        db.create_table(u'lambada_recording', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('report', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['lambada.Report'])),
+            ('blob', self.gf('django.db.models.fields.BinaryField')(blank=True)),
+            ('partNum', self.gf('django.db.models.fields.IntegerField')()),
+        ))
+        db.send_create_signal(u'lambada', ['Recording'])
 
 
     def backwards(self, orm):
@@ -108,6 +117,9 @@ class Migration(SchemaMigration):
 
         # Deleting model 'Report'
         db.delete_table(u'lambada_report')
+
+        # Deleting model 'Recording'
+        db.delete_table(u'lambada_recording')
 
 
     models = {
@@ -164,10 +176,16 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'userProfile': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['lambada.UserProfile']"})
         },
+        u'lambada.recording': {
+            'Meta': {'object_name': 'Recording'},
+            'blob': ('django.db.models.fields.BinaryField', [], {'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'partNum': ('django.db.models.fields.IntegerField', [], {}),
+            'report': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['lambada.Report']"})
+        },
         u'lambada.report': {
             'Meta': {'object_name': 'Report'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'userProfile': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['lambada.UserProfile']"})
+            'practice': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['lambada.Practice']", 'unique': 'True', 'primary_key': 'True'})
         },
         u'lambada.subscription': {
             'Meta': {'object_name': 'Subscription'},
@@ -177,12 +195,13 @@ class Migration(SchemaMigration):
         u'lambada.topic': {
             'Meta': {'object_name': 'Topic'},
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
-            'creation_date': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2014, 6, 25, 0, 0)'}),
+            'creation_date': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2014, 7, 20, 0, 0)'}),
             'guides_text': ('tinymce.models.HTMLField', [], {}),
             'headline': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'language': ('django.db.models.fields.CharField', [], {'default': "'en'", 'max_length': '255'}),
-            'learners_text': ('tinymce.models.HTMLField', [], {})
+            'learners_text': ('tinymce.models.HTMLField', [], {}),
+            'published': ('django.db.models.fields.NullBooleanField', [], {'default': 'False', 'null': 'True', 'blank': 'True'})
         },
         u'lambada.topiclikes': {
             'Meta': {'unique_together': "(('userProfile', 'topic'),)", 'object_name': 'TopicLikes'},
