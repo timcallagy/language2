@@ -16,7 +16,7 @@ from django.utils import translation
 from django.core.mail import send_mail
 from django.views.decorators.csrf import ensure_csrf_cookie
 import os
-import language2.settings
+from django.conf import settings
 
 class Index(TemplateView):
 	template_name = 'lambada/index.html'
@@ -234,9 +234,10 @@ def recording_upload(request, pk, partNum):
 #	recording = Recording(report=report, blob=request.body, partNum=partNum) 
 #	recording.save()
 #	return HttpResponse()
-	print('In recording upload')
-#	path = os.path.join('/home/muwawa/workspace/language2/static/', 'recording_file.ogg')
-	target = open('/home/muwawa/workspace/language2/static/recording_file.ogg', 'a+b')
+	print('In recording upload'+settings.STATIC_PATH + '/recordings/session_' + pk + '_recording.ogg')
+#	path = os.path.join(settings.STATIC_PATH, pk, 'recording.ogg')
+#	path = os.path.join(, 'recording_file.ogg')
+	target = open(settings.STATIC_PATH + '/recordings/session_' + pk + '_recording.ogg', 'a+b')
 	target.write(request.body)
 	target.close()
 	return HttpResponse()
@@ -247,7 +248,7 @@ def recording_download(request, pk):
 	print('In recording download')
 	#response = HttpResponse(mimetype='audio/ogg')
 	#response['X-Sendfile'] = smart_str()
-	return HttpResponse(open('/home/muwawa/workspace/language2/static/recording_file.ogg'), content_type="audio/ogg")
+	return HttpResponse(open(settings.STATIC_PATH + '/recordings/session_' + pk + '_recording.ogg'), content_type="audio/ogg")
 
 #	return StreamingHttpResponse(target, content_type="audio/ogg")
 
