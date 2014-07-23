@@ -46,6 +46,7 @@ def register(request):
 				profile = profile_form.save(commit=False)
 				profile.user = user
 				profile.timezone = request.POST['timezone']
+				request.session['django_timezone'] = request.POST['timezone']
 				profile.language = request.POST['language']
 				profile.save()
 				user = authenticate(username=user.username, password=request.POST['password'])
@@ -74,6 +75,7 @@ def user_login(request):
 		if user:
 			login(request, user)
 			language = UserProfile.objects.get(user=request.user.id).language
+			request.session['django_timezone'] = UserProfile.objects.get(user=request.user.id).timezone
 			request.session['django_language'] = language
 			return HttpResponseRedirect('/dashboard/')
 		else:
@@ -154,24 +156,9 @@ class TopicUpdate(UpdateView):
 	form_class = TopicForm
 	template_name = 'lambada/topic_update.html'
 
-	# This code gets User and Profile forms to display in the Registration popup box.
-	def get_context_data(self, **kwargs):
-		context = super(TopicUpdate, self).get_context_data(**kwargs)
-		context['user_form'] = UserForm()
-		context['userprofile_form'] = UserProfileForm()
-		return context
-
 
 class TopicDetail(DetailView):
 	model = Topic
-
-	# This code gets User and Profile forms to display in the Registration popup box.
-	def get_context_data(self, **kwargs):
-		context = super(TopicDetail, self).get_context_data(**kwargs)
-		context['user_form'] = UserForm()
-		context['userprofile_form'] = UserProfileForm()
-		context['likes'] = 3
-		return context
 
 
 class TopicList(ListView):
@@ -209,24 +196,41 @@ def like_topic(request):
 		likes = TopicLikes.objects.filter(topic=topic).count()
 		return HttpResponse(likes)
 
+
+@login_required
+def practice_payment(request, pk):
+	context = RequestContext(request)
+	topic = Topic.objects.get(pk=pk)
+	naive = datetime.datetime.strptime(request.POST.get('dateTime_0', datetime.datetime.now), '%Y-%m-%d %H:%M:%S')
+	print('practice_payment dateTime NAIVE: ' + str(naive))
+	tz = pytz.timezone(request.session['django_timezone'])
+	aware = tz.localize(naive)
+	print('practice_payment dateTime AWARE: ' + str(aware))
+	return render_to_response('lambada/practice_payment.html', {'object': topic, 'dateTime': aware}, context)
+	
 @login_required
 def practice_add(request, pk):
 	context = RequestContext(request)
 	user_id=request.user.id
 	user = User.objects.get(pk=user_id)
 	topic = Topic.objects.get(pk=pk)
-	dateTime = datetime.datetime.strptime(request.POST.get('dateTime_0', datetime.datetime.now), '%d/%m/%Y %H:%M')
+	dateTime = request.POST.get('dateTime_0')
+	print('practice_payment dateTime AWARE: ' + str(dateTime))
 	practice, created = Practice.objects.get_or_create(
 			user = request.user,
 			topic = topic,
-			dateTime = dateTime
+			dateTime = dateTime,
+			### TO DO ###
+			### Smart coach picking ##
+			coach = "farty"
 	)
 	print(practice.id)
 	report, created = Report.objects.get_or_create(
 			practice = practice
 	)
 
-	return HttpResponseRedirect('/practice/' + str(practice.id))
+#	return HttpResponseRedirect('/practice/' + str(practice.id))
+	return HttpResponseRedirect('/practice/list/')
 		
 @login_required
 def recording_upload(request, pk, partNum):
@@ -248,7 +252,7 @@ def recording_download(request, pk):
 	print('In recording download')
 	#response = HttpResponse(mimetype='audio/ogg')
 	#response['X-Sendfile'] = smart_str()
-	return HttpResponse(open(settings.STATIC_PATH + '/recordings/session_' + pk + '_recording.ogg'), content_type="audio/ogg")
+	return StreamingHttpResponse(open(settings.STATIC_PATH + '/recordings/session_' + pk + '_recording.ogg'), content_type="audio/ogg")
 
 #	return StreamingHttpResponse(target, content_type="audio/ogg")
 
@@ -267,24 +271,51 @@ def report_create(request, pk):
 	context = RequestContext(request)
 	return render_to_response('lambada/report_form.html', {'practice_id': pk}, context)
 
+
 class PracticeList(ListView):
 	paginate_by = 3
 	template_name = 'lambada/practice_list.html'
 
 	def get_queryset (self):
-		return Topic.objects.filter(published=True).exclude(created_by=self.request.user)
+		return Practice.objects.filter(user=self.request.user)
 
-	# This code gets User and Profile forms to display in the Registration popup box.
+
+class PracticeBook(ListView):
+	paginate_by = 3
+	template_name = 'lambada/practice_book.html'
+
+	def get_queryset (self):
+		return Topic.objects.filter(published=True).exclude(created_by=self.request.user)
+		
 	def get_context_data(self, **kwargs):
-		context = super(PracticeList, self).get_context_data(**kwargs)
-		context['user_form'] = UserForm()
-		context['userprofile_form'] = UserProfileForm()
+		context = super(PracticeBook, self).get_context_data(**kwargs)
+		context['practice_form'] = PracticeForm()
+		return context
+
+
+class PracticeTopicDetail(DetailView):
+	model = Topic
+	template_name = 'lambada/practice_topic_detail.html'
+
+	def get_context_data(self, **kwargs):
+		context = super(PracticeTopicDetail, self).get_context_data(**kwargs)
 		context['practice_form'] = PracticeForm()
 		return context
 
 
 class PracticeDetail(DetailView):
 	model = Practice
+
+
+class PracticeDelete(DeleteView):
+	model = Practice
+	success_url = '/practice/list/'
+
+
+class PracticeUpdate(UpdateView):
+	model = Practice 
+	form_class = PracticeForm
+	template_name = 'lambada/practice_update.html'
 
 
 class Dashboard(TemplateView):
@@ -296,3 +327,30 @@ class Dashboard(TemplateView):
 		context['user_form'] = UserForm()
 		context['userprofile_form'] = UserProfileForm()
 		return context
+
+
+class CoachList(ListView):
+	paginate_by = 3
+	template_name = 'lambada/coach_list.html'
+
+	def get_queryset (self):
+		return Practice.objects.filter(coach=self.request.user)
+
+
+#class CoachPracticeDetail(DetailView):
+#	model = Topic
+#	template_name = 'lambada/coach_practice_detail.html'
+
+
+@login_required
+def coach_practice_detail(request, pk):
+	context = RequestContext(request)
+	practice = Practice.objects.get(pk=pk)
+	topic = practice.topic
+	return render_to_response('lambada/coach_practice_detail.html', {'topic': topic, 'practice': practice}, context)
+
+@login_required
+def coach_practice_cancel(request, pk):
+	### TO DO ###
+	### REmove this coach and assign a new one ###
+	return HttpResponse('Error: Coach cancellation not implemented yet.')

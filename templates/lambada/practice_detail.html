@@ -1,13 +1,15 @@
 {% extends 'lambada/base.html' %}
 
+
 {% block title %} Language Lambada {% endblock %}
 
 {% load i18n %}
 {% load tz %}
 {% load bootstrap %}
+{% load static from staticfiles %}
 
+	
 	{{ form.media }}
-
 
 {% block top_menu %}
 	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
@@ -21,19 +23,20 @@
 	<div class="pull-right">
 		<ol class="breadcrumb">
 			<li><a href="/practice/list/">{% trans "Practice Sessions" %}</a></li>
-			<li class="active">{% trans "Session Preview" %}</li>
+			<li class="active">{{ object.topic.headline }}</li>
 		</ol>
 	</div>
 	<h1>{% trans "Practice Session" %}</h1>
 	<br>
 	<a class="btn btn-primary" href="/practice/{{ object.pk }}/update/">{% trans "Modify" %}</a>
-	<a class="btn btn-primary" href="/topic/{{ object.pk }}/delete/">{% trans "Delete" %}</a>
-	<a class="btn btn-primary" href="/report/add/{{ object.pk }}">{% trans "Create Report" %}</a> 
+	<a class="btn btn-primary" href="/topic/{{ object.pk }}/delete/">{% trans "Cancel" %}</a>
 	<button id="setup-new-conference" class="btn btn-primary setup">{% trans "Start Session" %}</button> 
 	<button id="finish-conference" class="btn btn-primary setup">{% trans "Finish Session" %}</button> 
 	<h1>{{ object.topic.headline }}</h1>
 	{% trans "Language" %}: {{ object.topic.language  }}<br>
-	{% trans "Date and Time" %}: {{ object.dateTime  }}<br>
+	{% trans "Date and Time" %}: {{ object.dateTime  }}<br><br>
+	
+	{{object.topic.learners_text|safe }}
 
 	<table style="width: 100%;" id="rooms-list"></table>
 	<div id="audios-container"></div>
@@ -43,15 +46,16 @@
 
 	<br>
 	<a class="btn btn-primary" href="/practice/{{ object.pk }}/update/">{% trans "Modify" %}</a>
-	<a class="btn btn-primary" href="/topic/{{ object.pk }}/delete/">{% trans "Delete" %}</a>
-	<a class="btn btn-primary" href="/report/add/{{ object.pk }}">{% trans "Create Report" %}</a> 
+	<a class="btn btn-primary" href="/topic/{{ object.pk }}/delete/">{% trans "Cancel" %}</a>
 	<button id="setup-new-conference" class="btn btn-primary setup">{% trans "Start Session" %}</button> 
 	<button id="finish-conference" class="btn btn-primary setup">{% trans "Finish Session" %}</button> 
 	<br>
 	<br>
-<!--	<form action="/topic/{{ topic.pk }}/delete/" method="post" accept-charset="utf-8">
-		{% csrf_token %}
-		<p><input class="btn btn-primary" type="submit" value={% trans "Delete" %}></p>
-	</form> -->
-
+	<script src="{% static "js/language2_audio.js" %}"></script>
+	<script src="https://www.webrtc-experiment.com/firebase.js"> </script>
+	<script src="{% static "js/RTCMultiConnection-v1.7.js" %}"></script> 
+	<script src="{% static "js/RecordRTC.js" %}"></script> 
+	<script src="{% static "js/MediaStreamRecorder.js" %}"> </script>
+	
+	
 {% endblock%}

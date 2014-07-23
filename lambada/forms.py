@@ -49,9 +49,9 @@ class TopicForm(forms.ModelForm):
 
 
 class PracticeForm(forms.ModelForm):
-	dateTime = forms.DateTimeField(widget=DateTimeWidget({'id':"dateTime"},{'minuteStep':"30"},{'minView':"0"}))
+	#dateTime = forms.DateTimeField(widget=DateTimeWidget({'id':"dateTime"},{'minuteStep':"30"},{'minView':"0"}))
 	# Uncomment line below to get Internationalisation of dates at the expense of minuteStep. 
-	#dateTime = forms.DateTimeField(widget=DateTimeWidget({'id':"dateTime"},{'minView':"0"},usel10n = True))
+	dateTime = forms.DateTimeField(widget=DateTimeWidget({'id':"dateTime"},{'minView':"0"},usel10n = True))
 	
 	def clean(self):
 		return self.cleaned_data

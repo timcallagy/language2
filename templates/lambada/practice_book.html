@@ -19,47 +19,46 @@
 {% block body %}
 	<div class="pull-right">
 		<ol class="breadcrumb">
-			<li class="active">{% trans "Practice Sessions" %}</li>
+			<li><a href="/practice/list/">{% trans "Practice Sessions" %}</a></li>
+			<li class="active">{% trans "Book a Session" %}</li>
 		</ol>
 	</div>
-	<h1>{% trans "Practice Sessions" %}</h1>
+	<h1>{% trans "Practice Session Topics" %}</h1>
 	<br>
 	<div class="panel panel-primary">
-		<div class="panel-heading">{% trans "Your Upcoming Practice Sessions" %}</div>
-		{% if practice_list %}
+		<div class="panel-heading">{% trans "Practice Session Topics" %}</div>
+		{% if topic_list %}
 			<div class="panel-body">
-				<p>{% trans "Start a session, modify a session, cancel a session, or view a session report." %}</p>
-				<p>{% trans "Book a Session by clicking below!" %}</p>
-				<a class="btn btn-primary" href="/practice/book/">{% trans "Book a Session" %}</a><br>
+				<p>{% trans "Choose a Topic for your Practice Session." %}</p>
 			</div>
 		{% else %}
 			<div class="panel-body">
-				<p>{% trans "You have no upcoming Practice Sessions! Book a session below." %}</p>
-				<a class="btn btn-primary" href="/practice/book/">{% trans "Book a Session" %}</a><br>
+				<p>{% trans "There are no Topics available!" %}</p>
 			</div>
 		{% endif %}
 		<ul class="list-group">
-			{% for practice in practice_list %}
+			{% for topic in topic_list %}
 				<li class="list-group-item">
-					<h3>{{practice.topic.headline}}</h3>
+					<h3>{{topic.headline}}</h3>
+					<strong>{% trans "Language" %}: </strong>{{topic.language}}
+
+					<br>
+					<a class="btn btn-primary" href="/practice/topic/{{ topic.pk }}/">{% trans "View" %}</a><br>
 					{% localtime on %}
-					<strong>{% trans "When" %}: </strong>{{practice.dateTime}}
-					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}}
-					<a class="btn btn-primary" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br>
-					<a class="btn btn-primary" href="/practice/{{ practice.pk }}/update/">{% trans "Modify" %}</a><br>
-					<form action="/practice/{{ practice.pk }}/delete/" method="post" accept-charset="utf-8">
-				                {% csrf_token %}
-				                <p><input class="btn btn-primary" type="submit" value={% trans "Cancel" %}></p>
-				        </form>
+					<form id="booking-form" class="form form-horizontal" action="/practice/book/payment/{{ topic.pk }}/" method="post" accept-charset="utf-8">
+						{% csrf_token %}
+						{{ practice_form.as_table }} 
+						<p><input id="booking-btn" class="btn btn-primary" type="submit" value={% trans "Book Session" %}></p>
+					</form>
+
 					{% endlocaltime %}
 					
 				</li>
 			{% endfor %}
 		</ul>
 	</div>	
-	<br>
 
-		{% if is_paginated %}
+	{% if is_paginated %}
 		<ul class="pagination">
 			    {% if page_obj.has_previous %}
 				    <li><a href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>

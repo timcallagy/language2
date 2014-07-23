@@ -1,0 +1,45 @@
+{% extends 'lambada/base.html' %}
+
+{% block title %} Language Lambada {% endblock %}
+
+{% load i18n %}
+{% load tz %}
+{% load static from staticfiles %}
+
+{% block top_menu %}
+	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
+	<li><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
+	<li class="active"><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
+	<li><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
+	<li><a href="/help/">{% trans "How does this work?" %}</a></li>
+{% endblock %}
+
+
+{% block body %}
+
+	<div class="pull-right">
+		<ol class="breadcrumb">
+			<li><a href="/practice/list/">{% trans "Coaching Sessions" %}</a></li>
+			<li class="active">{{ topic.headline }}</li>
+		</ol>
+	</div>
+	<br>
+	<h1>{{ topic.headline }}</h1>
+	{% trans "Created by" %}: {{ topic.created_by  }}<br>
+	{% trans "Language" %}: {{ topic.language  }}<br><br>
+	{% trans "Starting" %}: {{ practice.dateTime  }}<br><br>
+	<button id="setup-new-conference" class="btn btn-primary setup">{% trans "Start Session" %}</button> 
+	<button id="finish-conference" class="btn btn-primary setup">{% trans "Finish Session" %}</button> 
+	<table style="width: 100%;" id="rooms-list"></table>
+	<div id="audios-container"></div>
+	{{ topic.guides_text|safe  }}<br>
+	<br>
+	<br>
+	
+	<script src="{% static "js/language2_audio.js" %}"></script>
+	<script src="https://www.webrtc-experiment.com/firebase.js"> </script>
+	<script src="{% static "js/RTCMultiConnection-v1.7.js" %}"></script> 
+	<script src="{% static "js/RecordRTC.js" %}"></script> 
+	<script src="{% static "js/MediaStreamRecorder.js" %}"> </script>
+
+{% endblock%}

@@ -1,0 +1,33 @@
+{% extends 'lambada/base.html' %}
+
+{% block title %} Language Lambada {% endblock %}
+
+{% load i18n %}
+{% load tz %}
+{% load bootstrap %}
+
+{% block top_menu %}
+	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
+	<li class="active"><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
+	<li><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
+	<li><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
+	<li><a href="/help/">{% trans "How does this work?" %}</a></li>
+{% endblock %}
+
+{% block body %}
+	<div class="pull-right">
+		<ol class="breadcrumb">
+			<li><a href="/practice/list/">{% trans "Practice Sessions" %}</a></li>
+			<li class="active">{% trans "Modify a Session Booking" %}</li>
+		</ol>
+	</div>
+	<h1>{% trans "Modify a Session Booking" %}</h1>
+	
+	<form class="form form-horizontal" action="/practice/{{ object.pk }}/update/" method="post" accept-charset="utf-8">
+		<p><input class="btn btn-primary" type="submit" value={% trans "Update" %}></p>
+		{% csrf_token %}
+		{{ form|bootstrap_horizontal }} 
+		<p><input class="btn btn-primary" type="submit" value={% trans "Update" %}></p>
+	</form>
+
+{% endblock%}

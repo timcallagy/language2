@@ -10,8 +10,8 @@
 
 {% block top_menu %}
 	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
-	<li class="active"><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
-	<li><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
+	<li><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
+	<li class="active"><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
 	<li><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
 	<li><a href="/help/">{% trans "How does this work?" %}</a></li>
 {% endblock %}
@@ -19,23 +19,20 @@
 {% block body %}
 	<div class="pull-right">
 		<ol class="breadcrumb">
-			<li class="active">{% trans "Practice Sessions" %}</li>
+			<li class="active">{% trans "Coaching Sessions" %}</li>
 		</ol>
 	</div>
-	<h1>{% trans "Practice Sessions" %}</h1>
+	<h1>{% trans "Coaching Sessions" %}</h1>
 	<br>
 	<div class="panel panel-primary">
-		<div class="panel-heading">{% trans "Your Upcoming Practice Sessions" %}</div>
+		<div class="panel-heading">{% trans "Your Upcoming Coaching Sessions" %}</div>
 		{% if practice_list %}
 			<div class="panel-body">
-				<p>{% trans "Start a session, modify a session, cancel a session, or view a session report." %}</p>
-				<p>{% trans "Book a Session by clicking below!" %}</p>
-				<a class="btn btn-primary" href="/practice/book/">{% trans "Book a Session" %}</a><br>
+				<p>{% trans "Prepare for a session, Start a session, cancel a session, or manage session reports." %}</p>
 			</div>
 		{% else %}
 			<div class="panel-body">
-				<p>{% trans "You have no upcoming Practice Sessions! Book a session below." %}</p>
-				<a class="btn btn-primary" href="/practice/book/">{% trans "Book a Session" %}</a><br>
+				<p>{% trans "You have no upcoming Coaching Sessions!" %}</p>
 			</div>
 		{% endif %}
 		<ul class="list-group">
@@ -45,9 +42,8 @@
 					{% localtime on %}
 					<strong>{% trans "When" %}: </strong>{{practice.dateTime}}
 					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}}
-					<a class="btn btn-primary" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br>
-					<a class="btn btn-primary" href="/practice/{{ practice.pk }}/update/">{% trans "Modify" %}</a><br>
-					<form action="/practice/{{ practice.pk }}/delete/" method="post" accept-charset="utf-8">
+					<a class="btn btn-primary" href="/coach/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br>
+					<form action="/coach/practice/{{ practice.pk }}/cancel/" method="post" accept-charset="utf-8">
 				                {% csrf_token %}
 				                <p><input class="btn btn-primary" type="submit" value={% trans "Cancel" %}></p>
 				        </form>

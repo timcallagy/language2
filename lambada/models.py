@@ -78,8 +78,11 @@ class Practice(models.Model):
 	user = models.ForeignKey(User)
 	topic = models.ForeignKey(Topic)
 	dateTime= models.DateTimeField(_(u"Practice Session Time"))
+	coach = models.CharField(_("Coach"), max_length=255, blank=True, null=True, default='')
 	#dateTime = models.ForeignKey(PracticeDateTime)
 
+	def get_absolute_url(self):
+		return reverse('practice_list')
 
 class Report(models.Model):
 	practice = models.OneToOneField(Practice, primary_key=True)
@@ -87,7 +90,7 @@ class Report(models.Model):
 
 class Recording(models.Model):
 	report = models.ForeignKey(Report)
-	blob = models.BinaryField(blank=True)
+	#blob = models.BinaryField(blank=True)
 	partNum = models.IntegerField()
 
 # Create your models here.

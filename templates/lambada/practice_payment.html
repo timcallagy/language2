@@ -1,0 +1,42 @@
+{% extends 'lambada/base.html' %}
+
+{% block title %} Language Lambada {% endblock %}
+
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+
+{% block top_menu %}
+	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
+	<li class="active"><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
+	<li><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
+	<li><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
+	<li><a href="/help/">{% trans "How does this work?" %}</a></li>
+{% endblock %}
+
+
+{% block body %}
+
+	<div class="pull-right">
+		<ol class="breadcrumb">
+			<li><a href="/practice/list/">{% trans "Practice Sessions" %}</a></li>
+			<li><a href="/practice/book/">{% trans "Book a Session" %}</a></li>
+			<li><a href="/practice/topic/{{ object.pk }}">{{ object.headline }}</a></li>
+				<li class="active">{% trans "Payment" %}</li>
+		</ol>
+	</div>
+	<br>
+	<h1>{{ object.headline }}</h1>
+	<!--	<form id="booking-form" class="form form-horizontal" action="/practice/{{ topic.pk }}/add/" method="post" accept-charset="utf-8"> -->
+	<br>
+	Insert payment instructions here
+	<br>
+	<br>
+		<form id="booking-form" class="form form-horizontal" action="/practice/{{ object.pk }}/add/" method="post" accept-charset="utf-8">
+			{% csrf_token %}
+			<input type="hidden" id="dateTime_0" name="dateTime_0" value="{{ dateTime|unlocalize }}" />
+			<input type="hidden" id="topic_pk" name="topic_pk" value="{{ object.pk }}" />
+			<p><input id="booking-btn" class="btn btn-primary" type="submit" value={% trans "Complete Payment" %}></p>
+		</form>
+	<br>
+{% endblock%}

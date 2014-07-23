@@ -93,7 +93,8 @@ ALLOWED_HOSTS = ['*']
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
 # In a Windows environment this must be set to your system time zone.
-TIME_ZONE = 'America/Chicago'
+# This is the 'Default time zone'.
+TIME_ZONE = 'UTC'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -145,6 +146,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'language2.timezoneMiddleware.TimezoneMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -193,27 +195,6 @@ INSTALLED_APPS = (
     #'likes',
     'datetimewidget',
 )
-# !! This is needed for Debug Toolbar to work with Gunicorn.
-#DEBUG_TOOLBAR_PATCH_SETTINGS = False
-#INTERNAL_IPS = ('127.0.0.1',)
-#DEBUG_TOOLBAR_CONFIG = {
-#	'SHOW_TEMPLATE_CONTEXT': True,
-#}
-
-# Internationalization
-# https://docs.djangoproject.com/en/1.6/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
-#USE_I18N = True
-
-#USE_L10N = True
-
-#USE_TZ = True
-
-
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.
