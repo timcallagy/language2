@@ -1,6 +1,6 @@
 $(document).ready(function() {
 
-
+	
 	$("[id^=finish-conference]").hide();
 
 	var connection = new RTCMultiConnection();
@@ -12,9 +12,11 @@ $(document).ready(function() {
 		audioContainer.insertBefore(e.mediaElement, audioContainer.firstChild);
 	};
 
-
+	
+	if (!location.href.contains('coach')) {
 	var sessions = {};
 	connection.onNewSession = function(session) {
+		console.log('stream - In Connection.onNewSession of language2_audio.');
 		if (sessions[session.sessionid]) return;
 		sessions[session.sessionid] = session;
 
@@ -32,8 +34,10 @@ $(document).ready(function() {
 			var sessionid = this.getAttribute('data-sessionid');
 			session = sessions[sessionid];
 			if (!session) throw 'No such session exists.';
+			console.log('Session to join: ' + session);
 			connection.join(session);
 		};
+	};
 	};
 
 	var audioContainer = document.getElementById('audios-container') || document.body;
@@ -47,6 +51,7 @@ $(document).ready(function() {
 
 	$("[id^=finish-conference]").click(function(){
 		$("[id^=finish-conference]").hide();
+		$("[id^=setup-new-conference]").show();
 		connection.close();
 	});
 

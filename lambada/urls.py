@@ -31,4 +31,6 @@ urlpatterns = patterns('',
 		url(r'^coach/practice/(?P<pk>[0-9]+)/cancel/$', views.coach_practice_cancel, name='coach_practice_cancel'),
 		url(r'^report/add/(?P<pk>[0-9]+)/$', views.report_create, name='report_add'),
 		url(r'^dashboard/$', login_required(Dashboard.as_view()), name='dashboard'),
+		url(r'^practice/call_setup/(?P<pk>[0-9]+)/$', views.call_setup, name='call_setup'),
+		url(r'^practice/call_join/(?P<pk>[0-9]+)/$', views.call_join, name='call_join'),
 )

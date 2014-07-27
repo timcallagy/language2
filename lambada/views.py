@@ -9,7 +9,7 @@ from lambada.forms import UserForm, UserProfileForm, TopicForm, PracticeForm
 from django.contrib.auth.decorators import login_required
 import pytz
 from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
-from lambada.models import Topic, TopicLikes, UserProfile, Practice, Report, Recording 
+from lambada.models import Topic, TopicLikes, UserProfile, Practice, Report, Recording, Channel
 import datetime
 from django.utils.translation import ugettext as _
 from django.utils import translation
@@ -17,6 +17,8 @@ from django.core.mail import send_mail
 from django.views.decorators.csrf import ensure_csrf_cookie
 import os
 from django.conf import settings
+import json
+from django.core import serializers
 
 class Index(TemplateView):
 	template_name = 'lambada/index.html'
@@ -241,7 +243,11 @@ def recording_upload(request, pk, partNum):
 	print('In recording upload'+settings.STATIC_PATH + '/recordings/session_' + pk + '_recording.ogg')
 #	path = os.path.join(settings.STATIC_PATH, pk, 'recording.ogg')
 #	path = os.path.join(, 'recording_file.ogg')
-	target = open(settings.STATIC_PATH + '/recordings/session_' + pk + '_recording.ogg', 'a+b')
+	coachLeg = request.META['HTTP_COACH_LEG']
+	if coachLeg == 'false':
+		target = open(settings.STATIC_PATH + '/recordings/learner_session_' + pk + '_recording.ogg', 'a+b')
+	else:	
+		target = open(settings.STATIC_PATH + '/recordings/coach_session_' + pk + '_recording.ogg', 'a+b')
 	target.write(request.body)
 	target.close()
 	return HttpResponse()
@@ -354,3 +360,24 @@ def coach_practice_cancel(request, pk):
 	### TO DO ###
 	### REmove this coach and assign a new one ###
 	return HttpResponse('Error: Coach cancellation not implemented yet.')
+
+
+@login_required
+def call_setup(request, pk):
+	response_data = {}
+	message = request.POST.get('message')
+	Channel.objects.filter(practice_pk=pk).delete()
+	channel = Channel(practice_pk=pk, message=message)
+	channel.save()
+	response_data['message'] = 'success'
+	return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+
+@login_required
+def call_join(request, pk):
+	try:
+		channel = Channel.objects.filter(practice_pk=pk)
+		data = serializers.serialize("json", channel)
+	except Channel.DoesNotExist:
+		return HttpResponse()
+	return HttpResponse(data, mimetype = "application/json")

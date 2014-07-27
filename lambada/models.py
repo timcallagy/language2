@@ -93,4 +93,8 @@ class Recording(models.Model):
 	#blob = models.BinaryField(blank=True)
 	partNum = models.IntegerField()
 
+
+class Channel(models.Model):
+	practice_pk = models.CharField(max_length=255, blank=True, null=True)
+	message = models.CharField(max_length=3000, blank=True, null=True)
 # Create your models here.
