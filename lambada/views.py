@@ -258,7 +258,7 @@ def recording_download(request, pk):
 	print('In recording download')
 	#response = HttpResponse(mimetype='audio/ogg')
 	#response['X-Sendfile'] = smart_str()
-	return StreamingHttpResponse(open(settings.STATIC_PATH + '/recordings/session_' + pk + '_recording.ogg'), content_type="audio/ogg")
+	return StreamingHttpResponse(open(settings.STATIC_PATH + '/recordings/learner_session_' + pk + '_recording.ogg'), content_type="audio/ogg")
 
 #	return StreamingHttpResponse(target, content_type="audio/ogg")
 
