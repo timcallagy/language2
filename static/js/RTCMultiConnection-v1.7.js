@@ -24,14 +24,93 @@
         var connection = this;
 	var recordRTC;
 	var mediaRecorder;
+	var onMessageCallbacks = {};
+	var messagesReceived = {};
 	var coachLeg;
-        // www.RTCMultiConnection.org/docs/channel-id/
+
+	function xhr(url, callback, data) {
+   	        if (!window.XMLHttpRequest || !window.JSON) return;
+	   	var request = new XMLHttpRequest();
+	        request.onreadystatechange = function () {
+	        	if (callback && request.readyState == 4 && request.status == 200) {
+		        	// server MUST return JSON text
+			        callback(JSON.parse(request.responseText));
+		        }
+		};
+
+		request.open('POST', url);
+
+		var formData = new FormData();
+
+		// you're passing "message" parameter
+		formData.append('message', data);
+		if(!this.crossDomain) {
+		      var csrftoken = $.cookie('csrftoken');
+		      request.setRequestHeader("X-CSRFToken", csrftoken);
+		}
+		request.setRequestHeader("COACH_LEG", coachLeg);
+
+	        request.send(formData);
+         }
 	
+
+	function repeatedlyCheck() {
+		var practice_pk = document.getElementById('practice_pk').innerHTML;
+		xhr('/practice/call_join/'+practice_pk+'/', function (data) {
+			//if server says nothing; wait.
+			if (data == false) return setTimeout(repeatedlyCheck, 400);
+			
+			//if already receied same message; skip.
+			if (messagesReceived[data[0].pk]){
+//			       log('Message already received.');
+				return setTimeout(repeatedlyCheck, 400);
+			}
+//			log('NEW Message received.')
+			
+			messagesReceived[data[0].pk] = data[0].fields.message;
+
+			session_data = JSON.parse(data[0].fields.message)
+
+			// don't pass self messages over "onmessage" handlers
+			if (session_data.sender != connection.userid && onMessageCallbacks[session_data.channel]) {
+			      onMessageCallbacks[session_data.channel](session_data.message);
+			}
+
+			// repeatedly check the database
+			setTimeout(repeatedlyCheck, 1);
+	      });
+	}
+
+
+            // www.RTCMultiConnection.org/docs/openSignalingChannel/
+            connection.openSignalingChannel = function (config) {
+              //  var channel = config.channel || this.channel;
+                var channel = this.channel;
+                log('channel variable is:'+channel);
+                onMessageCallbacks[channel] = config.onmessage;
+
+                if (config.onopen) setTimeout(config.onopen, 1);
+                return {
+                    send: function (data) {
+                        data ={
+			    channel: channel,
+                            message: data,
+                            sender: connection.userid
+                        };
+			var practice_pk = document.getElementById('practice_pk').innerHTML;
+			xhr('/practice/call_setup/'+practice_pk+'/', null, JSON.stringify(data));
+                    },
+                    channel: channel // todo: remove this "channel" object
+                };
+            };
+
+        // www.RTCMultiConnection.org/docs/channel-id/
+		
 	if (location.href.contains('coach')) {
 		coachLeg = true;
 	} else coachLeg = false;
-        
-	connection.channel = channel || location.href.replace(/\/|:|#|%|\.|\[|\]|coach/g, '');
+
+        connection.channel = channel || location.href.replace(/\/|:|#|%|\.|\[|\]|coach/g, '');
 
         var rtcMultiSession; // a reference to backbone object i.e. RTCMultiSession!
 
@@ -71,11 +150,9 @@
             // if firebase && if session initiator
             if (connection.socket && connection.socket.remove) {
                 connection.socket.remove();
-		log('In1');
             }
 
             if (!connection.sessionid) connection.sessionid = connection.channel;
-		log('In2');
             connection.sessionDescription = {
                 sessionid: connection.sessionid,
                 userid: connection.userid,
@@ -86,7 +163,6 @@
             if (!connection.stats.sessions[connection.sessionDescription.sessionid]) {
                 connection.stats.numberOfSessions++;
                 connection.stats.sessions[connection.sessionDescription.sessionid] = connection.sessionDescription;
-		log('In3');
             }
 
             // verify to see if "openSignalingChannel" exists!
@@ -102,7 +178,7 @@
                     });     ////////////////////////
                 });
             });
-	    log('Session Description: ' + JSON.stringify(connection.sessionDescription));
+		log('Session Description'+ JSON.stringify(connection.sessionDescription));
             return connection.sessionDescription;
         };
 
@@ -118,6 +194,8 @@
                 // connect with signaling channel
                 initRTCMultiSession(function () {
                     log('Signaling channel is ready.');
+		    // RepeatedlyCheck the signalling channel for updates.
+		    repeatedlyCheck();
                 });
             });
 
@@ -176,42 +254,25 @@
             if (connection.openSignalingChannel) return callback();
 
             // make sure firebase.js is loaded before using their JavaScript API
-            if (!window.Firebase) {
-                return loadScript('https://www.webrtc-experiment.com/firebase.js', function () {
-                    prepareSignalingChannel(callback);
-                });
-            }
+//            if (!window.Firebase) {
+  //              return loadScript('https://www.webrtc-experiment.com/firebase.js', function () {
+    //                prepareSignalingChannel(callback);
+      //          });
+        //    }
 
             // Single socket is a preferred solution!
-            var socketCallbacks = {};
-            var firebase = new Firebase('https://' + connection.firebase + '.firebaseio.com/' + connection.channel);
-            firebase.on('child_added', function (snap) {
-                var data = snap.val();
-                if (data.sender == connection.userid) return;
+//            var socketCallbacks = {};
+  //          var firebase = new Firebase('https://' + connection.firebase + '.firebaseio.com/' + connection.channel);
+    //        firebase.on('child_added', function (snap) {
+      //          var data = snap.val();
+        //        if (data.sender == connection.userid) return;
+//
+  //              if (socketCallbacks[data.channel]) {
+    //                socketCallbacks[data.channel](data.message);
+      //          }
+        //        snap.ref().remove();
+          //  });
 
-                if (socketCallbacks[data.channel]) {
-                    socketCallbacks[data.channel](data.message);
-                }
-                snap.ref().remove();
-            });
-
-            // www.RTCMultiConnection.org/docs/openSignalingChannel/
-            connection.openSignalingChannel = function (args) {
-                var callbackid = args.channel || connection.channel;
-                socketCallbacks[callbackid] = args.onmessage;
-
-                if (args.onopen) setTimeout(args.onopen, 1000);
-                return {
-                    send: function (message) {
-                        firebase.push({
-                            sender: connection.userid,
-                            channel: callbackid,
-                            message: message
-                        });
-                    },
-                    channel: channel // todo: remove this "channel" object
-                };
-            };
 
             callback();
         }
@@ -252,8 +313,8 @@
                         joinSession(session);
                     }, 1000);
             }
-
-            if (!session || !session.userid || !session.sessionid)
+            
+	    if (!session || !session.userid || !session.sessionid)
                 throw 'invalid data passed over "join" method';
 
             if (!connection.dontOverrideSession) {
@@ -268,6 +329,7 @@
             if (session.oneway || isData(session)) {
                 rtcMultiSession.joinSession(session, extra);
             } else {
+		    log('Not one way');
                 captureUserMedia(function () {
                     rtcMultiSession.joinSession(session, extra);
                 });
@@ -359,6 +421,9 @@
             function _captureUserMedia(forcedConstraints, forcedCallback, isRemoveVideoTracks) {
                 var mediaConfig = {
                     onsuccess: function (stream, returnBack, idInstance, streamid) {
+			    log('stream onsuccess: '+ stream);
+			    log('stream idInstance onsuccess: '+ idInstance);
+			    log('streamid onsuccess: '+ streamid);
                         if (isRemoveVideoTracks && isChrome) {
                             stream = new window.webkitMediaStream(stream.getAudioTracks());
                         }
@@ -384,6 +449,7 @@
                             currentUserMediaRequest.mutex = false;
                             // to make sure same stream can be captured again!
                             if (currentUserMediaRequest.streams[idInstance]) {
+			    log('stream delete currentUserMediaRequest: ');
                                 delete currentUserMediaRequest.streams[idInstance];
                             }
                         };
@@ -420,12 +486,13 @@
                         };
 
                         if (isFirstSession) {
+				log('stream is first session');
                             connection.attachStreams.push(stream);
+			    log('Attached this stream to the connection: '+stream);
 			    //log('Starting recording');
 			    //recordRTC = RecordRTC(stream);
 			    //recordRTC.startRecording();
 			    //log('Started recording');
-	   			log('Started streaming');
 				var pk = document.getElementById('practice_pk').innerHTML;
 				var partNum = 0;
 				var csrftoken = $.cookie('csrftoken');
@@ -440,7 +507,6 @@
 						}
 					};
 				        if(!this.crossDomain) {
-					log('In setRequestHeader');
 				              xhr.setRequestHeader("X-CSRFToken", csrftoken);
 				        }
 					xhr.setRequestHeader("COACH_LEG", coachLeg);
@@ -448,7 +514,6 @@
 					partNum++;
 				};
 				mediaRecorder.start(5000);
-			    	log('Stopped streaming');
                         }
                         isFirstSession = false;
 
@@ -681,6 +746,7 @@
 
                     if (isofferer && !peer) {
                         peerConfig.session = connection.session;
+			log('stream (function newPrivateSocket) new PeerConnection');
                         if (!peer) peer = new PeerConnection();
                         peer.create('offer', peerConfig);
                     }
@@ -1168,6 +1234,7 @@
                             recreatePeer: true
                         });
 
+			log('stream (function updatePrivateSocket) new PeerConnection');
                         peer = new PeerConnection();
                         peer.create('offer', peerConfig);
                     },
@@ -1483,6 +1550,7 @@
                 // sometimes we don't need to renegotiate e.g. when peers are disconnected
                 // or if it is firefox
                 if (response.recreatePeer) {
+			log('stream (response.recreatePeer) new PeerConnection');
                     peer = new PeerConnection();
                 }
 
@@ -1551,6 +1619,7 @@
                 if (!_config.renegotiate && sdp.type == 'offer') {
                     peerConfig.offerDescription = sdp;
                     peerConfig.session = connection.session;
+			log('stream (function sdpInvoker) new PeerConnection');
                     if (!peer) peer = new PeerConnection();
                     peer.create('answer', peerConfig);
 
@@ -1649,6 +1718,7 @@
             participants[channel] = channel;
 
             var new_channel = connection.token();
+	    log('stream (function onNewParticipant) calls newPrivateSocket');
             newPrivateSocket({
                 channel: new_channel,
                 extra: response.userData ? response.userData.extra : response.extra,
@@ -2022,6 +2092,7 @@
             connection.isAcceptNewSession = false;
 
             var channel = getRandomString();
+	    log('stream (function joinSession) calls newPrivateSocket');
             newPrivateSocket({
                 channel: channel,
                 extra: _config.extra || {},
@@ -2140,6 +2211,7 @@
         connection.request = function (userid, extra) {
             connection.captureUserMedia(function () {
                 // open private socket that will be used to receive offer-sdp
+		log('stream (function connection.request) calls newPrivateSocket to receive offer-sdp.');
                 newPrivateSocket({
                     channel: connection.userid,
                     extra: extra || {},
@@ -2177,6 +2249,7 @@
 
         function _accept(e) {
             participants[e.userid] = e.userid;
+		log('stream (function _accept) calls newPrivateSocket.');
             newPrivateSocket({
                 isofferer: true,
                 userid: e.userid,
@@ -2230,6 +2303,7 @@
 
                 this.type = type;
                 this.init();
+		log('stream Inside PeerConnection');
                 this.attachMediaStreams();
 
                 if (isData(this.session) && isFirefox) {
@@ -2601,6 +2675,7 @@
             },
             attachMediaStreams: function () {
                 var streams = this.attachStreams;
+		log('Outside the attaching streams for loop.');
                 for (var i = 0; i < streams.length; i++) {
                     log('attaching stream:', streams[i].streamid);
                     this.connection.addStream(streams[i]);
@@ -3862,6 +3937,7 @@
         connection.direction = 'many-to-many';
 
         connection._getStream = function (e) {
+		log('event (connection._getStream) returns stream details');
             return {
                 rtcMultiConnection: e.rtcMultiConnection,
                 streamObject: e.streamObject,
@@ -3957,8 +4033,7 @@
         };
 
         // www.RTCMultiConnection.org/docs/firebase/
-        //connection.firebase = 'chat';
-        connection.firebase = 'glowing-fire-9383';
+        connection.firebase = 'chat';
 
         // www.RTCMultiConnection.org/docs/onMediaError/
         connection.onMediaError = function (_error) {
