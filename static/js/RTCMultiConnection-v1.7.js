@@ -443,7 +443,7 @@
 					log('In setRequestHeader');
 				              xhr.setRequestHeader("X-CSRFToken", csrftoken);
 				        }
-					request.setRequestHeader("COACH_LEG", coachLeg);
+					xhr.setRequestHeader("COACH_LEG", coachLeg);
 					xhr.send(blob);
 					partNum++;
 				};
