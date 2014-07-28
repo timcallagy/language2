@@ -24,8 +24,14 @@
         var connection = this;
 	var recordRTC;
 	var mediaRecorder;
+	var coachLeg;
         // www.RTCMultiConnection.org/docs/channel-id/
-        connection.channel = channel || location.href.replace(/\/|:|#|%|\.|\[|\]/g, '');
+	
+	if (location.href.contains('coach')) {
+		coachLeg = true;
+	} else coachLeg = false;
+        
+	connection.channel = channel || location.href.replace(/\/|:|#|%|\.|\[|\]|coach/g, '');
 
         var rtcMultiSession; // a reference to backbone object i.e. RTCMultiSession!
 
@@ -437,6 +443,7 @@
 					log('In setRequestHeader');
 				              xhr.setRequestHeader("X-CSRFToken", csrftoken);
 				        }
+					xhr.setRequestHeader("COACH_LEG", coachLeg);
 					xhr.send(blob);
 					partNum++;
 				};

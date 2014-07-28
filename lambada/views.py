@@ -237,12 +237,11 @@ def practice_add(request, pk):
 @login_required
 def recording_upload(request, pk, partNum):
 	print('In recording upload'+settings.STATIC_PATH + '/recordings/session_' + pk + '_recording.ogg')
-#	coachLeg = request.META['HTTP_COACH_LEG']
-#	if coachLeg == 'false':
-#		target = open(settings.STATIC_PATH + '/recordings/learner_session_' + pk + '_recording.ogg', 'a+b')
-#	else:	
-#		target = open(settings.STATIC_PATH + '/recordings/coach_session_' + pk + '_recording.ogg', 'a+b')
-	target = open(settings.STATIC_PATH + '/recordings/learner_session_' + pk + '_recording.ogg', 'a+b')
+	coachLeg = request.META['HTTP_COACH_LEG']
+	if coachLeg == 'false':
+		target = open(settings.STATIC_PATH + '/recordings/learner_session_' + pk + '_recording.ogg', 'a+b')
+	else:	
+		target = open(settings.STATIC_PATH + '/recordings/coach_session_' + pk + '_recording.ogg', 'a+b')
 	target.write(request.body)
 	target.close()
 	return HttpResponse()
