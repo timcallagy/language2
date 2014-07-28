@@ -236,18 +236,13 @@ def practice_add(request, pk):
 		
 @login_required
 def recording_upload(request, pk, partNum):
-#	report=Report.objects.get(pk=pk)
-#	recording = Recording(report=report, blob=request.body, partNum=partNum) 
-#	recording.save()
-#	return HttpResponse()
 	print('In recording upload'+settings.STATIC_PATH + '/recordings/session_' + pk + '_recording.ogg')
-#	path = os.path.join(settings.STATIC_PATH, pk, 'recording.ogg')
-#	path = os.path.join(, 'recording_file.ogg')
-	coachLeg = request.META['HTTP_COACH_LEG']
-	if coachLeg == 'false':
-		target = open(settings.STATIC_PATH + '/recordings/learner_session_' + pk + '_recording.ogg', 'a+b')
-	else:	
-		target = open(settings.STATIC_PATH + '/recordings/coach_session_' + pk + '_recording.ogg', 'a+b')
+#	coachLeg = request.META['HTTP_COACH_LEG']
+#	if coachLeg == 'false':
+#		target = open(settings.STATIC_PATH + '/recordings/learner_session_' + pk + '_recording.ogg', 'a+b')
+#	else:	
+#		target = open(settings.STATIC_PATH + '/recordings/coach_session_' + pk + '_recording.ogg', 'a+b')
+	target = open(settings.STATIC_PATH + '/recordings/learner_session_' + pk + '_recording.ogg', 'a+b')
 	target.write(request.body)
 	target.close()
 	return HttpResponse()
