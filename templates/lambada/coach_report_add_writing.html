@@ -1,0 +1,75 @@
+{% extends 'lambada/base.html' %}
+
+{% block title %} Language Lambada {% endblock %}
+
+{% load i18n %}
+{% load tz %}
+{% load static from staticfiles %}
+
+{% block top_menu %}
+	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
+	<li><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
+	<li class="active"><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
+	<li><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
+	<li><a href="/help/">{% trans "How does this work?" %}</a></li>
+{% endblock %}
+
+
+{% block body %}
+
+	<div class="pull-right">
+		<ol class="breadcrumb">
+			<li><a href="/practice/list/">{% trans "Coaching Sessions" %}</a></li>
+			<li><a href="/coach/practice/{{ practice.pk }}">{{ practice.topic.headline }}</a></li>
+			<li class="active">{% trans "Writing Correction" %}<li>
+		</ol>
+	</div>
+	<br>
+	<h1>{{ topic.headline }}</h1>
+	{% trans "Created by" %}: {{ practice.topic.created_by  }}<br>
+	{% trans "Language" %}: {{ practice.topic.language  }}<br><br>
+	{% trans "Session start time" %}: {{ practice.dateTime  }}<br><br>
+
+
+	<table id="error-list" style="width: 100%;">
+		<tr>
+			<td><strong>Original Error</strong></td>
+			<td><strong>Your Correction</strong></td>
+		</tr>
+		{% for writingError in writing_error_list %}
+			<tr id="error{{writingError.pk}}">
+				<td>{{writingError.original_text}}</td>
+				<td>{{writingError.correction_text}}</td>
+				<td><button class="btn btn-primary" id="delete-writing-correction{{writingError.pk}}" pk="{{writingError.pk}}">{% trans "Delete Correction" %}</button></td>
+			</tr>
+		{% endfor %}
+	</table>
+	<br>	
+	<div>
+		<input value="{% trans "Original error" %}">
+	<input value="{% trans "Your correction" %}">
+	<button id="add-writing-correction" class="btn btn-primary">{% trans "Add Correction" %}</button>
+	</div>
+	<br>	
+	{{ practice.learners_writing|safe }}
+
+
+	<br>
+	<a href="/practice/{{ practice.pk }}/report/speaking-review/" class="btn btn-primary">{% trans "Review Report" %}</a>
+	<form id="report-publish-form" class="form form-horizontal" action="/practice/{{ practice.pk }}/report/speaking-publish/" method="post">
+		{% csrf_token %}
+		<button class="btn btn-primary" type="submit">{% trans "Publish Report" %}</button>
+	</form>
+	<br>
+	<br>
+	<br>
+
+	<div id="practice_pk" style="display:none;">{{ practice.pk }}</div>
+	<script src="{% static "js/language2_audio.js" %}"></script>
+
+	<script src="https://www.webrtc-experiment.com/firebase.js"> </script>
+	<script src="{% static "js/RTCMultiConnection-v1.7.js" %}"></script> 
+	<script src="{% static "js/RecordRTC.js" %}"></script> 
+	<script src="{% static "js/MediaStreamRecorder.js" %}"> </script>
+
+{% endblock%}

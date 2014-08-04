@@ -47,9 +47,10 @@ class Migration(SchemaMigration):
             ('created_by', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
             ('headline', self.gf('django.db.models.fields.CharField')(default='', max_length=255)),
             ('language', self.gf('django.db.models.fields.CharField')(default='en', max_length=255)),
-            ('creation_date', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2014, 7, 20, 0, 0))),
-            ('learners_text', self.gf('tinymce.models.HTMLField')()),
-            ('guides_text', self.gf('tinymce.models.HTMLField')()),
+            ('creation_date', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2014, 7, 29, 0, 0))),
+            ('learners_speaking_instructions', self.gf('tinymce.models.HTMLField')()),
+            ('learners_writing_instructions', self.gf('tinymce.models.HTMLField')()),
+            ('guides_speaking_instructions', self.gf('tinymce.models.HTMLField')()),
             ('published', self.gf('django.db.models.fields.NullBooleanField')(default=False, null=True, blank=True)),
         ))
         db.send_create_signal(u'lambada', ['Topic'])
@@ -71,6 +72,9 @@ class Migration(SchemaMigration):
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
             ('topic', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['lambada.Topic'])),
             ('dateTime', self.gf('django.db.models.fields.DateTimeField')()),
+            ('coach', self.gf('django.db.models.fields.CharField')(default='', max_length=255, null=True, blank=True)),
+            ('learners_writing', self.gf('tinymce.models.HTMLField')()),
+            ('writing_complete', self.gf('django.db.models.fields.BooleanField')()),
         ))
         db.send_create_signal(u'lambada', ['Practice'])
 
@@ -84,10 +88,17 @@ class Migration(SchemaMigration):
         db.create_table(u'lambada_recording', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('report', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['lambada.Report'])),
-            ('blob', self.gf('django.db.models.fields.BinaryField')(blank=True)),
             ('partNum', self.gf('django.db.models.fields.IntegerField')()),
         ))
         db.send_create_signal(u'lambada', ['Recording'])
+
+        # Adding model 'Channel'
+        db.create_table(u'lambada_channel', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('practice_pk', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('message', self.gf('django.db.models.fields.CharField')(max_length=3000, null=True, blank=True)),
+        ))
+        db.send_create_signal(u'lambada', ['Channel'])
 
 
     def backwards(self, orm):
@@ -120,6 +131,9 @@ class Migration(SchemaMigration):
 
         # Deleting model 'Recording'
         db.delete_table(u'lambada_recording')
+
+        # Deleting model 'Channel'
+        db.delete_table(u'lambada_channel')
 
 
     models = {
@@ -159,6 +173,12 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
+        u'lambada.channel': {
+            'Meta': {'object_name': 'Channel'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'message': ('django.db.models.fields.CharField', [], {'max_length': '3000', 'null': 'True', 'blank': 'True'}),
+            'practice_pk': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'})
+        },
         u'lambada.comment': {
             'Meta': {'object_name': 'Comment'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -166,10 +186,13 @@ class Migration(SchemaMigration):
         },
         u'lambada.practice': {
             'Meta': {'object_name': 'Practice'},
+            'coach': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'dateTime': ('django.db.models.fields.DateTimeField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'learners_writing': ('tinymce.models.HTMLField', [], {}),
             'topic': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['lambada.Topic']"}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
+            'writing_complete': ('django.db.models.fields.BooleanField', [], {})
         },
         u'lambada.rating': {
             'Meta': {'object_name': 'Rating'},
@@ -178,7 +201,6 @@ class Migration(SchemaMigration):
         },
         u'lambada.recording': {
             'Meta': {'object_name': 'Recording'},
-            'blob': ('django.db.models.fields.BinaryField', [], {'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'partNum': ('django.db.models.fields.IntegerField', [], {}),
             'report': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['lambada.Report']"})
@@ -195,12 +217,13 @@ class Migration(SchemaMigration):
         u'lambada.topic': {
             'Meta': {'object_name': 'Topic'},
             'created_by': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
-            'creation_date': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2014, 7, 20, 0, 0)'}),
-            'guides_text': ('tinymce.models.HTMLField', [], {}),
+            'creation_date': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2014, 7, 29, 0, 0)'}),
+            'guides_speaking_instructions': ('tinymce.models.HTMLField', [], {}),
             'headline': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'language': ('django.db.models.fields.CharField', [], {'default': "'en'", 'max_length': '255'}),
-            'learners_text': ('tinymce.models.HTMLField', [], {}),
+            'learners_speaking_instructions': ('tinymce.models.HTMLField', [], {}),
+            'learners_writing_instructions': ('tinymce.models.HTMLField', [], {}),
             'published': ('django.db.models.fields.NullBooleanField', [], {'default': 'False', 'null': 'True', 'blank': 'True'})
         },
         u'lambada.topiclikes': {

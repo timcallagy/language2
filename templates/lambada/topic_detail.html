@@ -31,11 +31,12 @@
 		<a class="btn btn-primary" href="/topic/{{ object.pk }}/unpublish/">{% trans "Un-Publish" %}</a>
 	{% endif %}
 <h1>{{ object.headline }}</h1>
-	{% trans "Created by" %}: {{ object.created_by  }}<br>
-	{% trans "Language" %}: {{ object.language  }}<br>
-	{% trans "Date" %}: {{ object.creation_date  }}<br>
-	{% trans "Learner's Text" %}: {{ object.learners_text|safe  }}<br>
-	{% trans "Guide's Text" %}: {{ object.guides_text|safe  }}<br>
+	<b>{% trans "Created by" %}</b>: {{ object.created_by  }}<br>
+	<b>{% trans "Language" %}</b>: {{ object.language  }}<br>
+	<b>{% trans "Date" %}</b>: {{ object.creation_date  }}<br>
+	<b>{% trans "Learner's Speaking Instructions" %}</b>: {{ object.learners_speaking_instructions|safe  }}<br>
+	<b>{% trans "Learner's Writing Instructions" %}</b>: {{ object.learners_writing_instructions|safe  }}<br>
+	<b>{% trans "Guide's Text" %}</b>: {{ object.guides_speaking_instructions|safe  }}<br>
 	<br>
 	
 	<a class="btn btn-primary" href="/topic/{{ object.pk }}/update/">{% trans "Modify" %}</a>

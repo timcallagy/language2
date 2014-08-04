@@ -42,8 +42,9 @@ class Topic(models.Model):
 	headline = models.CharField(_("Topic Headline"), max_length=255, blank=False, null=False, default='')
 	language = models.CharField(_("Topic Language"), max_length=255, blank=False, null=False, default='en')
 	creation_date = models.DateTimeField(blank=False, null=False, default=datetime.now())
-	learners_text = HTMLField(_("Enter the Learner's information below. Click here to see an example.")) 
-	guides_text = HTMLField(_("Enter the Guide's information below. Click here to see an example.")) 
+	learners_speaking_instructions = HTMLField(_("Enter the Learner's Speaking Instructions below. Click here to see an example.")) 
+	learners_writing_instructions = HTMLField(_("Enter the Learner's Writing Instructions below. Click here to see an example.")) 
+	guides_speaking_instructions = HTMLField(_("Enter the Guide's information below. Click here to see an example.")) 
 	published = models.NullBooleanField(blank=True, null=True, default=False)
 #	text = BleachField()
 	def get_absolute_url(self):
@@ -79,13 +80,33 @@ class Practice(models.Model):
 	topic = models.ForeignKey(Topic)
 	dateTime= models.DateTimeField(_(u"Practice Session Time"))
 	coach = models.CharField(_("Coach"), max_length=255, blank=True, null=True, default='')
-	#dateTime = models.ForeignKey(PracticeDateTime)
+	learners_writing= HTMLField(_("Write your text here (2000 words maximum)."), max_length=255)
+	writing_complete = models.BooleanField(blank=True, default=False)
+	speaking_report_published = models.BooleanField(blank=True, default=False)
+	writing_report_published = models.BooleanField(blank=True, default=False)
 
 	def get_absolute_url(self):
 		return reverse('practice_list')
 
+
 class Report(models.Model):
 	practice = models.OneToOneField(Practice, primary_key=True)
+	call_start_time = models.DateTimeField(blank=True, null=True)
+	call_end_time = models.DateTimeField(blank=True, null=True)
+
+
+class SpeakingError(models.Model):
+	report = models.ForeignKey(Report)
+	error_time_min = models.CharField(_("Minute"), max_length=2, blank=True, null=True, default='')
+	error_time_sec = models.CharField(_("Second"), max_length=2, blank=True, null=True, default='')
+	correction_text = models.CharField(_("Correction Text"), max_length=255, blank=True, null=True, default='')
+	correction_recording = models.BooleanField(blank=True, default=False) #You could replace this with the File upload.
+
+
+class WritingError(models.Model):
+	report = models.ForeignKey(Report)
+	original_text = models.CharField(_("Original Text"), max_length=255, blank=True, null=True, default='')
+	correction_text = models.CharField(_("Correction Text"), max_length=255, blank=True, null=True, default='')
 
 
 class Recording(models.Model):

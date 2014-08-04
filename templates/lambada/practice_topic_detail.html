@@ -34,7 +34,8 @@
 	{% trans "Created by" %}: {{ object.created_by  }}<br>
 	{% trans "Language" %}: {{ object.language  }}<br>
 	{% trans "Date" %}: {{ object.creation_date  }}<br><br>
-	{% trans "Learner's Text" %}: {{ object.learners_text|safe  }}<br>
+	{% trans "Learner's Speaking Instructions" %}: {{ object.learners_speaking_instructions|safe  }}<br>
+	{% trans "Learner's Writing Instructions" %}: {{ object.learners_writing_instructions|safe  }}<br>
 	<br>
 	<form id="booking-form" class="form form-horizontal" action="/practice/{{ topic.pk }}/add/" method="post" accept-charset="utf-8">
 		{% csrf_token %}

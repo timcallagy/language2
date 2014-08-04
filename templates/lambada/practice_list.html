@@ -43,14 +43,23 @@
 				<li class="list-group-item">
 					<h3>{{practice.topic.headline}}</h3>
 					{% localtime on %}
-					<strong>{% trans "When" %}: </strong>{{practice.dateTime}}
-					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}}
-					<a class="btn btn-primary" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br>
-					<a class="btn btn-primary" href="/practice/{{ practice.pk }}/update/">{% trans "Modify" %}</a><br>
-					<form action="/practice/{{ practice.pk }}/delete/" method="post" accept-charset="utf-8">
-				                {% csrf_token %}
-				                <p><input class="btn btn-primary" type="submit" value={% trans "Cancel" %}></p>
-				        </form>
+					<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
+					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
+					{% if practice.writing_complete == False or practice.writing_complete == "" %}
+						<a class="btn btn-primary" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br>
+						<a class="btn btn-primary" href="/practice/{{ practice.pk }}/update/">{% trans "Modify" %}</a><br>
+						<form action="/practice/{{ practice.pk }}/delete/" method="post" accept-charset="utf-8">
+					                {% csrf_token %}
+					                <p><input class="btn btn-primary" type="submit" value={% trans "Cancel" %}></p>
+					        </form>
+					{% else %}
+						<br><p>Lesson Complete!</p><br>
+						{% if report.speaking_report_complete and report.writing_report_complete %}
+							<a class="btn btn-success" href="/report/{{ practice.pk }}/">{% trans "View Report" %}</a><br>
+						{% else %}
+							<a class="btn btn-danger">{% trans "Report in Progress" %}</a><br>
+						{% endif %}
+					{% endif %}
 					{% endlocaltime %}
 					
 				</li>

@@ -1,5 +1,5 @@
 from django import forms
-from lambada.models import UserProfile, Topic, Practice
+from lambada.models import UserProfile, Topic, Practice, SpeakingError
 from django.contrib.auth.models import User
 import pytz
 from django.utils.translation import ugettext_lazy as _
@@ -45,12 +45,10 @@ class TopicForm(forms.ModelForm):
 
 	class Meta:
 		model = Topic
-		fields = ('headline', 'language', 'learners_text', 'guides_text')
+		fields = ('headline', 'language', 'learners_speaking_instructions', 'learners_writing_instructions', 'guides_speaking_instructions')
 
 
 class PracticeForm(forms.ModelForm):
-	#dateTime = forms.DateTimeField(widget=DateTimeWidget({'id':"dateTime"},{'minuteStep':"30"},{'minView':"0"}))
-	# Uncomment line below to get Internationalisation of dates at the expense of minuteStep. 
 	dateTime = forms.DateTimeField(widget=DateTimeWidget({'id':"dateTime"},{'minView':"0"},usel10n = True))
 	
 	def clean(self):
@@ -58,7 +56,27 @@ class PracticeForm(forms.ModelForm):
 
 	class Meta:
 		model = Practice
-		#widgets = {
-		#	'dateTime': DateTimeWidget(attrs={'id':"dateTime"}, usel10n = True)
-		#}
 		fields = ('dateTime',)
+
+class PracticeWritingForm(forms.ModelForm):
+	
+	def clean(self):
+		return self.cleaned_data
+
+	class Meta:
+		model = Practice
+		fields = ('learners_writing',)
+
+
+class SpeakingErrorForm(forms.ModelForm):
+	#language = forms.ChoiceField(label=_(u'Language'), choices=[(x, x) for x in ('en','ru')])
+	#error_time_min = forms.ChoiceField(choices=[(x, x) for x in (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)])
+	error_time_min = forms.ChoiceField(choices=[(x, x) for x in range(21)])
+	error_time_sec = forms.ChoiceField(choices=[(x, x) for x in range(61)])
+
+	def clean(self):
+		return self.cleaned_data
+
+	class Meta:
+		model = SpeakingError
+		fields = ('error_time_min','error_time_sec')

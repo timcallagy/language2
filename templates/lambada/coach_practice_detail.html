@@ -28,11 +28,14 @@
 	{% trans "Created by" %}: {{ topic.created_by  }}<br>
 	{% trans "Language" %}: {{ topic.language  }}<br><br>
 	{% trans "Starting" %}: {{ practice.dateTime  }}<br><br>
+	{{ topic.guides_speaking_instructions|safe  }}<br>
 	<button id="setup-new-conference" class="btn btn-primary setup">{% trans "Start Session" %}</button> 
-	<button id="finish-conference" class="btn btn-primary setup">{% trans "Finish Session" %}</button> 
+	<button id="finish-conference" class="btn btn-primary setup" style="display:none;">{% trans "Finish Session" %}</button> 
+	<a id="create-report" class="btn btn-primary" style="display:none;" href="/report/{{ practice.pk }}/report_add_speech/">{% trans "Create Report" %}</a> 
+	<button id="speaking-error" class="btn btn-success" style="display:none;">{% trans "Speaking Error" %}</button> 
 	<table style="width: 100%;" id="rooms-list"></table>
 	<div id="audios-container"></div>
-	{{ topic.guides_text|safe  }}<br>
+	<table style="width: 100%;" id="error-list"></table>
 	<br>
 	<br>
 	<div id="practice_pk" style="display:none;">{{ practice.pk }}</div>

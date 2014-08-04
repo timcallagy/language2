@@ -1,10 +1,10 @@
 from django.contrib.auth.decorators import login_required, permission_required
 from django.conf.urls import url, patterns
 from lambada import views
-from lambada.views import TopicCreate, TopicDetail, TopicUpdate, TopicDelete, TopicList, PracticeList, PracticeBook, PracticeTopicDetail, PracticeDetail, PracticeDelete, PracticeUpdate, CoachList, Dashboard
+from lambada.views import TopicCreate, TopicDetail, TopicUpdate, TopicDelete, TopicList, PracticeList, PracticeBook, PracticeTopicDetail, PracticeDetail, PracticeDelete, PracticeUpdate, CoachList
 
 urlpatterns = patterns('',
-		url(r'^$', Dashboard.as_view(), name='index'),
+		url(r'^$', views.dashboard, name='index'),
 		url(r'^register/$', views.register, name='register'),
 		url(r'^user_login/$', views.user_login, name='user_login'),
 		url(r'^user_logout/$', views.user_logout, name='user_logout'),
@@ -24,13 +24,27 @@ urlpatterns = patterns('',
 		url(r'^practice/(?P<pk>[0-9]+)/add/$', views.practice_add, name='practice_add'),
 		url(r'^practice/(?P<pk>[0-9]+)/delete/$', login_required(PracticeDelete.as_view()), name='practice_delete'),
 		url(r'^practice/(?P<pk>[0-9]+)/update/$', login_required(PracticeUpdate.as_view()), name='practice_update'),
+		url(r'^practice/(?P<pk>[0-9]+)/add_writing/$', views.practice_add_writing, name='practice_add_writing'),
+		url(r'^practice/(?P<pk>[0-9]+)/report/speaking-review/$', views.practice_report_speaking_review, name='practice_report_speaking_review'),
+		url(r'^practice/(?P<pk>[0-9]+)/report/speaking-publish/$', views.practice_report_speaking_publish, name='practice_report_speaking_preview'),
 		url(r'^recording/upload/(?P<pk>[0-9]+)/(?P<partNum>[0-9]+)/$', views.recording_upload, name='recording_upload'),
 		url(r'^recording/download/(?P<pk>[0-9]+)/$', views.recording_download, name='recording_download'),
+		url(r'^recording/correction/(?P<pk>[0-9]+)/download/$', views.recording_correction_download, name='recording_correction_download'),
 		url(r'^coach/list/$', login_required(CoachList.as_view()), name='coach_list'),
 		url(r'^coach/practice/(?P<pk>[0-9]+)/$', views.coach_practice_detail, name='coach_practice_detail'),
 		url(r'^coach/practice/(?P<pk>[0-9]+)/cancel/$', views.coach_practice_cancel, name='coach_practice_cancel'),
 		url(r'^report/add/(?P<pk>[0-9]+)/$', views.report_create, name='report_add'),
-		url(r'^dashboard/$', login_required(Dashboard.as_view()), name='dashboard'),
+		url(r'^report/(?P<pk>[0-9]+)/report_add_speech/$', views.report_add_speech, name='report_add_speech'),
+		url(r'^report/(?P<pk>[0-9]+)/report_add_speech_correction/$', views.report_add_speech_correction, name='report_add_speech_correction'),
+		url(r'^report/(?P<pk>[0-9]+)/report_add_writing/$', views.report_add_writing, name='report_add_writing'),
+		url(r'^report/(?P<pk>[0-9]+)/report_add_writing_correction/$', views.report_add_writing_correction, name='report_writing_speech_correction'),
+		url(r'^report/(?P<pk>[0-9]+)/report_add_speech_error/$', views.report_add_speech_error, name='report_add_speech_error'),
+		url(r'^report/(?P<pk>[0-9]+)/report_delete_speech_error/$', views.report_delete_speech_error, name='report_delete_speech_error'),
+		url(r'^report/report_delete_writing_correction/$', views.report_delete_writing_correction, name='report_delete_writing_correction'),
+		url(r'^report/(?P<pk>[0-9]+)/recording_correction_upload/$', views.recording_correction_upload, name='recording_correction_upload'),
 		url(r'^practice/call_setup/(?P<pk>[0-9]+)/$', views.call_setup, name='call_setup'),
 		url(r'^practice/call_join/(?P<pk>[0-9]+)/$', views.call_join, name='call_join'),
+		url(r'^practice/speaking_error_notification/(?P<pk>[0-9]+)/$', views.speaking_error_notification, name='speaking_error_notification'),
+		url(r'^dashboard/$', views.dashboard, name='dashboard'),
+
 )
