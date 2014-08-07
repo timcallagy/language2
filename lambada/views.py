@@ -266,12 +266,12 @@ def report_add_writing_correction(request, pk):
 
 @login_required
 def recording_upload(request, pk, partNum):
-	print('In recording upload'+settings.STATIC_PATH + '/recordings/session_' + pk + '_recording.ogg')
+	print('In recording upload'+settings.STATIC_PATH + '/session_' + pk + '_recording.ogg')
 	coachLeg = request.META['HTTP_COACH_LEG']
 	if coachLeg == 'false':
 		# Check whether the recording file exists to determine if this is the start of the call.
-		if os.path.isfile(settings.STATIC_PATH + '/recordings/learner_session_' + pk + '_recording.ogg'):
-			target = open(settings.STATIC_PATH + '/recordings/learner_session_' + pk + '_recording.ogg', 'a+b')
+		if os.path.isfile(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg'):
+			target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg', 'a+b')
 		else:
 			print('### Learners file does not exist. New Recording!')
 			practice = Practice.objects.get(pk=pk)
@@ -279,9 +279,9 @@ def recording_upload(request, pk, partNum):
 			# DANGER!!! The timedelta here must correspond to the time delay set in the RTCMultiConnection.js file (in the _captureUserMedia function).
 			report.call_start_time = datetime.datetime.utcnow().replace(tzinfo=utc) - datetime.timedelta(seconds=5)
 			report.save()
-			target = open(settings.STATIC_PATH + '/recordings/learner_session_' + pk + '_recording.ogg', 'a+b')
+			target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg', 'a+b')
 	else:
-		target = open(settings.STATIC_PATH + '/recordings/coach_session_' + pk + '_recording.ogg', 'a+b')
+		target = open(settings.STATIC_PATH + '/coach_session_' + pk + '_recording.ogg', 'a+b')
 	target.write(request.body)
 	target.close()
 	return HttpResponse()
@@ -289,11 +289,11 @@ def recording_upload(request, pk, partNum):
 
 @login_required
 def recording_correction_upload(request, pk):
-	if os.path.isfile(settings.STATIC_PATH + '/recordings/correction_' + pk + '_recording.ogg'):
-		os.remove(settings.STATIC_PATH + '/recordings/correction_' + pk + '_recording.ogg')
-		target = open(settings.STATIC_PATH + '/recordings/correction_' + pk + '_recording.ogg', 'a+b')
+	if os.path.isfile(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg'):
+		os.remove(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg')
+		target = open(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg', 'a+b')
 	else:
-		target = open(settings.STATIC_PATH + '/recordings/correction_' + pk + '_recording.ogg', 'a+b')
+		target = open(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg', 'a+b')
 	target.write(request.body)
 	target.close()
 	speakingError = SpeakingError.objects.get(pk=pk)
@@ -305,13 +305,13 @@ def recording_correction_upload(request, pk):
 @login_required
 def recording_download(request, pk):
 	print('In recording download')
-	return StreamingHttpResponse(open(settings.STATIC_PATH + '/recordings/learner_session_' + pk + '_recording.ogg'), content_type="audio/ogg")
+	return StreamingHttpResponse(open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg'), content_type="audio/ogg")
 
 
 @login_required
 def recording_correction_download(request, pk):
 	print('In recording correction download')
-	return StreamingHttpResponse(open(settings.STATIC_PATH + '/recordings/correction_' + pk + '_recording.ogg'), content_type="audio/ogg")
+	return StreamingHttpResponse(open(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg'), content_type="audio/ogg")
 
 
 @login_required
@@ -351,8 +351,8 @@ def report_delete_speech_error(request, pk):
 	context = RequestContext(request)
 	error_pk = request.POST['error_pk']
 	speaking_error = SpeakingError.objects.filter(pk=error_pk).delete()
-	if os.path.isfile(settings.STATIC_PATH + '/recordings/correction_' + error_pk + '_recording.ogg'):
-		os.remove(settings.STATIC_PATH + '/recordings/correction_' + error_pk + '_recording.ogg')
+	if os.path.isfile(settings.STATIC_PATH + '/correction_' + error_pk + '_recording.ogg'):
+		os.remove(settings.STATIC_PATH + '/correction_' + error_pk + '_recording.ogg')
 	practice = Practice.objects.get(pk=pk)
 	report = practice.report 
 	speaking_error_list = SpeakingError.objects.filter(report=report).order_by('id')
