@@ -1,6 +1,4 @@
 $(document).ready(function() {
-//$(window).load(function() {
-//
 
 	var audioElement = document.getElementById('main-audio');
 	var audioStream;
@@ -16,7 +14,6 @@ $(document).ready(function() {
 		var min = parseInt(this.getAttribute("errorTimeMin"));
 		var sec = parseInt(this.getAttribute("errorTimeSec"));
 		audioElement.pause();
-	//	audioElement.currentTime = 40; 
 		audioElement.currentTime = (min*60) + sec - 4;
 		console.log(audioElement.currentTime);
 		audioElement.play();
@@ -39,10 +36,6 @@ $(document).ready(function() {
 			if (this.status == 200) {
 				var p = document.getElementById("written-correction-"+error_pk);
 				p.innerHTML = error_correction;
-//				var old_button = '[id^=add-written-correction-' +error_pk+ ']';
-//				var new_button = '[id^=replace-written-correction-' +error_pk+ ']';
-//				$(old_button).hide();
-//				$(new_button).show();
 			}
 		};
 		if(!this.crossDomain) {
@@ -71,10 +64,6 @@ $(document).ready(function() {
 			             if (this.status == 200) {
 					var p = document.getElementById("audio-correction-"+error_pk);
 					p.innerHTML = "Recording Uploaded";
-//					var old_button = '[id^=record-correction-' +error_pk+ ']';
-//					var new_button = '[id^=replace-record-correction-' +error_pk+ ']';
-//					$(old_button).hide();
-//					$(new_button).show();
 				     }
 				};
 		        	if(!this.crossDomain) {
@@ -135,7 +124,6 @@ $(document).ready(function() {
 					xhr.send(formData);
 				};
 				tr.appendChild(delete_btn);
-		//		tr.innerHTML = '<td>' +original_text+ '</td><td>' +correction_text+ '</td><td><button class="btn btn-primary" id="delete-writing-correction' +this.responseText+ '" pk="' +this.responseText+ '">Delete Correction</td>';
 				errorList.insertBefore(tr, errorList.rows.length.nextSibling);
                 	}
 		};
