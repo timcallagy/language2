@@ -1,6 +1,6 @@
-//$(document).ready(function() {
-$(window).load(function() {
-
+$(document).ready(function() {
+//$(window).load(function() {
+//
 
 	var audioElement = document.getElementById('main-audio');
 	var audioStream;
