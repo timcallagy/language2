@@ -394,9 +394,26 @@ def practice_report_speaking_review(request, pk):
 
 
 @login_required
+def practice_report_writing_review(request, pk):
+	context = RequestContext(request)
+	practice = Practice.objects.get(pk=pk)
+	report = practice.report 
+	writing_error_list = WritingError.objects.filter(report=report).order_by('id')
+	return render_to_response('lambada/coach_report_writing_review.html', {'practice': practice, 'report': report,'writing_error_list': writing_error_list}, context)
+
+
+@login_required
 def practice_report_speaking_publish(request, pk):
 	practice = Practice.objects.get(pk=pk)
 	practice.speaking_report_published = True
+	practice.save()
+	return HttpResponseRedirect('/dashboard/')
+
+
+@login_required
+def practice_report_writing_publish(request, pk):
+	practice = Practice.objects.get(pk=pk)
+	practice.writing_report_published = True
 	practice.save()
 	return HttpResponseRedirect('/dashboard/')
 
@@ -457,7 +474,7 @@ class CoachList(ListView):
 	template_name = 'lambada/coach_list.html'
 
 	def get_queryset (self):
-		return Practice.objects.filter(coach=self.request.user)
+		return Practice.objects.filter(coach=self.request.user).order_by('dateTime')
 
 
 #class CoachPracticeDetail(DetailView):

@@ -181,7 +181,36 @@ $(document).ready(function() {
 		xhr.onload = function(e) {
 	        	if (this.status == 200) {
 				tr.setAttribute("id", "error"+this.responseText);
-				tr.innerHTML = '<td>' +original_text+ '</td><td>' +correction_text+ '</td><td><button class="btn btn-primary" id="delete-writing-correction' +this.responseText+ '" pk="' +this.responseText+ '">Delete Correction</td>';
+				var td_orig = document.createElement('td');
+				td_orig.innerHTML = original_text;
+				tr.appendChild(td_orig);
+				var td_corr = document.createElement('td');
+				td_corr.innerHTML = correction_text;
+				tr.appendChild(td_corr);
+				var delete_btn = document.createElement('button');
+				delete_btn.innerHTML = "Delete Correction";
+				delete_btn.id = "delete-writing-correction" + this.responseText;
+				delete_btn.setAttribute("class", "btn btn-primary")
+				delete_btn.setAttribute("pk", this.responseText)
+				delete_btn.onclick = function() {
+					var csrftoken = $.cookie('csrftoken');
+					var xhr = new XMLHttpRequest();
+					var formData = new FormData();
+					error_pk = this.getAttribute('pk');
+					formData.append('error_pk', error_pk);
+					xhr.open('POST', '/report/report_delete_writing_correction/', true);
+					xhr.onload = function(e) { 
+						if (this.status == 200) {
+							document.getElementById('error'+error_pk).style.display = "none";
+						}
+					};
+					if(!this.crossDomain){
+						xhr.setRequestHeader("X-CSRFToken", csrftoken);
+					}
+					xhr.send(formData);
+				};
+				tr.appendChild(delete_btn);
+		//		tr.innerHTML = '<td>' +original_text+ '</td><td>' +correction_text+ '</td><td><button class="btn btn-primary" id="delete-writing-correction' +this.responseText+ '" pk="' +this.responseText+ '">Delete Correction</td>';
 				errorList.insertBefore(tr, errorList.rows.length.nextSibling);
                 	}
 		};

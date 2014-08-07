@@ -48,7 +48,7 @@
 
 
 		{% if speakingError.correction_recording == True %}
-			<audio id="play-error-correction{{speakingError.pk}}" src="/recording/correction/{{speakingError.pk}}/download/" controls preload type="audio/ogg"></audio>
+			<audio id="play-correction{{speakingError.pk}}" src="/recording/correction/{{speakingError.pk}}/download/" controls preload type="audio/ogg"></audio>
 		{% else %}
 			<p id="play-error-correction-{{ speakingError.pk }}">{% trans "There is no recorded correction." %}</p>
 		{% endif %}
@@ -60,16 +60,14 @@
 	<a href="/report/{{ practice.pk }}/report_add_speech/" class="btn btn-primary">{% trans "Modify Report" %}</a>
 	<form id="report-publish-form" class="form form-horizontal" action="/practice/{{ practice.pk }}/report/speaking-publish/" method="post">
 		{% csrf_token %}
-		<button class="btn btn-primary" type="submit">{% trans "Submit Report" %}</button>
+		<button class="btn btn-primary" type="submit">{% trans "Publish Report" %}</button>
 	</form>
 	<br>
 	<br>
 	<br>
 
 	<div id="practice_pk" style="display:none;">{{ practice.pk }}</div>
-	<script src="{% static "js/language2_audio.js" %}"></script>
-
-	<script src="https://www.webrtc-experiment.com/firebase.js"> </script>
+	<script src="{% static "js/language2_reports.js" %}"></script>
 	<script src="{% static "js/RTCMultiConnection-v1.7.js" %}"></script> 
 	<script src="{% static "js/RecordRTC.js" %}"></script> 
 	<script src="{% static "js/MediaStreamRecorder.js" %}"> </script>

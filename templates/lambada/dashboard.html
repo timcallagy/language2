@@ -64,7 +64,7 @@
 				{% localtime on %}
 				<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
 				<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
-				<a class="btn btn-primary" href="/report/{{ practice.pk }}/report_add_speech/">{% trans "Do Report" %}</a><br>
+				<a class="btn btn-primary" href="/report/{{ practice.pk }}/report_add_speech/">{% trans "Create Report" %}</a><br>
 				{% endlocaltime %}
 		{% endfor %}
 		</ul>
@@ -81,7 +81,7 @@
 				{% localtime on %}
 				<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
 				<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
-				<a class="btn btn-primary" href="/report/{{ practice.pk }}/report_add_writing/">{% trans "Do Report" %}</a><br>
+				<a class="btn btn-primary" href="/report/{{ practice.pk }}/report_add_writing/">{% trans "Create Report" %}</a><br>
 				{% endlocaltime %}
 		{% endfor %}
 		</ul>

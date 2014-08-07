@@ -55,8 +55,8 @@
 
 
 	<br>
-	<a href="/practice/{{ practice.pk }}/report/speaking-review/" class="btn btn-primary">{% trans "Review Report" %}</a>
-	<form id="report-publish-form" class="form form-horizontal" action="/practice/{{ practice.pk }}/report/speaking-publish/" method="post">
+	<a href="/practice/{{ practice.pk }}/report/writing-review/" class="btn btn-primary">{% trans "Review Report" %}</a>
+	<form id="report-publish-form" class="form form-horizontal" action="/practice/{{ practice.pk }}/report/writing-publish/" method="post">
 		{% csrf_token %}
 		<button class="btn btn-primary" type="submit">{% trans "Publish Report" %}</button>
 	</form>
