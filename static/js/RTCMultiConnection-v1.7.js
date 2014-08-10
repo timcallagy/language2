@@ -2018,8 +2018,8 @@
                     onNewParticipant(response);
                 }
 
-                if (getLength(participants) < connection.maxParticipantsAllowed && response.userid && response.targetUser == connection.userid && response.participant && !participants[response.userid]) {
- //               if (getLength(participants) < connection.maxParticipantsAllowed && response.userid && response.targetUser == connection.userid && response.participant) {
+  //              if (getLength(participants) < connection.maxParticipantsAllowed && response.userid && response.targetUser == connection.userid && response.participant && !participants[response.userid]) {
+                if (getLength(participants) < connection.maxParticipantsAllowed && response.userid && response.targetUser == connection.userid && response.participant) {
 		log('###.$$$ In defaultSocket.onmessage. 4');
                     // because broadcaster already have anonymous user in "participants" array
                     // that's why this code isn't executed!
