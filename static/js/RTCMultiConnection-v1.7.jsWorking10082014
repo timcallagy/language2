@@ -25,7 +25,6 @@
 	var recordRTC;
 	var mediaRecorder;
 	var onMessageCallbacks = {};
-	var onDefaultMessageCallbacks = {};
 	var messagesReceived = {};
 	var coachLeg;
 	this.coachLeg = coachLeg;
@@ -85,34 +84,6 @@
 	}
 
 
-	function repeatedlyCheckDefault() {
-		var practice_pk = document.getElementById('practice_pk').innerHTML;
-		xhr('/practice/default_channel_check/'+practice_pk+'/', function (data) {
-			//if server says nothing; wait.
-			if (data == false) return setTimeout(repeatedlyCheckDefault, 2000);
-			
-			//if already receied same message; skip.
-			if (messagesReceived[data[0].pk]){
-//			       log('Message already received.');
-				return setTimeout(repeatedlyCheckDefault, 2000);
-			}
-//			log('NEW Message received.')
-			
-			messagesReceived[data[0].pk] = data[0].fields.message;
-
-			session_data = JSON.parse(data[0].fields.message)
-
-			// don't pass self messages over "onmessage" handlers
-			if (session_data.sender != connection.userid && onDefaultMessageCallbacks[session_data.channel]) {
-			      onDefaultMessageCallbacks[session_data.channel](session_data.message);
-			}
-
-			// repeatedly check the database
-			setTimeout(repeatedlyCheckDefault, 2000);
-	      });
-	}
-
-
             // www.RTCMultiConnection.org/docs/openSignalingChannel/
             connection.openSignalingChannel = function (config) {
               //  var channel = config.channel || this.channel;
@@ -130,27 +101,6 @@
                 	        };
 				var practice_pk = document.getElementById('practice_pk').innerHTML;
 				xhr('/practice/call_setup/'+practice_pk+'/', null, JSON.stringify(data));
-                        },
-                        channel: channel // todo: remove this "channel" object
-                };
-            };
-
-	    connection.openDefaultSignalingChannel = function (config) {
-              //  var channel = config.channel || this.channel;
-                var channel = this.channel;
-                log('channel variable is:'+channel);
-                onDefaultMessageCallbacks[channel] = config.onmessage;
-
-                if (config.onopen) setTimeout(config.onopen, 1);
-                return {
-                    	send: function (data) {
-                        	data ={
-				    channel: channel,
-        	                    message: data,
-                	            sender: connection.userid
-                	        };
-				var practice_pk = document.getElementById('practice_pk').innerHTML;
-				xhr('/practice/default_channel/'+practice_pk+'/', null, JSON.stringify(data));
                         },
                         channel: channel // todo: remove this "channel" object
                 };
@@ -248,7 +198,6 @@
                     log('Signaling channel is ready.');
 		    // RepeatedlyCheck the signalling channel for updates.
 		    repeatedlyCheck();
-		    repeatedlyCheckDefault();
                 });
             });
 
@@ -2039,7 +1988,7 @@
 
         // default-socket is a common socket shared among all users in a specific channel;
         // to share participation requests; room descriptions; and other stuff.
-        var defaultSocket = connection.openDefaultSignalingChannel({
+        var defaultSocket = connection.openSignalingChannel({
 	//	log('### In RTCMultiSesssion - defining defaultSocket');
             onmessage: function (response) {
 		log('###.$$$ In defaultSocket.onmessage.');

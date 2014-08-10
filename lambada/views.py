@@ -9,7 +9,7 @@ from lambada.forms import UserForm, UserProfileForm, TopicForm, PracticeForm, Pr
 from django.contrib.auth.decorators import login_required
 import pytz
 from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
-from lambada.models import Topic, TopicLikes, UserProfile, Practice, Report, Recording, Channel, SpeakingError, WritingError
+from lambada.models import Topic, TopicLikes, UserProfile, Practice, Report, Recording, Channel, SpeakingError, WritingError, ChannelDefault
 import datetime
 from django.utils.timezone import utc
 from django.utils.translation import ugettext as _
@@ -512,11 +512,37 @@ def call_setup(request, pk):
 
 
 @login_required
+def default_channel(request, pk):
+	response_data = {}
+	message = request.POST.get('message')
+	target = open(settings.STATIC_PATH + '/session_' + pk + '_default_channel.txt', 'a+b')
+	target.write(str(datetime.datetime.now()) + " -- " + message + "\n \n")
+	target.close()
+	# Consider checking messages before deleting them. You might delete a message before the other party has had a chance to read it.
+	ChannelDefault.objects.filter(practice_pk=pk).delete()
+	channel = ChannelDefault(practice_pk=pk, message=message)
+	channel.save()
+	response_data['message'] = 'success'
+	return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+
+
+@login_required
 def call_join(request, pk):
 	try:
 		channel = Channel.objects.filter(practice_pk=pk)
 		data = serializers.serialize("json", channel)
 	except Channel.DoesNotExist:
+		return HttpResponse()
+	return HttpResponse(data, mimetype = "application/json")
+
+
+@login_required
+def default_channel_check(request, pk):
+	try:
+		channel = ChannelDefault.objects.filter(practice_pk=pk)
+		data = serializers.serialize("json", channel)
+	except ChannelDefault.DoesNotExist:
 		return HttpResponse()
 	return HttpResponse(data, mimetype = "application/json")
 

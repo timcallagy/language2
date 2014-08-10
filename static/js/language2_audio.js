@@ -18,7 +18,7 @@ $(document).ready(function() {
 	if (!location.href.contains('coach')) {
 		var sessions = {};
 		connection.onNewSession = function(session) {
-			console.info('stream - In Connection.onNewSession of language2_audio.');
+			console.info('%%% In Connection.onNewSession of language2_audio.');
 			if (sessions[session.sessionid]) return;
 			sessions[session.sessionid] = session;
 

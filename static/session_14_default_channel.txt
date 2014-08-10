@@ -1,0 +1,48 @@
+2014-08-10 22:22:13.582564 -- {"channel":"http1270018000practice14","message":{"userid":"learner","extra":{},"searchingForRooms":true},"sender":"learner"}
+ 
+2014-08-10 22:22:19.482840 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:22:24.206821 -- {"channel":"http1270018000practice14","message":{"participant":true,"userid":"learner","channel":"9ubiq9elaf","targetUser":"coach","extra":{},"session":{"audio":true}},"sender":"learner"}
+ 
+2014-08-10 22:22:26.054161 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:22:32.125888 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:22:38.417453 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:22:50.683768 -- {"channel":"http1270018000practice14","message":{"userid":"learner","extra":{},"searchingForRooms":true},"sender":"learner"}
+ 
+2014-08-10 22:22:52.071003 -- {"channel":"http1270018000practice14","message":{"userid":"coach","extra":{},"searchingForRooms":true},"sender":"coach"}
+ 
+2014-08-10 22:23:11.200040 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:23:17.484235 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:23:20.427476 -- {"channel":"http1270018000practice14","message":{"participant":true,"userid":"learner","channel":"bk9zbuzzjju","targetUser":"coach","extra":{},"session":{"audio":true}},"sender":"learner"}
+ 
+2014-08-10 22:23:23.730364 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:23:29.863240 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:23:33.722730 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","newParticipant":"learner","userid":"coach","extra":{},"userData":{"userid":"learner","extra":{}}},"sender":"coach"}
+ 
+2014-08-10 22:23:35.948792 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:23:42.208317 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:23:48.740045 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:23:54.809160 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:24:01.105188 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:24:08.407726 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:24:14.776617 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:24:20.991553 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:24:27.099011 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 
+2014-08-10 22:24:33.318080 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 

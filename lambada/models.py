@@ -118,4 +118,9 @@ class Recording(models.Model):
 class Channel(models.Model):
 	practice_pk = models.CharField(max_length=255, blank=True, null=True)
 	message = models.CharField(max_length=3000, blank=True, null=True)
+
+
+class ChannelDefault(models.Model):
+	practice_pk = models.CharField(max_length=255, blank=True, null=True)
+	message = models.CharField(max_length=3000, blank=True, null=True)
 # Create your models here.
