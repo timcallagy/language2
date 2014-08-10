@@ -18,7 +18,7 @@ $(document).ready(function() {
 	if (!location.href.contains('coach')) {
 		var sessions = {};
 		connection.onNewSession = function(session) {
-			console.log('stream - In Connection.onNewSession of language2_audio.');
+			console.info('stream - In Connection.onNewSession of language2_audio.');
 			if (sessions[session.sessionid]) return;
 			sessions[session.sessionid] = session;
 
@@ -36,7 +36,8 @@ $(document).ready(function() {
 				var sessionid = this.getAttribute('data-sessionid');
 				session = sessions[sessionid];
 				if (!session) throw 'No such session exists.';
-				console.log('Session to join: ' + session);
+				console.info('Session to join: ');
+				console.info(session);
 				connection.join(session);
 			};
 		};
@@ -57,7 +58,7 @@ $(document).ready(function() {
 		xhr.open('POST', '/practice/speaking_error_notification/'+pk+'/', true);
 		xhr.onload = function(e) {
 			if (this.status == 200) {
-				console.log(this.responseText);
+				console.info(this.responseText);
 				var tr = document.createElement('tr');
 				tr.innerHTML = '<td id="speaking-error">Speaking Error at: ' + this.responseText.substring(3, 7) + '</td>';
 				errorList.insertBefore(tr, errorList.firstChild);

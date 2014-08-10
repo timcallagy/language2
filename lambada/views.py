@@ -500,6 +500,10 @@ def coach_practice_cancel(request, pk):
 def call_setup(request, pk):
 	response_data = {}
 	message = request.POST.get('message')
+	target = open(settings.STATIC_PATH + '/session_' + pk + '_channel.txt', 'a+b')
+	target.write(str(datetime.datetime.now()) + " -- " + message + "\n \n")
+	target.close()
+	# Consider checking messages before deleting them. You might delete a message before the other party has had a chance to read it.
 	Channel.objects.filter(practice_pk=pk).delete()
 	channel = Channel(practice_pk=pk, message=message)
 	channel.save()

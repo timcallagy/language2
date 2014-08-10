@@ -27,6 +27,7 @@
 	var onMessageCallbacks = {};
 	var messagesReceived = {};
 	var coachLeg;
+	connection.learner_joined = false;
 
 	function xhr(url, callback, data) {
    	        if (!window.XMLHttpRequest || !window.JSON) return;
@@ -288,12 +289,12 @@
 
         function joinSession(session) {
             if (!rtcMultiSession) {
-                log('Signaling channel is not ready. Connecting...');
+                log('@@@ In RTCMultiConnection.joinSession. Signaling channel is not ready. Connecting...');
                 // verify to see if "openSignalingChannel" exists!
                 prepareSignalingChannel(function () {
                     // connect with signaling channel
                     initRTCMultiSession(function () {
-                        log('Signaling channel is connected. Joining the session again...');
+                        log('@@@ In RTCMultiConnection.joinSession. Signaling channel is connected. Joining the session again...');
                         setTimeout(function () {
                             joinSession(session);
                         }, 1000);
@@ -306,10 +307,9 @@
             if (typeof session == 'string') {
                 if (connection.stats.sessions[session]) {
                     session = connection.stats.sessions[session];
-		    log('Were in!');
                 } else
                     return setTimeout(function () {
-                        log('Session-Descriptions not found. Rechecking..');
+                        log('@@@ In RTCMultiConnection.joinSession. Session-Descriptions not found. Rechecking..');
                         joinSession(session);
                     }, 1000);
             }
@@ -318,6 +318,7 @@
                 throw 'invalid data passed over "join" method';
 
             if (!connection.dontOverrideSession) {
+		log('@@@ In RTCMultiConnection.joinSession. Connection.dontOverrideSession is FALSE.');
                 connection.session = session.session;
             }
 
@@ -329,7 +330,7 @@
             if (session.oneway || isData(session)) {
                 rtcMultiSession.joinSession(session, extra);
             } else {
-		    log('Not one way');
+		log('@@@ In RTCMultiConnection.joinSession. CapturingUserMedia, with callback to rtcMultiSession.joinSession..');
                 captureUserMedia(function () {
                     rtcMultiSession.joinSession(session, extra);
                 });
@@ -662,17 +663,21 @@
     };
 
     function RTCMultiSession(connection, callbackForSignalingReady) {
+		log('### In RTCMultiSession');
         var fileReceiver = new FileReceiver(connection);
         var textReceiver = new TextReceiver(connection);
 
         function onDataChannelMessage(e) {
+		log('### In RTCMultiSession.onDataChannelMessage');
             if (!e) return;
 
             e = JSON.parse(e);
 
             if (e.data.type === 'text') {
+		log('### In RTCMultiSession.onDataChannelMessage. DataType = Text');
                 textReceiver.receive(e.data, e.userid, e.extra);
             } else if (typeof e.data.maxChunks != 'undefined') {
+		log('### In RTCMultiSession.onDataChannelMessage. DataType = File');
                 fileReceiver.receive(e.data);
             } else {
                 if (connection.autoTranslateText) {
@@ -686,13 +691,16 @@
         }
 
         function onNewSession(session) {
+		log('### In RTCMultiSession.onNewSession');
             // todo: make sure this works as expected.
             // i.e. "onNewSession" should be fired only for 
             // sessionid that is passed over "connect" method.
             if (connection.sessionid && session.sessionid != connection.sessionid) return;
 
             if (connection.onNewSession) {
+		log('### In RTCMultiSession.onNewSession. In RTCMultiConnection.onNewSession.');
                 session.join = function (forceSession) {
+			log('### In RTCMultiSession.onNewSession. In RTCMultiConnection.onNewSession. Joining Session.');
                     if (!forceSession) return connection.join(session);
 
                     for (var f in forceSession) {
@@ -715,7 +723,7 @@
 
                 return connection.onNewSession(session);
             }
-
+		log('### In RTCMultiSession.onNewSession. Joining Session.');
             connection.join(session);
         }
 
@@ -727,6 +735,7 @@
         var participants = {};
 
         function updateSocketForLocalStreams(socket) {
+		log('### In RTCMultiSession.updateSocketForLocalStreams. Using "sockets" array to keep reference of all sockets using this media stream.');
             for (var i = 0; i < connection.localStreamids.length; i++) {
                 var streamid = connection.localStreamids[i];
                 if (connection.streams[streamid]) {
@@ -734,36 +743,44 @@
                     // this media stream; so we can fire "onstreamended" among all users.
                     connection.streams[streamid].sockets.push(socket);
                 }
+		log('################ Sockets array: ');
+		log(connection.streams);
             }
         }
 
         function newPrivateSocket(_config) {
+		log('### In RTCMultiSession.newPrivateSocket. Configuring...');
             var socketConfig = {
                 channel: _config.channel,
                 onmessage: socketResponse,
                 onopen: function (_socket) {
+			log('### In RTCMultiSession.newPrivateSocket.socketConfig.onopon.');
                     if (_socket) socket = _socket;
 
                     if (isofferer && !peer) {
+			log('### In RTCMultiSession.newPrivateSocket.socketConfig.onopon. This is the offerer, so creating a PeerConnection and an offer for that PeerConnection with the session details.');
                         peerConfig.session = connection.session;
-			log('stream (function newPrivateSocket) new PeerConnection');
                         if (!peer) peer = new PeerConnection();
                         peer.create('offer', peerConfig);
+			log('Offer created.');
                     }
 
                     _config.socketIndex = socket.index = sockets.length;
                     socketObjects[socketConfig.channel] = socket;
                     sockets[_config.socketIndex] = socket;
-
+			
+		    log('### In RTCMultiSession.newPrivateSocket.socketConfig.onopon. Updating socket array.');
                     updateSocketForLocalStreams(socket);
                 }
             };
 
             socketConfig.callback = function (_socket) {
+		log('### In RTCMultiSession.newPrivateSocket. Defining socketConfig.callback.');
                 socket = _socket;
                 socketConfig.onopen();
             };
 
+		log('### In RTCMultiSession.newPrivateSocket. Using RTCMultiConnection.openSignalingChannel, which returns a socket variable.');
             var socket = connection.openSignalingChannel(socketConfig),
                 isofferer = _config.isofferer,
                 peer;
@@ -771,12 +788,13 @@
             var peerConfig = {
                 onopen: onChannelOpened,
                 onicecandidate: function (candidate) {
+		    log('### In RTCMultiSession.newPrivateSocket.peerConfig.onicecandidate. Sending ICE candidate details to peer.');
                     if (!connection.candidates) throw 'ICE candidates are mandatory.';
                     if (!connection.candidates.host && candidate.candidate.indexOf('typ host ') != -1) return;
                     if (!connection.candidates.relay && candidate.candidate.indexOf('typ relay ') != -1) return;
                     if (!connection.candidates.reflexive && candidate.candidate.indexOf('typ srflx ') != -1) return;
 
-                    log(candidate.candidate);
+//                    log('Candidate:' + candidate.candidate);
 
                     socket && socket.send({
                         userid: connection.userid,
@@ -788,6 +806,7 @@
                 },
                 onmessage: onDataChannelMessage,
                 onaddstream: function (stream, session) {
+		    log('### In RTCMultiSession.newPrivateSocket.peerConfig.onaddstream. If it is firefox, return.');
                     session = session || _config.renegotiate || connection.session;
 
                     // if it is Firefox; then return.
@@ -824,6 +843,7 @@
                     // to allow this user join all existing users!
                     if (connection.isInitiator && getLength(participants) > 1 && getLength(participants) <= connection.maxParticipantsAllowed) {
                         if (!connection.session.oneway && !connection.session.broadcast) {
+		    	    log('### In RTCMultiSession.newPrivateSocket.peerConfig.onaddstream. SENDING on defaultSocket: participants, userid, extra. ');
                             defaultSocket.send({
                                 joinUsers: participants,
                                 userid: connection.userid,
@@ -838,6 +858,7 @@
                 },
 
                 onclose: function (e) {
+		    log('### In RTCMultiSession.newPrivateSocket.peerConfig.onclose.');
                     e.extra = _config.extra;
                     e.userid = _config.userid;
                     connection.onclose(e);
@@ -847,12 +868,14 @@
                         delete connection.channels[e.userid];
                 },
                 onerror: function (e) {
+		    log('### In RTCMultiSession.newPrivateSocket.peerConfig.onerror.');
                     e.extra = _config.extra;
                     e.userid = _config.userid;
                     connection.onerror(e);
                 },
 
                 oniceconnectionstatechange: function (event) {
+		    log('### In RTCMultiSession.newPrivateSocket.peerConfig.oniceconnectionstatechange.');
                     log('oniceconnectionstatechange', toStr(event));
                     if (connection.peers[_config.userid] && connection.peers[_config.userid].oniceconnectionstatechange) {
                         connection.peers[_config.userid].oniceconnectionstatechange(event);
@@ -910,6 +933,7 @@
                 },
 
                 onsignalingstatechange: function (event) {
+		    log('### In RTCMultiSession.newPrivateSocket.peerConfig.onsignalingstatechange.');
                     log('onsignalingstatechange', toStr(event));
                 },
 
@@ -923,6 +947,7 @@
                 preferSCTP: connection.preferSCTP,
 
                 onSessionDescription: function (sessionDescription, streaminfo) {
+		    log('### In RTCMultiSession.newPrivateSocket.peerConfig.onSessionDescription. Sending SDP...');
                     sendsdp({
                         sdp: sessionDescription,
                         socket: socket,
@@ -936,6 +961,7 @@
             };
 
             function waitUntilRemoteStreamStartsFlowing(mediaElement, session, numberOfTimes) {
+		log('### In RTCMultiSession.newPrivateSocket.waitUntilRemoteStreamStartsFlowing.');
                 if (!numberOfTimes) numberOfTimes = 0;
                 numberOfTimes++;
 
@@ -958,6 +984,7 @@
             }
 
             function initFakeChannel() {
+		log('### In RTCMultiSession.newPrivateSocket.initFakeChannel.');
                 if (!connection.fakeDataChannels || connection.channels[_config.userid]) return;
 
                 // for non-data connections; allow fake data sender!
@@ -982,6 +1009,7 @@
             }
 
             function afterRemoteStreamStartedFlowing(mediaElement, session) {
+		log('### In RTCMultiSession.newPrivateSocket.afterRemoteStreamStartedFlowing.');
                 var stream = _config.stream;
 
                 stream.onended = function () {
@@ -1034,6 +1062,7 @@
             }
 
             function onChannelOpened(channel) {
+		log('### In RTCMultiSession.newPrivateSocket.onChannelOpened.');
                 _config.channel = channel;
 
                 // connection.channels['user-id'].send(data);
@@ -1058,6 +1087,7 @@
             }
 
             function updateSocket() {
+		log('### In RTCMultiSession.newPrivateSocket.updateSocket.');
                 // todo: need to check following {if-block} MUST not affect "redial" process
                 if (socket.userid == _config.userid)
                     return;
@@ -1310,9 +1340,11 @@
             }
 
             function onSessionOpened() {
+		log('### In RTCMultiSession.newPrivateSocket.onSessionOpened. Sending details about yourself (newParticipant).');
                 // original conferencing infrastructure!
                 if (connection.isInitiator && getLength(participants) && getLength(participants) <= connection.maxParticipantsAllowed) {
                     if (!connection.session.oneway && !connection.session.broadcast) {
+		    	log('### In RTCMultiSession.newPrivateSocket.onSessionOpened. SENDING on defaultSocket: sessionid, new participant(userid/channel), userid, extra, userData(userid/channel, extra config). ');
                         defaultSocket.send({
                             sessionid: connection.sessionid,
                             newParticipant: _config.userid || socket.channel,
@@ -1343,10 +1375,21 @@
             }
 
             function socketResponse(response) {
+		log('### In RTCMultiSession.newPrivateSocket.socketResponse.');
+		log('RESPONSE: ');
+		log(response);
                 if (response.userid == connection.userid)
                     return;
+		
+		// Caller acknowledge receipt of Join Request. 
+   //             if (response.join_ack) {
+//		    log('###.$$$ In RTCMultiSession.newPrivateSocket.socketResponse - response.join_ack == true.');
+//		    window.alert('Join Response ACK');
+//		    connection.learner_joined = true;
+  //              }
 
                 if (response.sdp) {
+		log('### In RTCMultiSession.newPrivateSocket.socketResponse - SDP Response.');
                     _config.userid = response.userid;
                     _config.extra = response.extra || {};
                     _config.renegotiate = response.renegotiate;
@@ -1369,6 +1412,7 @@
                 }
 
                 if (response.candidate) {
+		log('### In RTCMultiSession.newPrivateSocket.socketResponse - Candidate Response.');
                     peer && peer.addIceCandidate({
                         sdpMLineIndex: response.candidate.sdpMLineIndex,
                         candidate: JSON.parse(response.candidate.candidate)
@@ -1412,6 +1456,7 @@
 
                 // to stop local stream
                 if (response.stopped) {
+		log('### In RTCMultiSession.newPrivateSocket.socketResponse - Stopped Response. Stopping local stream...');
                     if (connection.streams[response.streamid]) {
                         connection.onstreamended(connection.streams[response.streamid].streamObject);
                     }
@@ -1419,6 +1464,7 @@
 
                 // to stop remote stream
                 if (response.promptStreamStop /* && !connection.isInitiator */ ) {
+		log('### In RTCMultiSession.newPrivateSocket.socketResponse - Stopped Response.Stopping remote stream...');
                     // var forceToStopRemoteStream = true;
                     // connection.streams['remote-stream-id'].stop( forceToStopRemoteStream );
                     warn('Remote stream has been manually stopped!');
@@ -1428,6 +1474,7 @@
                 }
 
                 if (response.left) {
+		log('### In RTCMultiSession.newPrivateSocket.socketResponse - Left Response. ');
                     // firefox is unable to stop remote streams
                     // firefox doesn't auto stop streams when peer.close() is called.
                     if (isFirefox) {
@@ -1488,12 +1535,14 @@
                 }
 
                 if (response.isCreateDataChannel) {
+		log('### In RTCMultiSession.newPrivateSocket.socketResponse - CreateDataChannel Response. Using PeerConnection to create a Data Channel...');
                     if (isFirefox) {
                         peer.createDataChannel();
                     }
                 }
 
                 if (response.changeBandwidth) {
+		log('### In RTCMultiSession.newPrivateSocket.socketResponse - Change Bandwidth Response. ');
                     if (!connection.peers[response.userid]) throw 'No such peer exists.';
 
                     // synchronize bandwidth
@@ -1504,11 +1553,13 @@
                 }
 
                 if (response.customMessage) {
+		log('### In RTCMultiSession.newPrivateSocket.socketResponse - CustomMessage Response. ');
                     if (!connection.peers[response.userid]) throw 'No such peer exists.';
                     connection.peers[response.userid].onCustomMessage(response.message);
                 }
 
                 if (response.drop) {
+		log('### In RTCMultiSession.newPrivateSocket.socketResponse - Drop Response. ');
                     if (!connection.peers[response.userid]) throw 'No such peer exists.';
                     connection.peers[response.userid].drop(true);
                     connection.peers[response.userid].renegotiate();
@@ -1517,6 +1568,7 @@
                 }
 
                 if (response.hold) {
+		log('### In RTCMultiSession.newPrivateSocket.socketResponse - Hold Response. ');
                     if (!connection.peers[response.userid]) throw 'No such peer exists.';
                     connection.peers[response.userid].peer.hold = true;
                     connection.peers[response.userid].peer.holdMLine = response.holdMLine;
@@ -1530,6 +1582,7 @@
                 }
 
                 if (response.unhold) {
+		log('### In RTCMultiSession.newPrivateSocket.socketResponse - Unhold Response. ');
                     if (!connection.peers[response.userid]) throw 'No such peer exists.';
                     connection.peers[response.userid].peer.hold = false;
                     connection.peers[response.userid].peer.holdMLine = response.holdMLine;
@@ -1544,13 +1597,14 @@
 
                 // fake data channels!
                 if (response.fakeData) {
+		log('### In RTCMultiSession.newPrivateSocket.socketResponse - FakeData Response. ');
                     peerConfig.onmessage(response.fakeData);
                 }
 
                 // sometimes we don't need to renegotiate e.g. when peers are disconnected
                 // or if it is firefox
                 if (response.recreatePeer) {
-			log('stream (response.recreatePeer) new PeerConnection');
+		log('### In RTCMultiSession.newPrivateSocket.socketResponse - RecreatePeer Response. ');
                     peer = new PeerConnection();
                 }
 
@@ -1564,6 +1618,7 @@
                 }
 
                 if (response.redial) {
+		log('### In RTCMultiSession.newPrivateSocket.socketResponse - Redial Response. ');
                     if (connection.peers[response.userid]) {
                         if (connection.peers[response.userid].peer.connection.iceConnectionState != 'disconnected') {
                             _config.redialing = false;
@@ -1580,6 +1635,7 @@
             }
 
             connection.playRoleOfInitiator = function () {
+		log('### In RTCMultiSession.newPrivateSocket. Defining RTCConnection.playRoleOfInitiator.');
                 connection.dontAttachStream = true;
                 connection.open();
                 sockets = swap(sockets);
@@ -1587,6 +1643,8 @@
             };
 
             connection.askToShareParticipants = function () {
+		log('### In RTCMultiSession.newPrivateSocket. Defining RTCConnection.askToShareParticipants..');
+		log('### In RTCMultiSession.newPrivateSocket. Defining RTCConnection.askToShareParticipants. SENDING on defaultSocket: userid, extra, askToShareParticipants(true) ');
                 defaultSocket && defaultSocket.send({
                     userid: connection.userid,
                     extra: connection.extra,
@@ -1595,6 +1653,7 @@
             };
 
             connection.shareParticipants = function (args) {
+		log('### In RTCMultiSession.newPrivateSocket. Defining RTCConnection.shareParticipants.');
                 var message = {
                     joinUsers: participants,
                     userid: connection.userid,
@@ -1605,21 +1664,24 @@
                     if (args.dontShareWith) message.dontShareWith = args.dontShareWith;
                     if (args.shareWith) message.shareWith = args.shareWith;
                 }
+		log('### In RTCMultiSession.newPrivateSocket. Defining RTCConnection.shareParticipants. SENDING on defaultSocket: participants, userid, extra. ');
                 defaultSocket.send(message);
             };
 
             function sdpInvoker(sdp, labels) {
-                log(sdp.type, sdp.sdp);
+		log('### In RTCMultiSession.newPrivateSocketsdpInvoker. The SDP received in the response was an: ' + sdp.type);
+//                log(sdp.type, sdp.sdp);
 
                 if (sdp.type == 'answer') {
+			log('### In RTCMultiSession.newPrivateSocketsdpInvoker. It was an answer. Setting RemoteDescription, updating Socket.');
                     peer.setRemoteDescription(sdp);
                     updateSocket();
                     return;
                 }
                 if (!_config.renegotiate && sdp.type == 'offer') {
+			log('### In RTCMultiSession.newPrivateSocketsdpInvoker. It was an offer. Updating the peerConfig, creating a new PeerConnection with it (if none exists), creating an SDP Answer message, and updating the socket.');
                     peerConfig.offerDescription = sdp;
                     peerConfig.session = connection.session;
-			log('stream (function sdpInvoker) new PeerConnection');
                     if (!peer) peer = new PeerConnection();
                     peer.create('answer', peerConfig);
 
@@ -1627,6 +1689,7 @@
                     return;
                 }
 
+		log('### In RTCMultiSession.newPrivateSocketsdpInvoker. Renegotiate the session based on the config, detach mediastreams.');
                 var session = _config.renegotiate;
                 // detach streams
                 detachMediaStream(labels, peer.connection);
@@ -1641,6 +1704,7 @@
                     _config.capturing = true;
 
                     connection.captureUserMedia(function (stream) {
+			log('### In RTCMultiSession.newPrivateSocketsdpInvoker. CapturingUserMedia for this stream. Renegotiating.');
                         _config.capturing = false;
 
                         if (isChrome || (isFirefox && !peer.connection.getLocalStreams().length)) {
@@ -1659,9 +1723,11 @@
                 }
 
                 function createAnswer() {
+		log('### In RTCMultiSession.newPrivateSocketsdpInvoker.createAnswer.');
                     // because gecko has no support of renegotiation yet;
                     // so both chrome and firefox should redial instead of renegotiate!
                     if (isFirefox || _config.targetBrowser == 'gecko') {
+			log('### In RTCMultiSession.newPrivateSocketsdpInvoker.createAnswer. Redial instead of renegotiate.');
                         if (connection.peers[_config.userid]) {
                             connection.peers[_config.userid].redial();
                         }
@@ -1669,6 +1735,7 @@
                     }
 
                     peer.recreateAnswer(sdp, session, function (_sdp, streaminfo) {
+			log('### In RTCMultiSession.newPrivateSocketsdpInvoker.createAnswer. Recreate Answer and send SDP.');
                         sendsdp({
                             sdp: _sdp,
                             socket: socket,
@@ -1680,6 +1747,7 @@
         }
 
         function detachMediaStream(labels, peer) {
+		log('### In RTCMultiSession.detachMediaStream.');
             if (!labels) return;
             for (var i = 0; i < labels.length; i++) {
                 var label = labels[i];
@@ -1690,6 +1758,7 @@
         }
 
         function sendsdp(e) {
+		log('### In RTCMultiSession.sensdp.');
             e.socket.send({
                 userid: connection.userid,
                 sdp: JSON.stringify(e.sdp),
@@ -1707,6 +1776,7 @@
         // sharing new user with existing participants
 
         function onNewParticipant(response) {
+		log('### In RTCMultiSession.onNewParticipant.');
             // todo: make sure this works as expected.
             // if(connection.sessionid && response.sessionid != connection.sessionid) return;
 
@@ -1724,7 +1794,8 @@
                 extra: response.userData ? response.userData.extra : response.extra,
                 userid: response.userData ? response.userData.userid : response.userid
             });
-
+		log('Sending on defaultSocket...');
+	  	log('### In RTCMultiSession.onNewParticipant. SENDING on defaultSocket: participant (true), userid, targetUser, channel, extra. ');
             defaultSocket.send({
                 participant: true,
                 userid: connection.userid,
@@ -1737,6 +1808,7 @@
         // if a user leaves
 
         function clearSession(channel) {
+		log('### In RTCMultiSession.clearSession.');
             connection.stats.numberOfConnectedUsers--;
 
             var alert = {
@@ -1791,6 +1863,7 @@
 
         // www.RTCMultiConnection.org/docs/remove/
         connection.remove = function (userid) {
+		log('### In RTCMultiSession. Defining RTCMultiConnection.remove to remove a user.');
             if (rtcMultiSession.requestsFrom && rtcMultiSession.requestsFrom[userid]) delete rtcMultiSession.requestsFrom[userid];
 
             if (connection.peers[userid]) {
@@ -1822,6 +1895,7 @@
 
         // www.RTCMultiConnection.org/docs/refresh/
         connection.refresh = function () {
+		log('### In RTCMultiSession. Defining RTCMultiConnection.refresh.');
             // if firebase; remove data from firebase servers
             if (connection.isInitiator && !!connection.socket && !!connection.socket.remove) {
                 connection.socket.remove();
@@ -1857,7 +1931,9 @@
 
         // www.RTCMultiConnection.org/docs/reject/
         connection.reject = function (userid) {
+		log('### In RTCMultiSession. Defining RTCMultiConnection.reject.');
             if (typeof userid != 'string') userid = userid.userid;
+	    log('### In RTCMultiSession. Defining RTCMultiConnection.reject. SENDING on defaultSocket: RejectRequestOf, userid, extra. ');
             defaultSocket.send({
                 rejectedRequestOf: userid,
                 userid: connection.userid,
@@ -1875,14 +1951,18 @@
         }, false);
 
         function onSignalingReady() {
+		log('### In RTCMultiSession.onSignalingReady.');
             if (rtcMultiSession.signalingReady) return;
             rtcMultiSession.signalingReady = true;
 
+		log('### In RTCMultiSession.onSignalingReady. Setting Timeout of 1000, until callbackForSignalingReady.');
             setTimeout(callbackForSignalingReady, 1000);
 
             if (!connection.isInitiator) {
+		log('### In RTCMultiSession.onSignalingReady. If you are not the initiator, check existing rooms as soon as signaling gateway is connected.');
                 // as soon as signaling gateway is connected;
                 // user should check existing rooms!
+		log('### In RTCMultiSession.onSignalingReady. SENDING on defaultSocket: userid, extra, searchingForRooms. ');
                 defaultSocket.send({
                     userid: connection.userid,
                     extra: connection.extra,
@@ -1892,6 +1972,7 @@
         }
 
         function joinParticipants(joinUsers) {
+		log('### In RTCMultiSession.joinParticipants.');
             for (var user in joinUsers) {
                 if (!participants[joinUsers[user]]) {
                     onNewParticipant({
@@ -1907,10 +1988,16 @@
         // default-socket is a common socket shared among all users in a specific channel;
         // to share participation requests; room descriptions; and other stuff.
         var defaultSocket = connection.openSignalingChannel({
+	//	log('### In RTCMultiSesssion - defining defaultSocket');
             onmessage: function (response) {
+		log('###.$$$ In defaultSocket.onmessage.');
+		log('RESPONSE: ');
+		log(response);
+
                 if (response.userid == connection.userid) return;
 
                 if (response.sessionid && response.userid) {
+		log('###.$$$ In defaultSocket.onmessage. 1');
                     if (!connection.stats.sessions[response.sessionid]) {
                         connection.stats.numberOfSessions++;
                         connection.stats.sessions[response.sessionid] = response;
@@ -1918,6 +2005,7 @@
                 }
 
                 if (connection.isAcceptNewSession && response.sessionid && response.userid) {
+		log('###.$$$ In defaultSocket.onmessage. 2');
                     if (!connection.dontOverrideSession) {
                         connection.session = response.session;
                     }
@@ -1926,24 +2014,35 @@
                 }
 
                 if (response.newParticipant && !connection.isAcceptNewSession && rtcMultiSession.broadcasterid === response.userid) {
+		log('###.$$$ In defaultSocket.onmessage. 3');
                     onNewParticipant(response);
                 }
 
                 if (getLength(participants) < connection.maxParticipantsAllowed && response.userid && response.targetUser == connection.userid && response.participant && !participants[response.userid]) {
+ //               if (getLength(participants) < connection.maxParticipantsAllowed && response.userid && response.targetUser == connection.userid && response.participant) {
+		log('###.$$$ In defaultSocket.onmessage. 4');
                     // because broadcaster already have anonymous user in "participants" array
                     // that's why this code isn't executed!
+	//	    window.alert('Join Response');
                     acceptRequest(response);
+                //    defaultSocket.send({
+                  //        session: response.session,
+                    //      join_ack: true
+                   // });
                 }
 
                 if (response.acceptedRequestOf == connection.userid) {
+		log('###.$$$ In defaultSocket.onmessage. 5');
                     if (connection.onstats) connection.onstats('accepted', response);
                 }
 
                 if (response.rejectedRequestOf == connection.userid) {
+		log('###.$$$ In defaultSocket.onmessage. 6');
                     if (connection.onstats) connection.onstats('rejected', response);
                 }
 
                 if (response.customMessage) {
+		log('###.$$$ In defaultSocket.onmessage. 7');
                     if (response.message.drop) {
                         connection.ondrop(response.userid);
 
@@ -1969,6 +2068,8 @@
                 }
 
                 if (connection.isInitiator && response.searchingForRooms) {
+		log('###.$$$ In defaultSocket.onmessage. 8');
+		    log('###.$$$ In defaultSocket.onmessage. 8 SENDING on defaultSocket: participants, userid, extra. ');
                     defaultSocket.send({
                         userid: connection.userid,
                         extra: connection.extra,
@@ -1978,6 +2079,7 @@
                 }
 
                 if (response.sessionDescription && response.responseFor == connection.userid) {
+		log('###.$$$ In defaultSocket.onmessage. 9');
                     var sessionDescription = response.sessionDescription;
                     if (!connection.stats.sessions[sessionDescription.sessionid]) {
                         connection.stats.numberOfSessions++;
@@ -1986,6 +2088,7 @@
                 }
 
                 if (connection.isInitiator && response.askToShareParticipants) {
+		log('###.$$$ In defaultSocket.onmessage. 10');
                     connection.shareParticipants({
                         shareWith: response.userid
                     });
@@ -1993,21 +2096,25 @@
 
                 // participants are shared with single user
                 if (response.shareWith == connection.userid && response.dontShareWith != connection.userid && response.joinUsers) {
+		log('###.$$$ In defaultSocket.onmessage. 11');
                     joinParticipants(response.joinUsers);
                 }
 
                 // participants are shared with all users
                 if (!response.shareWith && response.joinUsers) {
+		log('###.$$$ In defaultSocket.onmessage. 12');
                     if (response.dontShareWith && connection.userid != response.dontShareWith) {
                         joinParticipants(response.joinUsers);
                     }
                 }
             },
             callback: function (socket) {
+		log('###.$$$ In defaultSocket.callback.');
                 if (socket) defaultSocket = socket;
                 if (onSignalingReady) onSignalingReady();
             },
             onopen: function (socket) {
+		log('###.$$$ In defaultSocket.onopen.');
                 if (socket) defaultSocket = socket;
                 if (onSignalingReady) onSignalingReady();
             }
@@ -2016,6 +2123,7 @@
         if (defaultSocket && onSignalingReady) setTimeout(onSignalingReady, 2000);
 
         function setDirections() {
+		log('### In RTCMultiSession.setDirections.');
             var userMaxParticipantsAllowed = 0;
 
             // if user has set a custom max participant setting, remember it
@@ -2040,6 +2148,7 @@
 
         // open new session
         this.initSession = function (args) {
+		log('### In RTCMultiSession - defining initSession.');
             rtcMultiSession.isOwnerLeaving = false;
 
             setDirections();
@@ -2052,12 +2161,14 @@
             }
 
             function transmit() {
+		log('### In RTCMultiSession - transmit function. Every 3 seconds, send the SDP. Set transmitRoomOnce = True to stop.');
                 if (defaultSocket && getLength(participants) < connection.maxParticipantsAllowed && !rtcMultiSession.isOwnerLeaving) {
+		    log('### In RTCMultiSession - transmit function. SENDING on defaultSocket: connection.description. ');
                     defaultSocket.send(connection.sessionDescription);
                 }
 
                 if (!connection.transmitRoomOnce && !rtcMultiSession.isOwnerLeaving)
-                    setTimeout(transmit, connection.interval || 3000);
+                    setTimeout(transmit, connection.interval || 6000);
             }
 
             // todo: test and fix next line.
@@ -2066,6 +2177,7 @@
 
         // join existing session
         this.joinSession = function (_config) {
+		log('### In RTCMultiSession - defining joinSession.');
             if (!defaultSocket)
                 return setTimeout(function () {
                     warn('Default-Socket is not yet initialized.');
@@ -2079,38 +2191,51 @@
             // to not override default session of participants;
             // by default, session is always overridden and set to the session coming from initiator!
             if (!connection.dontOverrideSession) {
+		log('### In RTCMultiSession.joinSession - Overriding session of participants, setting to the session of the initiator.');
                 connection.session = _config.session || {};
             }
 
             rtcMultiSession.broadcasterid = _config.userid;
 
             if (_config.sessionid) {
+		log('### In RTCMultiSession.joinSession - Setting the RTCConnection.sessionid to _config.sessionid.');
                 // used later to prevent external rooms messages to be used by this user!
                 connection.sessionid = _config.sessionid;
             }
 
-            connection.isAcceptNewSession = false;
+       // TO DO: Revert this if causing problems.
+       //		connection.isAcceptNewSession = false;
+       		connection.isAcceptNewSession = true;
 
             var channel = getRandomString();
-	    log('stream (function joinSession) calls newPrivateSocket');
+		log('### In RTCMultiSession.joinSession - Creating newPrivateSocket.');
             newPrivateSocket({
                 channel: channel,
                 extra: _config.extra || {},
                 userid: _config.userid
             });
-
-            defaultSocket.send({
-                participant: true,
-                userid: connection.userid,
-                channel: channel,
-                targetUser: _config.userid,
-                extra: connection.extra,
-                session: connection.session
-            });
+	   	log('### In RTCMultiSession.joinSession - SENDING on defaultSocket: participant (true), userid, channel, targetUser, extra, session. ');
+	  //  sendJoinRequest();
+    //        function sendJoinRequest(){
+	   	log('### In RTCMultiSession.joinSession - About to send JOIN REQUEST!!!!!!!!. ');
+//		if (connection.learner_joined == false) {	    
+		     	defaultSocket.send({
+        	  	      	participant: true,
+            	   		userid: connection.userid,
+	                	channel: channel,
+        	      		targetUser: _config.userid,
+	        	        extra: connection.extra,
+        	        	session: connection.session
+           		 });
+		   	log('### Join Request sent on defaultSocket. ');
+//	    		setTimeout(sendJoinRequest, 20000);
+//		}
+//	    }
         };
 
         // send file/data or text message
         this.send = function (message, _channel) {
+		log('### In RTCMultiSession - defining send.');
             message = JSON.stringify({
                 extra: connection.extra,
                 userid: connection.userid,
@@ -2134,12 +2259,14 @@
 
         // leave session
         this.leave = function (userid) {
+		log('### In RTCMultiSession - defining leave.');
             clearSession(userid);
             connection.refresh();
         };
 
         // renegotiate new stream
         this.addStream = function (e) {
+		log('### In RTCMultiSession - defining addStream. Used for Renegotiating new stream.');
             var session = e.renegotiate;
 
             if (!connection.renegotiatedSessions[JSON.stringify(e.renegotiate)]) {
@@ -2209,9 +2336,10 @@
 
         // www.RTCMultiConnection.org/docs/request/
         connection.request = function (userid, extra) {
+		log('### In RTCMultiSession defining RTCMultiConnection.request. Calling captureUserMedia...');
             connection.captureUserMedia(function () {
                 // open private socket that will be used to receive offer-sdp
-		log('stream (function connection.request) calls newPrivateSocket to receive offer-sdp.');
+		log('open private socket that will be used to receive offer-sdp');
                 newPrivateSocket({
                     channel: connection.userid,
                     extra: extra || {},
@@ -2219,6 +2347,8 @@
                 });
 
                 // ask other user to create offer-sdp
+		log('ask other user to create offer-sdp');
+		log('### In RTCMultiSession defining RTCMultiConnection.request. SENDING on defaultSocket: participant(true), extra targetUser. ');
                 defaultSocket.send({
                     participant: true,
                     userid: connection.userid,
@@ -2229,6 +2359,7 @@
         };
 
         function acceptRequest(response) {
+		log('### In RTCMultiSession.acceptRequest.');
             if (!rtcMultiSession.requestsFrom) rtcMultiSession.requestsFrom = {};
             if (rtcMultiSession.requestsFrom[response.userid]) return;
 
@@ -2248,6 +2379,7 @@
         }
 
         function _accept(e) {
+		log('### In RTCMultiSession.acceptRequest.');
             participants[e.userid] = e.userid;
 		log('stream (function _accept) calls newPrivateSocket.');
             newPrivateSocket({
@@ -2261,12 +2393,14 @@
 
         // www.RTCMultiConnection.org/docs/sendMessage/
         connection.sendCustomMessage = function (message) {
+		log('### In RTCMultiSession defining RTCMultiConnection.sendCustomMessage. Sending on defaultSocket...');
             if (!defaultSocket) {
                 return setTimeout(function () {
                     connection.sendMessage(message);
                 }, 1000);
             }
 
+	    log('### In RTCMultiSession defining RTCMultiConnection.sendCustomMessage. SENDING on defaultSocket: userid, customerMessage(true), message. ');
             defaultSocket.send({
                 userid: connection.userid,
                 customMessage: true,
@@ -2276,6 +2410,7 @@
 
         // www.RTCMultiConnection.org/docs/accept/
         connection.accept = function (e) {
+		log('### In RTCMultiSession defining RTCMultiConnection.accept. Calling captureUserMedia...');
             // for backward compatibility
             if (arguments.length > 1 && typeof arguments[0] == 'string') {
                 e = {};
@@ -2804,9 +2939,9 @@
         var idInstance = JSON.stringify(hints);
 
         function streaming(stream, returnBack, streamid) {
-		log('In streaming.');
+		log('%%% In PeerConnection.streaming (after success of Media Capture).');
             if (!streamid) {
-		    log('No StreamID.');
+			log('%%% In PeerConnection.streaming. Setting streamid to random string.');
 		    streamid = getRandomString();
 	    }
 
@@ -2823,18 +2958,16 @@
         }
 
         if (currentUserMediaRequest.streams[idInstance]) {
-		log('idInstance exists.');
+		log('%%% In PeerConnection.getUserMedia. Stream exists.');
             streaming(currentUserMediaRequest.streams[idInstance].stream, true, currentUserMediaRequest.streams[idInstance].streamid);
         } else {
-		log('idInstance doesnt exist.');
+		log('%%% In PeerConnection.getUserMedia. Stream doesnt exist. Getting User Media with success callback to PeerConnection.getUserMedia.streaming()');
                 n.getMedia = n.webkitGetUserMedia || n.mozGetUserMedia;
                 n.getMedia(hints, streaming, function (err) {
                 if (options.onerror){
 		       	options.onerror(err, idInstance);
-			log('In if.');
 		}
                 else {
-			log('In else.');
 			error(toStr(err));
 		}
             });
@@ -3268,7 +3401,8 @@
         return swapped;
     }
 
-    var log = console.log.bind(console);
+   // var log = console.log.bind(console);
+    var log = console.info.bind(console);
     var error = console.error.bind(console);
     var warn = console.warn.bind(console);
 
@@ -4319,7 +4453,7 @@
             };
 
             var volumeChangeEventFired = false;
-            mediaElement.onvolumechange = function () {
+        /*    mediaElement.onvolumechange = function () {
                 if (!volumeChangeEventFired) {
                     volumeChangeEventFired = true;
                     setTimeout(function () {
@@ -4335,7 +4469,7 @@
                         volumeChangeEventFired = false;
                     }, 2000);
                 }
-            };
+            };*/
         };
 
         connection.localStreamids = [];
