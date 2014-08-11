@@ -225,7 +225,7 @@ def practice_add(request, pk):
 			dateTime = dateTime,
 			### TO DO ###
 			### Smart coach picking ##
-			coach = "farty"
+			coach = "timc"
 	)
 	print(practice.id)
 	report, created = Report.objects.get_or_create(

@@ -10,7 +10,7 @@
 
 <h1>{% trans "Register" %}</h1>
 
-	<form class="form form-horizontal" id="user_form" action="/register/" method="post" enctype="multipart/form-data" accept-charset="utf-8">	
+	<form class="form form-horizontal col-md-5 col-md-offset-1" id="user_form" action="/register/" method="post" enctype="multipart/form-data" accept-charset="utf-8">	
 		<div class="form-group">
 		{% csrf_token %}
 		{{ user_form|bootstrap_horizontal }}
