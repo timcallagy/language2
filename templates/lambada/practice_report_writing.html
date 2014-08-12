@@ -8,8 +8,8 @@
 
 {% block top_menu %}
 	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
-	<li><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
-	<li class="active"><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
+	<li class="active"><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
+	<li><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
 	<li><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
 	<li><a href="/help/">{% trans "How does this work?" %}</a></li>
 {% endblock %}
@@ -19,19 +19,18 @@
 
 	<div class="pull-right">
 		<ol class="breadcrumb">
-			<li><a href="/practice/list/">{% trans "Coaching Sessions" %}</a></li>
-			<li><a href="/coach/practice/{{ practice.pk }}">{{ practice.topic.headline }}</a></li>
-			<li><a href="/report/{{ practice.pk }}/report_add_writing/">{% trans "Writing Correction" %}</a></li>
-			<li class="active">{% trans "Writing Report" %}<li>
+			<li><a href="/practice/list/">{% trans "Practice Sessions" %}</a></li>
+			<li class="active">{{ practice.topic.headline }} - {% trans "Writing Report" %}<li>
 		</ol>
 	</div>
 	<br>
+<div class="col-md-10 col-md-offset-1">
 	<h1>{{ practice.topic.headline }} - Writing Report</h1>
 	{% trans "Language" %}: {{ practice.topic.language  }}<br><br>
 	{% trans "Session start time" %}: {{ practice.dateTime  }}<br><br>
 	{% trans "Created by" %}: {{ practice.topic.created_by  }}<br><br><br>
 
-	<table id="error-list" style="width: 100%;" class="table">
+	<table id="error-list" class="table">
 		<tr>
 			<td><strong>{% trans "Original Error" %}</strong></td>
 			<td><strong>{% trans "Your Correction" %}</strong></td>
@@ -46,16 +45,11 @@
 
 	{{ practice.learners_writing|safe }}
 	<br>
-	<a href="/report/{{ practice.pk }}/report_add_writing/" class="btn btn-primary">{% trans "Modify Report" %}</a>
-	<br>
-	<br>
-	<form id="report-publish-form" class="form form-horizontal" action="/practice/{{ practice.pk }}/report/writing-publish/" method="post">
-		{% csrf_token %}
-		<button class="btn btn-primary" type="submit">{% trans "Publish Report" %}</button>
-	</form>
+			<a href="/practice/list/" class="btn btn-primary">{% trans "Go Back" %}</a>
 	<br>
 	<br>
 
+</div>
 	<div id="practice_pk" style="display:none;">{{ practice.pk }}</div>
 	<script src="{% static "js/language2_reports.js" %}"></script>
 

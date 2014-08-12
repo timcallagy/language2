@@ -26,9 +26,9 @@
 	<br>
 	<div class="panel panel-primary">
 		<div class="panel-heading">{% trans "Your Upcoming Practice Sessions" %}</div>
-		{% if practice_list %}
+		{% if practice_upcoming %}
 			<div class="panel-body">
-				<p>{% trans "Start a session, modify a session, cancel a session, or view a session report." %}</p>
+				<p>{% trans "Start a session, modify a session or cancel a session." %}</p>
 				<p>{% trans "Book a Session by clicking below!" %}</p>
 				<a class="btn btn-primary" href="/practice/book/">{% trans "Book a Session" %}</a><br>
 			</div>
@@ -39,27 +39,81 @@
 			</div>
 		{% endif %}
 		<ul class="list-group">
-			{% for practice in practice_list %}
+			{% for practice in practice_upcoming %}
 				<li class="list-group-item">
 					<h3>{{practice.topic.headline}}</h3>
 					{% localtime on %}
 					<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
 					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
-					{% if practice.writing_complete == False or practice.writing_complete == "" %}
-						<a class="btn btn-primary" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br>
-						<a class="btn btn-primary" href="/practice/{{ practice.pk }}/update/">{% trans "Modify" %}</a><br>
-						<form action="/practice/{{ practice.pk }}/delete/" method="post" accept-charset="utf-8">
-					                {% csrf_token %}
-					                <p><input class="btn btn-primary" type="submit" value={% trans "Cancel" %}></p>
-					        </form>
-					{% else %}
-						<br><p>Lesson Complete!</p><br>
-						{% if report.speaking_report_complete and report.writing_report_complete %}
-							<a class="btn btn-success" href="/report/{{ practice.pk }}/">{% trans "View Report" %}</a><br>
+					<div class="row">
+						<div class="col-md-4">
+						{% if practice.dateTime > current_time %}
+						<br>
+							<div class="col-md-3"><a class="btn btn-primary btn-sm" href="/practice/{{ practice.pk }}/update/">{% trans "Modify" %}</a></div>
+							<form action="/practice/{{ practice.pk }}/delete/" method="post" accept-charset="utf-8">
+					        	        {% csrf_token %}
+								<div class="col-md-3"><input class="btn btn-primary btn-sm" type="submit" value={% trans "Cancel" %}></div>
+					       		</form>
+							<div class="col-md-3"><a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br></div>
+							{% endif %}
+						</div>
+					</div>
+					{% endlocaltime %}
+					
+				</li>
+			{% endfor %}
+		</ul>
+	</div>
+
+
+	<div class="panel panel-primary">
+		<div class="panel-heading">{% trans "Your Completed Practice Sessions" %}</div>
+		{% if practice_list %}
+			<div class="panel-body">
+				<p>{% trans "View reports from your completed sessions." %}</p>
+			</div>
+		{% else %}
+			<div class="panel-body">
+				<p>{% trans "You have no Completed Practice Sessions!" %}</p>
+			</div>
+		{% endif %}
+		<ul class="list-group">
+			{% for practice in practice_list %}
+				<li class="list-group-item">
+					<h3>{{practice.topic.headline}}</h3>
+					{% localtime on %}
+					<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
+					<strong>{% trans "When" %}: </strong>{{practice.id}} <br>
+					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
+					<div class="row">
+					<div class="col-md-4">
+						<br><p>{% trans "Speaking Complete!" %}</p>
+						{% if practice.speaking_report_published %}
+							<a class="btn btn-sm btn-info" href="/report/{{ practice.pk }}/speaking/">{% trans "View Speaking Report" %}</a><br>
 						{% else %}
-							<a class="btn btn-danger">{% trans "Report in Progress" %}</a><br>
+							<div class="progress">
+								<div class="progress-bar progress-bar-striped progress-bar-warning active" role="progressbar" aria valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"> {% trans "Report in Progress..." %}
+								</div>
+							</div>
 						{% endif %}
+					</div>
+					<div class="col-md-4 col-md-offset-1">
+					<br>
+					{% if practice.writing_report_published == True %}
+						<a class="btn btn-sm btn-info" href="/report/{{ practice.pk }}/writing/">{% trans "View Writing Report" %}</a><br>
+					{% elif practice.writing_complete == True %}
+						<p>{% trans "Writing Complete!" %}</p>
+						<div class="progress">
+							<div class="progress-bar progress-bar-striped  progress-bar-warning active" role="progressbar" aria valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"> {% trans "Report in Progress..." %}
+							</div>
+						</div>
+					{% else %}
+						<p>{% trans "You haven't done the writing yet." %}
+						<a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a></p>
+
 					{% endif %}
+					</div>
+					</div>
 					{% endlocaltime %}
 					
 				</li>

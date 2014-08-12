@@ -46,3 +46,7 @@
  
 2014-08-10 22:24:33.318080 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
  
+2014-08-12 20:45:28.897233 -- {"channel":"http1270018000practice14","message":{"userid":"coach","extra":{},"searchingForRooms":true},"sender":"coach"}
+ 
+2014-08-12 20:45:33.483998 -- {"channel":"http1270018000practice14","message":{"sessionid":"http1270018000practice14","userid":"coach","session":{"audio":true},"extra":{}},"sender":"coach"}
+ 

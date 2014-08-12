@@ -8,8 +8,8 @@
 
 {% block top_menu %}
 <li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
-<li><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
-<li class="active"><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
+<li class="active"><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
+<li><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
 <li><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
 <li><a href="/help/">{% trans "How does this work?" %}</a></li>
 {% endblock %}
@@ -19,18 +19,16 @@
 
 <div class="pull-right">
 	<ol class="breadcrumb">
-		<li><a href="/practice/list/">{% trans "Coaching Sessions" %}</a></li>
-		<li><a href="/coach/practice/{{ practice.pk }}">{{ practice.topic.headline }}</a></li>
-		<li><a href="/report/{{ practice.pk }}/report_add_speech/">{% trans "Speech Correction" %}</a></li>
-		<li class="active">{% trans "Speech Report" %}<li>
+		<li><a href="/practice/list/">{% trans "Practice Sessions" %}</a></li>
+		<li class="active">{{ practice.topic.headline }} - {% trans "Speaking Report" %}<li>
 	</ol>
 </div>
 <br>
 <div class="col-md-10 col-md-offset-1">
 	<h1>{{ practice.topic.headline }} - Speaking Report</h1>
-	{% trans "Created by" %}: {{ practice.topic.created_by  }}<br>
-	{% trans "Language" %}: {{ practice.topic.language  }}<br>
+	{% trans "Language" %}: {{ practice.topic.language  }}<br><br>
 	{% trans "Session start time" %}: {{ practice.dateTime  }}<br><br>
+	{% trans "Created by" %}: {{ practice.topic.created_by  }}<br><br><br>
 
 	<audio id="main-audio" src="/recording/download/{{ practice.pk }}/" controls preload type="audio/ogg"></audio>
 </div>
@@ -74,13 +72,7 @@
 
 
 <div class="col-md-10 col-md-offset-1">
-			<a href="/report/{{ practice.pk }}/report_add_speech/" class="btn btn-primary">{% trans "Modify Report" %}</a>
-			<br>
-			<br>
-			<form id="report-publish-form" class="form form-horizontal" action="/practice/{{ practice.pk }}/report/speaking-publish/" method="post">
-				{% csrf_token %}
-				<button class="btn btn-primary" type="submit">{% trans "Publish Report" %}</button>
-			</form>
+			<a href="/practice/list/" class="btn btn-primary">{% trans "Go Back" %}</a>
 			<br>
 			<br>
 		</div>

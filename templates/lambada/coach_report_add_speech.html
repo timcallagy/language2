@@ -26,19 +26,16 @@
 	</ol>
 </div>
 <br>
-<h1>{{ topic.headline }}</h1>
+<div class="col-md-10 col-md-offset-1">
+<h1>{{ practice.topic.headline }} - Speaking Report</h1>
 {% trans "Created by" %}: {{ practice.topic.created_by  }}<br>
 {% trans "Language" %}: {{ practice.topic.language  }}<br><br>
-{% trans "Session start time" %}: {{ practice.dateTime  }}<br><br>
+{% trans "When" %}: {{ practice.dateTime  }}<br><br>
 
-<audio id="main-audio" src="/recording/download/{{ practice.pk }}/" controls preload type="audio/ogg">
-</audio>
-
+<audio id="main-audio" src="/recording/download/{{ practice.pk }}/" controls preload type="audio/ogg"></audio>
+</div>
 <br>
 <br>
-
-
-
 {% for speakingError in speaking_error_list %}
 <div class="col-md-10 col-md-offset-1">
 <div class="panel panel-danger">
@@ -73,8 +70,7 @@
 
 <div class="col-md-3">
 <div>	
-	<audio id="sub-audio" controls preload type="audio/ogg">
-	</audio>		
+	<audio id="sub-audio" controls preload type="audio/ogg"></audio>		
 	<button id="record-correction" pk="{{ speakingError.pk }}" class="btn btn-primary btn-sm">{% trans "Add audio correction" %}</button>
 </div>
 <p id="audio-correction-{{ speakingError.pk }}">{% if speakingError.correction_recording == True %}{% trans "Audio correction uploaded." %}{% endif %}</p>
@@ -89,13 +85,13 @@
 {% endfor  %}
 <br>
 
-<div class="col-md-10 col-md-offset-1">
+<div class="col-md-5 col-md-offset-3">
 <div class="panel panel-info">
 	<div class="panel-heading">
 		<h3>{% trans "Add an Error" %}</h3>
 	</div>
 	<div class="panel-body">
-		<form id="speakingError-form" class="form form-horizontal col-md-5" action="/report/{{ practice.pk }}/report_add_speech_error/" method="post" accept-charset="utf-8">
+		<form id="speakingError-form" class="form form-horizontal col-md-4" action="/report/{{ practice.pk }}/report_add_speech_error/" method="post" accept-charset="utf-8">
 			{% csrf_token %}
 			{{ speaking_error_form|bootstrap}} 
 		<p><button id="booking-btn" class="btn btn-info" type="submit">{% trans "Add error" %}</button></p>
@@ -104,6 +100,7 @@
 </div>
 </div>
 <br>
+<div class="col-md-10 col-md-offset-1">
 <a href="/practice/{{ practice.pk }}/report/speaking-review/" class="btn btn-primary">{% trans "Review Report" %}</a>
 <br>
 <br>
@@ -113,7 +110,7 @@
 </form>
 <br>
 <br>
-<br>
+</div>
 
 <div id="practice_pk" style="display:none;">{{ practice.pk }}</div>
 <script src="{% static "js/language2_reports.js" %}"></script>

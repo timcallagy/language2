@@ -418,12 +418,40 @@ def practice_report_writing_publish(request, pk):
 	return HttpResponseRedirect('/dashboard/')
 
 
+@login_required
+def report_speaking(request, pk):
+	context = RequestContext(request)
+	practice = Practice.objects.get(pk=pk)
+	report = practice.report 
+	speaking_error_list = SpeakingError.objects.filter(report=report).order_by('id').exclude(correction_text='', correction_recording=False)
+	return render_to_response('lambada/practice_report_speaking.html', {'practice': practice, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm()}, context)
+
+
+@login_required
+def report_writing(request, pk):
+	context = RequestContext(request)
+	practice = Practice.objects.get(pk=pk)
+	report = practice.report 
+	writing_error_list = WritingError.objects.filter(report=report).order_by('id')
+	return render_to_response('lambada/practice_report_writing.html', {'practice': practice, 'report': report,'writing_error_list': writing_error_list}, context)
+
+
 class PracticeList(ListView):
 	paginate_by = 3
 	template_name = 'lambada/practice_list.html'
 
 	def get_queryset (self):
-		return Practice.objects.filter(user=self.request.user)
+#		return Practice.objects.filter(user=self.request.user).order_by('-dateTime')
+		return Practice.objects.filter(user=self.request.user).filter(dateTime__lte=datetime.datetime.utcnow().replace(tzinfo=utc)).order_by('-dateTime')
+
+
+	def get_context_data(self, **kwargs):
+		context = super(PracticeList, self).get_context_data(**kwargs)
+		context['current_time'] = datetime.datetime.utcnow().replace(tzinfo=utc)
+		context['practice_upcoming'] = Practice.objects.filter(user=self.request.user).filter(dateTime__gte=datetime.datetime.utcnow().replace(tzinfo=utc)).order_by('dateTime')
+
+
+		return context
 
 
 class PracticeBook(ListView):

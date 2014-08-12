@@ -26,21 +26,21 @@
 	</div>
 	<br>
 	<h1>{{ topic.headline }}</h1>
-	{% trans "Created by" %}: {{ practice.topic.created_by  }}<br>
 	{% trans "Language" %}: {{ practice.topic.language  }}<br><br>
 	{% trans "Session start time" %}: {{ practice.dateTime  }}<br><br>
+	{% trans "Created by" %}: {{ practice.topic.created_by  }}<br><br><br>
 
 
-	<table id="error-list" style="width: 100%;">
+	<table id="errorList" class="table table-striped" style="width: 100%;">
 		<tr>
-			<td><strong>Original Error</strong></td>
-			<td><strong>Your Correction</strong></td>
+			<td><strong>{% trans "Original Error" %}</strong></td>
+			<td><strong>{% trans "Your Correction" %}</strong></td>
 		</tr>
 		{% for writingError in writing_error_list %}
 			<tr id="error{{writingError.pk}}">
 				<td>{{writingError.original_text}}</td>
 				<td>{{writingError.correction_text}}</td>
-				<td><button class="btn btn-primary" id="delete-writing-correction{{writingError.pk}}" pk="{{writingError.pk}}">{% trans "Delete Correction" %}</button></td>
+				<td><button class="btn btn-primary btn-sm" id="delete-writing-correction{{writingError.pk}}" pk="{{writingError.pk}}">{% trans "Delete Correction" %}</button></td>
 			</tr>
 		{% endfor %}
 	</table>
@@ -56,20 +56,18 @@
 
 	<br>
 	<a href="/practice/{{ practice.pk }}/report/writing-review/" class="btn btn-primary">{% trans "Review Report" %}</a>
+	<br>
+	<br>
 	<form id="report-publish-form" class="form form-horizontal" action="/practice/{{ practice.pk }}/report/writing-publish/" method="post">
 		{% csrf_token %}
 		<button class="btn btn-primary" type="submit">{% trans "Publish Report" %}</button>
 	</form>
 	<br>
 	<br>
-	<br>
 
 	<div id="practice_pk" style="display:none;">{{ practice.pk }}</div>
-	<script src="{% static "js/language2_audio.js" %}"></script>
+	<script src="{% static "js/language2_reports.js" %}"></script>
 
-	<script src="https://www.webrtc-experiment.com/firebase.js"> </script>
-	<script src="{% static "js/RTCMultiConnection-v1.7.js" %}"></script> 
-	<script src="{% static "js/RecordRTC.js" %}"></script> 
-	<script src="{% static "js/MediaStreamRecorder.js" %}"> </script>
+	<!--	<script src="{% static "js/RecordRTC.js" %}"></script> -->
 
 {% endblock%}
