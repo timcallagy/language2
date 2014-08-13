@@ -40,13 +40,16 @@
 				<li class="list-group-item">
 					<h3>{{practice.topic.headline}}</h3>
 					{% localtime on %}
-					<strong>{% trans "When" %}: </strong>{{practice.dateTime}}
-					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}}
-					<a class="btn btn-primary" href="/coach/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br>
-					<form action="/coach/practice/{{ practice.pk }}/cancel/" method="post" accept-charset="utf-8">
+					<strong>{% trans "When" %}: </strong>{{practice.dateTime}}<br>
+					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}}<br>
+					<br>
+					<div class="col-md-1"><form action="/coach/practice/{{ practice.pk }}/cancel/" method="post" accept-charset="utf-8">
 				                {% csrf_token %}
 				                <p><input class="btn btn-primary" type="submit" value={% trans "Cancel" %}></p>
-				        </form>
+				        </form></div>
+					<div class="col-md-1"><a class="btn btn-success" href="/coach/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br></div>
+					<br>
+					<br>
 					{% endlocaltime %}
 					
 				</li>

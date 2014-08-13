@@ -931,6 +931,14 @@
                     if (connection.peers[_config.userid] && connection.peers[_config.userid].oniceconnectionstatechange) {
                         connection.peers[_config.userid].oniceconnectionstatechange(event);
                     }
+		    if (toStr(event).indexOf("stable") > -1){
+			$("[id^=connecting]").hide();
+			$("[id^=in-progress]").show();
+			if (coachLeg = true) {
+				$("[id^=finish-conference]").show();
+				$("[id^=speaking-error]").show();
+			}
+		    }
                     
                     // if ICE connectivity check is failed; renegotiate or redial
                     if (connection.peers[_config.userid] && connection.peers[_config.userid].peer.connection.iceConnectionState == 'failed') {
@@ -2202,7 +2210,6 @@
             participants = {};
 
             rtcMultiSession.isOwnerLeaving = false;
-
             if (typeof args.transmitRoomOnce != 'undefined') {
                 connection.transmitRoomOnce = args.transmitRoomOnce;
             }
@@ -3901,6 +3908,7 @@
         // www.RTCMultiConnection.org/docs/onleave/
         connection.onleave = function (e) {
             log('onleave', toStr(e));
+	    $("[id^=in-progress]").hide();
         };
 
         connection.token = function () {

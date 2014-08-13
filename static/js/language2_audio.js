@@ -21,18 +21,19 @@ $(document).ready(function() {
 			console.info('%%% In Connection.onNewSession of language2_audio.');
 			if (sessions[session.sessionid]) return;
 			sessions[session.sessionid] = session;
-
+			$("[id^=waiting-for-coach]").hide();
 			var tr = document.createElement('tr');
-			tr.innerHTML = '<td id="session-started-msg">The Session has already started. <button class="join btn btn-primary">Join</button></td>';
-
+			tr.innerHTML = '<td id="session-started-msg">Your Coach has joined! <button class="join btn btn-primary">Join</button></td>';
 			$("[id^=setup-new-conference]").hide();
 			roomsList.insertBefore(tr, roomsList.firstChild);
 
 			var joinRoomButton = tr.querySelector('.join');
 			joinRoomButton.setAttribute('data-sessionid', session.sessionid);
 			joinRoomButton.onclick = function() {
-				$("[id^=finish-conference]").show();
+				console.info('%%% Join button clicked.');
+//				$("[id^=finish-conference]").show();
 				$("[id^=session-started-msg]").hide();
+				$("[id^=connecting]").show();
 				var sessionid = this.getAttribute('data-sessionid');
 				session = sessions[sessionid];
 				if (!session) throw 'No such session exists.';
@@ -43,12 +44,42 @@ $(document).ready(function() {
 		};
 	};
 
+/*	
+	if (!location.href.contains('coach')) {
+		var sessions = {};
+		connection.onNewSession = function(session) {
+			console.info('%%% In Connection.onNewSession of language2_audio.');
+			if (sessions[session.sessionid]) return;
+			sessions[session.sessionid] = session;
+			$("[id^=waiting-for-coach]").hide();
+			$("[id^=join-session]").show();
+			var joinRoomButton = document.querySelector('.join'); 
+			joinRoomButton.setAttribute('data-sessionid', session.sessionid);
+			joinRoomButton.onclick = function() {
+				console.info('%%% Join button clicked.');
+				$("[id^=session-started-msg]").hide();
+				$("[id^=connecting]").show();
+				var sessionid = this.getAttribute('data-sessionid');
+				session = sessions[sessionid];
+				if (!session) throw 'No such session exists.';
+				console.info('Session to join: ');
+				console.info(session);
+				connection.join(session);
+			};
+		};
+}
+
+*/	
+
+
+
 
 	$("[id^=setup-new-conference]").click(function(){
 		connection.open();
 		$("[id^=setup-new-conference]").hide();
-		$("[id^=finish-conference]").show();
-		$("[id^=speaking-error]").show();
+		$("[id^=connecting]").show();
+//		$("[id^=finish-conference]").show();
+//		$("[id^=speaking-error]").show();
 	});
 
 	$("[id^=speaking-error]").click(function(){
@@ -60,7 +91,8 @@ $(document).ready(function() {
 			if (this.status == 200) {
 				console.info(this.responseText);
 				var tr = document.createElement('tr');
-				tr.innerHTML = '<td id="speaking-error">Speaking Error at: ' + this.responseText.substring(3, 7) + '</td>';
+//				tr.innerHTML = '<td class="bg-success" id="speaking-error">Speaking Error at: ' + this.responseText.substring(3, 7) + '</td><br>';
+				tr.innerHTML = '<td id="speaking-error" class="bg-info">&nbsp;&nbsp;&nbsp;' + this.responseText.substring(3, 7) + '</p></td>';
 				errorList.insertBefore(tr, errorList.firstChild);
 			}
 		};

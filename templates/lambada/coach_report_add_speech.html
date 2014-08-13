@@ -28,13 +28,11 @@
 <br>
 <div class="col-md-10 col-md-offset-1">
 <h1>{{ practice.topic.headline }} - Speaking Report</h1>
-{% trans "Created by" %}: {{ practice.topic.created_by  }}<br>
-{% trans "Language" %}: {{ practice.topic.language  }}<br><br>
 {% trans "When" %}: {{ practice.dateTime  }}<br><br>
+{% trans "Language" %}: {{ practice.topic.language  }}<br><br>
 
-<audio id="main-audio" src="/recording/download/{{ practice.pk }}/" controls preload type="audio/ogg"></audio>
+<p><audio id="main-audio" src="/recording/download/{{ practice.pk }}/" controls preload type="audio/ogg"></audio></p>
 </div>
-<br>
 <br>
 {% for speakingError in speaking_error_list %}
 <div class="col-md-10 col-md-offset-1">
@@ -70,10 +68,11 @@
 
 <div class="col-md-3">
 <div>	
-	<audio id="sub-audio" controls preload type="audio/ogg"></audio>		
+	<audio id="sub-audio" controls preload type="audio/ogg" style="display:none;"></audio>		
 	<button id="record-correction" pk="{{ speakingError.pk }}" class="btn btn-primary btn-sm">{% trans "Add audio correction" %}</button>
+	<div id="recording" class="alert alert-warning" style="display:none;">{% trans "Recording for 5 seconds!" %}</div>
 </div>
-<p id="audio-correction-{{ speakingError.pk }}">{% if speakingError.correction_recording == True %}{% trans "Audio correction uploaded." %}{% endif %}</p>
+{% if speakingError.correction_recording == True %}<div id="audio-correction-{{ speakingError.pk }}" class="alert alert-success">{% trans "Audio correction uploaded." %}</div>{% endif %}
 </div>	
 
 </div>

@@ -24,20 +24,26 @@
 		</ol>
 	</div>
 	<br>
+	<div class="col-md-10 col-md-offset-1">
 	<h1>{{ topic.headline }}</h1>
+	{% trans "Starting" %}: {{ practice.dateTime  }}<br>
 	{% trans "Created by" %}: {{ topic.created_by  }}<br>
 	{% trans "Language" %}: {{ topic.language  }}<br><br>
-	{% trans "Starting" %}: {{ practice.dateTime  }}<br><br>
 	{{ topic.guides_speaking_instructions|safe  }}<br>
+	<img id="connecting" src="{% static "connecting.gif" %}" style="display:none;">
+	<div id="in-progress" class="alert alert-success" style="display:none;">{% trans "Call in progress" %}</div>
 	<button id="setup-new-conference" class="btn btn-primary setup">{% trans "Start Session" %}</button> 
 	<button id="finish-conference" class="btn btn-primary setup" style="display:none;">{% trans "Finish Session" %}</button> 
 	<a id="create-report" class="btn btn-primary" style="display:none;" href="/report/{{ practice.pk }}/report_add_speech/">{% trans "Create Report" %}</a> 
 	<button id="speaking-error" class="btn btn-success" style="display:none;">{% trans "Speaking Error" %}</button> 
 	<table style="width: 100%;" id="rooms-list"></table>
-	<div id="audios-container"></div>
-	<table style="width: 100%;" id="error-list"></table>
 	<br>
 	<br>
+	<div id="audios-container" style="display:none;"></div>
+	<table style="width: 10%;" id="error-list"></table>
+	<br>
+	<br>
+	</div>
 	<div id="practice_pk" style="display:none;">{{ practice.pk }}</div>
 	
 	<script src="{% static "js/language2_audio.js" %}"></script>

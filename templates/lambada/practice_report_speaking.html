@@ -28,9 +28,8 @@
 	<h1>{{ practice.topic.headline }} - Speaking Report</h1>
 	{% trans "Language" %}: {{ practice.topic.language  }}<br><br>
 	{% trans "Session start time" %}: {{ practice.dateTime  }}<br><br>
-	{% trans "Created by" %}: {{ practice.topic.created_by  }}<br><br><br>
 
-	<audio id="main-audio" src="/recording/download/{{ practice.pk }}/" controls preload type="audio/ogg"></audio>
+	<p><audio id="main-audio" src="/recording/download/{{ practice.pk }}/" controls preload type="audio/ogg"></audio></p>
 </div>
 <br>
 <br>
