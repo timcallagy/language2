@@ -1,8 +1,0 @@
-2014-08-12 21:19:51.134861 -- {"channel":"http1270018000practice13","message":{"userid":"learner","extra":{},"searchingForRooms":true},"sender":"learner"}
- 
-2014-08-12 21:24:36.093594 -- {"channel":"http1270018000report13report_add_writing","message":{"userid":"learner","extra":{},"searchingForRooms":true},"sender":"learner"}
- 
-2014-08-12 21:33:24.046367 -- {"channel":"http1270018000practice13reportwriting-review","message":{"userid":"learner","extra":{},"searchingForRooms":true},"sender":"learner"}
- 
-2014-08-12 21:37:26.423163 -- {"channel":"http1270018000practice13","message":{"userid":"learner","extra":{},"searchingForRooms":true},"sender":"learner"}
- 
