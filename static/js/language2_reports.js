@@ -46,7 +46,6 @@ $(document).ready(function() {
 
 			
 	$("[id^=record-correction]").click(function(){
-		$("[id^=recording]").show()
 		audio = this.parentNode.children[0];
 		error_pk = this.getAttribute("pk");
 	        navigator.getUserMedia(audioConstraints, function(stream) {
@@ -74,7 +73,6 @@ $(document).ready(function() {
 			   };
 			   mediaRecorder.start(6100); // This sets the length of the recording. 
 			   setTimeout(function(){
-			           $("[id^=recording]").hide()
 				   mediaRecorder.stop();
 				   audio.pause();
 			   }, 6000); //This sets the length of the media stream opening for recording.

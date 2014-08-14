@@ -33,9 +33,10 @@
 	
 	<h2>{% trans "Speaking practice" %}</h2>
 	{{object.topic.learners_speaking_instructions|safe }}
-	<table style="width: 100%;" id="rooms-list"></table>
+
+	<div id="waiting-for-coach" class="alert alert-warning"><strong>{% trans "Your coach hasn't joined yet..." %}</strong></div>
+	<div id="coach-joined-msg" style="display:none;">{% trans "Your coach has joined!" %}</div><div id="rooms-list"><button id="join-button" style="display:none;"></button></div>
 	<img id="connecting" src="{% static "connecting.gif" %}" style="display:none;">
-	<div id="waiting-for-coach" class="alert alert-warning"><strong>{% trans "Your coach hasn't joined yet..." %}<strong></div>
 	<div id="in-progress" class="alert alert-success" style="display:none;">{% trans "Call in progress" %}</div>
 	<div id="audios-container" style="display:none;"></div>
 

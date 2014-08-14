@@ -6,8 +6,6 @@
 {% load tz %}
 {% load bootstrap %}
 
-	{{ form.media }}
-
 {% block top_menu %}
 	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
 	<li><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
@@ -22,6 +20,7 @@
 			<li class="active">{% trans "Coaching Sessions" %}</li>
 		</ol>
 	</div>
+	<div class="col-md-10 col-md-offset-1">
 	<h1>{% trans "Coaching Sessions" %}</h1>
 	<br>
 	<div class="panel panel-primary">
@@ -77,6 +76,6 @@
 	   	            {% endif %}
 		 </ul>
 	{% endif %}
-
+</div>
 
 {% endblock%}

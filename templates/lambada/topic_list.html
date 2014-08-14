@@ -15,15 +15,15 @@
 
 
 {% block body %}
-
 	<div class="pull-right">
 		<ol class="breadcrumb">
 			<li class="active">{% trans "My Topics" %}</li>
 		</ol>
 	</div>
-	<h1>{% trans "My Topics" %}</h1>
-	<a class="btn btn-primary" href="/topic/add/">{% trans "Create a Topic" %}</a>
 	<br>
+	<br>
+	<div class="col-md-10 col-md-offset-1">
+	<h1>{% trans "My Topics" %}</h1>
 	<br>
 	<div class="panel panel-primary">
 		<div class="panel-heading">{% trans "Topics created by " %} {{ user.username }}</div>
@@ -75,5 +75,5 @@
 	   	            {% endif %}
 		 </ul>
 	{% endif %}
-
+</div>
 {% endblock%}

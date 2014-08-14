@@ -15,6 +15,7 @@
 
 {% block body %}
 
+<div class="col-md-10 col-md-offset-1">
 <h1>{% trans "Welcome to Language Lambada" %} {{ user.username }}</h1>
 
 {% if user.is_authenticated %}
@@ -22,7 +23,8 @@
 
 	{% if upcoming_practice_sessions %}
 		<br>
-		<p><h3>{% trans "This week, you have the following practice sessions:" %}</h3></p>
+		<div class="panel panel-primary">
+			<div class="panel-heading">{% trans "This week, you have the following practice sessions:" %}</div>
 		<ul class="list-group">
 		{% for practice in upcoming_practice_sessions %}
 			<li class="list-group-item">
@@ -30,16 +32,20 @@
 				{% localtime on %}
 				<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
 				<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
-				<a class="btn btn-primary" href="/practice/{{ practice.pk }}/">{% trans "View Instructions" %}</a><br>
+				<a class="btn btn-primary" href="/practice/{{ practice.pk }}/">{% trans "View Instructions" %}</a>
+				<br>
+				<br>
 				{% endlocaltime %}
 		{% endfor %}
 		</ul>
+		</div>
 	{% endif %}
 
 
 	{% if upcoming_coaching_sessions %}
 		<br>
-		<p><h3>{% trans "This week, you are coaching the following sessions:" %}</h3></p>
+		<div class="panel panel-primary">
+			<div class="panel-heading">{% trans "This week, you are coaching the following practice sessions:" %}</div>
 		<ul class="list-group">
 		{% for practice in upcoming_coaching_sessions %}
 			<li class="list-group-item">
@@ -47,16 +53,20 @@
 				{% localtime on %}
 				<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
 				<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
-				<a class="btn btn-primary" href="/coach/practice/{{ practice.pk }}/">{% trans "View Instructions" %}</a><br>
+				<a class="btn btn-primary" href="/coach/practice/{{ practice.pk }}/">{% trans "View Instructions" %}</a>
+				<br>
+				<br>
 				{% endlocaltime %}
 		{% endfor %}
 		</ul>
+	</div>
 	{% endif %}
 
 
 	{% if pending_speech_reports %}
 		<br>
-		<p><h3>{% trans "You have the following pending speaking reports:" %}</h3></p>
+		<div class="panel panel-primary">
+			<div class="panel-heading">{% trans "You have the following pending speaking reports:" %}</div>
 		<ul class="list-group">
 		{% for practice in pending_speech_reports %}
 			<li class="list-group-item">
@@ -64,16 +74,20 @@
 				{% localtime on %}
 				<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
 				<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
-				<a class="btn btn-primary" href="/report/{{ practice.pk }}/report_add_speech/">{% trans "Create Report" %}</a><br>
+				<a class="btn btn-primary" href="/report/{{ practice.pk }}/report_add_speech/">{% trans "Create Report" %}</a>
+				<br>
+				<br>
 				{% endlocaltime %}
 		{% endfor %}
 		</ul>
+	</div>
 	{% endif %}
 
 
 	{% if pending_writing_reports %}
 		<br>
-		<p><h3>{% trans "You have the following pending writing reports:" %}</h3></p>
+		<div class="panel panel-primary">
+			<div class="panel-heading">{% trans "You have the following pending writing reports:" %}</div>
 		<ul class="list-group">
 		{% for practice in pending_writing_reports %}
 			<li class="list-group-item">
@@ -81,10 +95,13 @@
 				{% localtime on %}
 				<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
 				<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
-				<a class="btn btn-primary" href="/report/{{ practice.pk }}/report_add_writing/">{% trans "Create Report" %}</a><br>
+				<a class="btn btn-primary" href="/report/{{ practice.pk }}/report_add_writing/">{% trans "Create Report" %}</a>
+				<br>
+				<br>
 				{% endlocaltime %}
 		{% endfor %}
 		</ul>
+	</div>
 	{% endif %}
 
 
@@ -93,5 +110,5 @@
 	     {% else %}
       <h5>{% trans "You need to be logged in to see this page." %}</h5>
 {% endif %}
-
+</div>
 {% endblock%}

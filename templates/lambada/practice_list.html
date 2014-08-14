@@ -22,6 +22,7 @@
 			<li class="active">{% trans "Practice Sessions" %}</li>
 		</ol>
 	</div>
+	<div class="col-md-10 col-md-offset-1">
 	<h1>{% trans "Practice Sessions" %}</h1>
 	<br>
 	<div class="panel panel-primary">
@@ -119,8 +120,6 @@
 			{% endfor %}
 		</ul>
 	</div>	
-	<br>
-
 		{% if is_paginated %}
 		<ul class="pagination">
 			    {% if page_obj.has_previous %}
@@ -141,5 +140,6 @@
 		 </ul>
 	{% endif %}
 
+</div>
 
 {% endblock%}
