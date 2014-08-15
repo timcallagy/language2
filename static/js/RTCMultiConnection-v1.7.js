@@ -4007,14 +4007,30 @@
 
         var iceServers = [];
 
+	// Added the last 3 turn servers below.
         if (isFirefox) {
+//            iceServers.push({
+ //               url: 'stun:23.21.150.121'
+   //         });
+//
+  //          iceServers.push({
+    //            url: 'stun:stun.services.mozilla.com'
+      //      });
             iceServers.push({
-                url: 'stun:23.21.150.121'
+		    url: 'turn:numb.viagenie.ca:3478',
+		    credential: 'muazkh',
+		    username: 'webrtc@live.com'
             });
-
-            iceServers.push({
-                url: 'stun:stun.services.mozilla.com'
-            });
+	    iceServers.push({
+		    url: 'turn:192.158.29.39:3478?transport=udp',
+		    credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+		    username: '28224511:1379330808'
+	    });
+	   iceServers.push({
+		    url: 'turn:192.158.29.39:3478?transport=tcp',
+		    credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+		    username: '28224511:1379330808'
+	    });
         }
 
         if (isChrome) {
