@@ -4017,20 +4017,15 @@
     //            url: 'stun:stun.services.mozilla.com'
       //      });
             iceServers.push({
-		    url: 'turn:numb.viagenie.ca:3478',
-		    credential: 'muazkh',
-		    username: 'webrtc@live.com'
+		    url: 'turn:ec2-54-191-244-214.us-west-2.compute.amazonaws.com:3478',
+		    credential: 'youhavetoberealistic',
+		    username: 'ninefingers'
             });
 	    iceServers.push({
-		    url: 'turn:192.158.29.39:3478?transport=udp',
-		    credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-		    username: '28224511:1379330808'
-	    });
-	   iceServers.push({
-		    url: 'turn:192.158.29.39:3478?transport=tcp',
-		    credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-		    username: '28224511:1379330808'
-	    });
+		    url: 'turn:ec2-54-191-244-214.us-west-2.compute.amazonaws.com:3478',
+		    credential: 'hero',
+		    username: 'gorst'
+            });
         }
 
         if (isChrome) {
