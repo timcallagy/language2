@@ -4012,19 +4012,19 @@
  //               url: 'stun:23.21.150.121'
    //         });
 //
+  //          iceServers.push({
+    //            url: 'stun:stun.services.mozilla.com'
+      //      });
             iceServers.push({
-                url: 'stun:stun.services.mozilla.com'
+		    url: 'turn:ec2-54-191-244-214.us-west-2.compute.amazonaws.com:3478',
+		    credential: 'youhavetoberealistic',
+		    username: 'ninefingers'
             });
-//            iceServers.push({
-//		    url: 'turn:ec2-54-191-244-214.us-west-2.compute.amazonaws.com:3478',
-//		    credential: 'youhavetoberealistic',
-//		    username: 'ninefingers'
-  //          });
-//	    iceServers.push({
-//		    url: 'turn:ec2-54-191-244-214.us-west-2.compute.amazonaws.com:3478',
-//		    credential: 'hero',
-//		    username: 'gorst'
-  //          });
+	    iceServers.push({
+		    url: 'turn:ec2-54-191-244-214.us-west-2.compute.amazonaws.com:3478',
+		    credential: 'hero',
+		    username: 'gorst'
+            });
         }
 
         if (isChrome) {
