@@ -839,9 +839,9 @@
             var peerConfig = {
                 onopen: onChannelOpened,
                 onicecandidate: function (candidate) {
-		    log('### In RTCMultiSession.newPrivateSocket.peerConfig.onicecandidate. Sending ICE candidate details to peer.');
+		    log('##################################################################################### In RTCMultiSession.newPrivateSocket.peerConfig.onicecandidate. Sending ICE candidate details to peer.');
                     if (!connection.candidates) throw 'ICE candidates are mandatory.';
-                    if (!connection.candidates.host && candidate.candidate.indexOf('typ host ') != -1) return;
+//                    if (!connection.candidates.host && candidate.candidate.indexOf('typ host ') != -1) return;
                     if (!connection.candidates.relay && candidate.candidate.indexOf('typ relay ') != -1) return;
                     if (!connection.candidates.reflexive && candidate.candidate.indexOf('typ srflx ') != -1) return;
 
@@ -926,12 +926,13 @@
                 },
 
                 oniceconnectionstatechange: function (event) {
-		    log('### In RTCMultiSession.newPrivateSocket.peerConfig.oniceconnectionstatechange.');
+		    log('##################### In RTCMultiSession.newPrivateSocket.peerConfig.oniceconnectionstatechange.');
                     log('oniceconnectionstatechange', toStr(event));
                     if (connection.peers[_config.userid] && connection.peers[_config.userid].oniceconnectionstatechange) {
                         connection.peers[_config.userid].oniceconnectionstatechange(event);
                     }
-		    if (toStr(event).indexOf("stable") > -1){
+		    // Try "connected" instead of "stable".
+		    if (toStr(event).indexOf("stable" ) > -1){
 			$("[id^=connecting]").hide();
 			$("[id^=in-progress]").show();
 			if (coachLeg = true) {
@@ -1471,7 +1472,7 @@
                 }
 
                 if (response.candidate) {
-		log('### In RTCMultiSession.newPrivateSocket.socketResponse - Candidate Response.');
+		log('######################### In RTCMultiSession.newPrivateSocket.socketResponse - Candidate Response.');
                     peer && peer.addIceCandidate({
                         sdpMLineIndex: response.candidate.sdpMLineIndex,
                         candidate: JSON.parse(response.candidate.candidate)
@@ -2590,20 +2591,32 @@
             },
             init: function () {
                 this.setConstraints();
-                this.connection = new RTCPeerConnection(this.iceServers, this.optionalArgument);
+		log('#### Creating new RTCPeerConnection...');
+		log('this.iceServers:');
+		log(this.iceServers);
+		log('this.iceServers.iceServers:');
+		log(this.iceServers.iceServers);
+                //this.connection = new RTCPeerConnection(this.iceServers, this.optionalArgument);
+                this.connection = new RTCPeerConnection(this.iceServers.iceServers, this.optionalArgument);
 
                 if (this.session.data && isChrome) {
                     this.createDataChannel();
                 }
 
                 this.connection.onicecandidate = function (event) {
+		    log('$$$$$$$$$$$$$$$$$$$ In PeerConnection.connection.onicecandidate. Sending ICE candidate details to peer.');
+		    log('$$$$$$$$$$$$$$$$$$$ EVENT:');
+		    log(event);
                     if (!event.candidate) {
                         if (!self.trickleIce) {
+				log('11111111');
                             returnSDP();
                         }
+				log('22222222222');
 
                         return;
                     }
+				log('3333333333');
 
                     if (!self.trickleIce) return;
                     self.onicecandidate(event.candidate);
@@ -4110,7 +4123,7 @@
 
         // www.RTCMultiConnection.org/docs/candidates/
         connection.candidates = {
-            host: true,
+            host: false,
             relay: true,
             reflexive: true
         };
@@ -4122,7 +4135,7 @@
         connection.detachStreams = [];
 
         // www.RTCMultiConnection.org/docs/maxParticipantsAllowed/
-        connection.maxParticipantsAllowed = 256;
+        connection.maxParticipantsAllowed = 3;
 
         // www.RTCMultiConnection.org/docs/direction/
         // 'many-to-many' / 'one-to-many' / 'one-to-one' / 'one-way'
