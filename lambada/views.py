@@ -9,7 +9,7 @@ from lambada.forms import UserForm, UserProfileForm, TopicForm, PracticeForm, Pr
 from django.contrib.auth.decorators import login_required
 import pytz
 from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
-from lambada.models import Topic, TopicLikes, UserProfile, Practice, Report, Recording, Channel, SpeakingError, WritingError, ChannelDefault
+from lambada.models import Topic, TopicLikes, UserProfile, Practice, Report, Recording, SpeakingError, WritingError, ChannelPrivate, ChannelDefault
 import datetime
 from django.utils.timezone import utc
 from django.utils.translation import ugettext as _
@@ -309,6 +309,18 @@ def recording_download(request, pk):
 
 
 @login_required
+def defaultChannel_log_download(request, pk):
+	print('In DefaultChannel log download')
+	return HttpResponse(open(settings.STATIC_PATH + '/session_' + pk + '_default_channel.txt'), content_type="text/plain")
+
+
+@login_required
+def privateChannel_log_download(request, pk):
+	print('In PrivateChannel log download')
+	return HttpResponse(open(settings.STATIC_PATH + '/session_' + pk + '_private_channel.txt'), content_type="text/plain")
+
+
+@login_required
 def recording_correction_download(request, pk):
 	print('In recording correction download')
 	return StreamingHttpResponse(open(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg'), content_type="audio/ogg")
@@ -525,22 +537,22 @@ def coach_practice_cancel(request, pk):
 
 
 @login_required
-def call_setup(request, pk):
+def private_channel_write(request, pk):
 	response_data = {}
 	message = request.POST.get('message')
-	target = open(settings.STATIC_PATH + '/session_' + pk + '_channel.txt', 'a+b')
+	target = open(settings.STATIC_PATH + '/session_' + pk + '_private_channel.txt', 'a+b')
 	target.write(str(datetime.datetime.now()) + " -- " + message + "\n \n")
 	target.close()
 	# Consider checking messages before deleting them. You might delete a message before the other party has had a chance to read it.
-	Channel.objects.filter(practice_pk=pk).delete()
-	channel = Channel(practice_pk=pk, message=message)
+	ChannelPrivate.objects.filter(practice_pk=pk).delete()
+	channel = ChannelPrivate(practice_pk=pk, message=message)
 	channel.save()
 	response_data['message'] = 'success'
 	return HttpResponse(json.dumps(response_data), content_type="application/json")
 
 
 @login_required
-def default_channel(request, pk):
+def default_channel_write(request, pk):
 	response_data = {}
 	message = request.POST.get('message')
 	target = open(settings.STATIC_PATH + '/session_' + pk + '_default_channel.txt', 'a+b')
@@ -556,11 +568,11 @@ def default_channel(request, pk):
 
 
 @login_required
-def call_join(request, pk):
+def private_channel_check(request, pk):
 	try:
-		channel = Channel.objects.filter(practice_pk=pk)
+		channel = ChannelPrivate.objects.filter(practice_pk=pk)
 		data = serializers.serialize("json", channel)
-	except Channel.DoesNotExist:
+	except ChannelPrivate.DoesNotExist:
 		return HttpResponse()
 	return HttpResponse(data, mimetype = "application/json")
 

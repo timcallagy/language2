@@ -59,7 +59,7 @@
 
 	function repeatedlyCheck() {
 		var practice_pk = document.getElementById('practice_pk').innerHTML;
-		xhr('/practice/call_join/'+practice_pk+'/', function (data) {
+		xhr('/practice/private_channel_check/'+practice_pk+'/', function (data) {
 			//if server says nothing; wait.
 			if (data == false) return setTimeout(repeatedlyCheck, 2000);
 			
@@ -129,7 +129,7 @@
                 	            sender: connection.userid
                 	        };
 				var practice_pk = document.getElementById('practice_pk').innerHTML;
-				xhr('/practice/call_setup/'+practice_pk+'/', null, JSON.stringify(data));
+				xhr('/practice/private_channel_write/'+practice_pk+'/', null, JSON.stringify(data));
                         },
                         channel: channel // todo: remove this "channel" object
                 };
@@ -150,7 +150,7 @@
                 	            sender: connection.userid
                 	        };
 				var practice_pk = document.getElementById('practice_pk').innerHTML;
-				xhr('/practice/default_channel/'+practice_pk+'/', null, JSON.stringify(data));
+				xhr('/practice/default_channel_write/'+practice_pk+'/', null, JSON.stringify(data));
                         },
                         channel: channel // todo: remove this "channel" object
                 };
@@ -929,6 +929,7 @@
 		    log('##################### In RTCMultiSession.newPrivateSocket.peerConfig.oniceconnectionstatechange.');
                     log('oniceconnectionstatechange', toStr(event));
                     if (connection.peers[_config.userid] && connection.peers[_config.userid].oniceconnectionstatechange) {
+			log('### In RTCMultiSession.newPrivateSocket.peerConfig.oniceconnectionstatechange - calling PeerConnection.oniceconnectionstatechange.');
                         connection.peers[_config.userid].oniceconnectionstatechange(event);
                     }
 		    // Try "connected" instead of "stable".
@@ -954,6 +955,7 @@
                     }
 
                     if (connection.peers[_config.userid] && connection.peers[_config.userid].peer.connection.iceConnectionState == 'disconnected') {
+                            warn('ICE connectionState is disconnected. Removing remote streams.');
                         // to make sure this user's all remote streams are removed.
                         for (var stream in connection.streams) {
                             stream = connection.streams[stream];
@@ -1472,7 +1474,7 @@
                 }
 
                 if (response.candidate) {
-		log('######################### In RTCMultiSession.newPrivateSocket.socketResponse - Candidate Response.');
+		log('######################### In RTCMultiSession.newPrivateSocket.socketResponse - ICE Candidate Response.');
                     peer && peer.addIceCandidate({
                         sdpMLineIndex: response.candidate.sdpMLineIndex,
                         candidate: JSON.parse(response.candidate.candidate)
@@ -2592,10 +2594,6 @@
             init: function () {
                 this.setConstraints();
 		log('#### Creating new RTCPeerConnection...');
-		log('this.iceServers:');
-		log(this.iceServers);
-		log('this.iceServers.iceServers:');
-		log(this.iceServers.iceServers);
                 //this.connection = new RTCPeerConnection(this.iceServers, this.optionalArgument);
                 this.connection = new RTCPeerConnection(this.iceServers.iceServers, this.optionalArgument);
 
@@ -2616,8 +2614,7 @@
 
                         return;
                     }
-				log('3333333333');
-
+	            log('3333333333');
                     if (!self.trickleIce) return;
                     self.onicecandidate(event.candidate);
                 };
@@ -2785,7 +2782,7 @@
                     sdpMLineIndex: candidate.sdpMLineIndex,
                     candidate: candidate.candidate
                 });
-
+		    log('$$$$ PeerConnection.addIceCandidate: calling Mozillas RTCconnection.addIceCandidate(iceCandidate).');
                 this.connection.addIceCandidate(iceCandidate);
             },
             createDataChannel: function (channelIdentifier) {

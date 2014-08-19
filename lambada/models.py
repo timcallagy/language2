@@ -115,7 +115,7 @@ class Recording(models.Model):
 	partNum = models.IntegerField()
 
 
-class Channel(models.Model):
+class ChannelPrivate(models.Model):
 	practice_pk = models.CharField(max_length=255, blank=True, null=True)
 	message = models.CharField(max_length=3000, blank=True, null=True)
 
