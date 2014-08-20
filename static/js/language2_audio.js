@@ -76,6 +76,7 @@ $(document).ready(function() {
 		$("[id^=finish-conference]").hide();
 		$("[id^=create-report]").show();
 		$("[id^=speaking-error]").hide();
+		$("[id^=in-progress]").hide();
 		connection.close();
 	});
 
