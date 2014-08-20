@@ -841,7 +841,7 @@
                 onicecandidate: function (candidate) {
 		    log('##################################################################################### In RTCMultiSession.newPrivateSocket.peerConfig.onicecandidate. Sending ICE candidate details to peer.');
                     if (!connection.candidates) throw 'ICE candidates are mandatory.';
-//                    if (!connection.candidates.host && candidate.candidate.indexOf('typ host ') != -1) return;
+                    if (!connection.candidates.host && candidate.candidate.indexOf('typ host ') != -1) return;
                     if (!connection.candidates.relay && candidate.candidate.indexOf('typ relay ') != -1) return;
                     if (!connection.candidates.reflexive && candidate.candidate.indexOf('typ srflx ') != -1) return;
 
@@ -933,7 +933,7 @@
                         connection.peers[_config.userid].oniceconnectionstatechange(event);
                     }
 		    // Try "connected" instead of "stable".
-		    if (toStr(event).indexOf("stable" ) > -1){
+	            if ((toStr(event).indexOf("complete" ) > -1) && (toStr(event).indexOf("stable" ) > -1)){
 			$("[id^=connecting]").hide();
 			$("[id^=in-progress]").show();
 			if (coachLeg = true) {
@@ -1440,6 +1440,7 @@
 		log('### In RTCMultiSession.newPrivateSocket.socketResponse.');
 		log('RESPONSE: ');
 		log(response);
+		log(JSON.stringify(response));
                 if (response.userid == connection.userid)
                     return;
 		
@@ -4026,14 +4027,14 @@
     //            url: 'stun:stun.services.mozilla.com'
       //      });
             iceServers.push({
-		    url: 'turn:ec2-54-191-244-214.us-west-2.compute.amazonaws.com:3478',
-		    credential: 'youhavetoberealistic',
-		    username: 'ninefingers'
+		    url: 'turn:ec2-54-191-244-214.us-west-2.compute.amazonaws.com:3478'
+//		    credential: 'youhavetoberealistic',
+//		    username: 'ninefingers'
             });
 	    iceServers.push({
-		    url: 'turn:ec2-54-191-244-214.us-west-2.compute.amazonaws.com:3478',
-		    credential: 'hero',
-		    username: 'gorst'
+		    url: 'turn:54.191.244.214:3478'
+//		    credential: 'hero',
+//		    username: 'gorst'
             });
         }
 
