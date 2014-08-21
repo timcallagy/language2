@@ -2298,6 +2298,8 @@
 					},
 					init: function () {
 						this.setConstraints();
+						log('### ICE SERVERS');
+						log(this.iceServers.iceServers);
 						this.connection = new RTCPeerConnection(this.iceServers.iceServers, this.optionalArgument);
 
 						if (this.session.data && isChrome) {
@@ -3778,16 +3780,23 @@
 			var iceServers = [];
 
 			if (isFirefox) {
-				iceServers.push({
-					url: 'stun:23.21.150.121'
-				});
-
+//				iceServers.push({
+//					url: 'stun:23.21.150.121'
+//				});
+//
 				iceServers.push({
 					url: 'stun:stun.services.mozilla.com'
 				});
 
 				iceServers.push({
-					url: 'turn:52.191.244.214'
+					url: 'turn:52.191.244.214:3478',
+					username: 'tim',
+					credential: 'tim'
+				});
+				iceServers.push({
+					url: 'turn:52.191.244.214:3479',
+					username: 'tim',
+					credential: 'tim'
 				});
 			}
 
@@ -3874,7 +3883,7 @@
 
 			// www.RTCMultiConnection.org/docs/candidates/
 			connection.candidates = {
-				host: true,
+				host: false,
 				relay: true,
 				reflexive: true
 			};
