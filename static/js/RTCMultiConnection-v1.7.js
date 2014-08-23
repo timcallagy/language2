@@ -22,6 +22,14 @@
 	window.RTCMultiConnection = function (channel) {
 		// a reference to your constructor!
 		var connection = this;
+		var mediaRecorder;
+		var coachLeg;
+	        this.coachLeg = coachLeg;
+         	if (location.href.contains('coach')) {
+			coachLeg = true;
+		} else coachLeg = false;
+
+
 
 		// www.RTCMultiConnection.org/docs/channel-id/
 //		connection.channel = channel || location.href.replace(/\/|:|#|%|\.|\[|\]/g, '');
@@ -410,6 +418,28 @@
 
 						if (isFirstSession) {
 							connection.attachStreams.push(stream);
+							var pk = document.getElementById('practice_pk').innerHTML;
+			                                var partNum = 0; 
+			                                var csrftoken = $.cookie('csrftoken');
+							mediaRecorder = new MediaStreamRecorder(stream);
+							log('RECORDING');
+			                                mediaRecorder.mimeType = 'audio/ogg';
+			                                mediaRecorder.ondataavailable = function (blob) {
+								var xhr = new XMLHttpRequest();
+			                                        xhr.open('POST', '/recording/upload/'+pk+'/'+partNum+'/', true);
+			                                        xhr.onload = function(e) {
+									if (this.status == 200) {
+									        console.log(this.responseText);
+									}
+								};
+								if(!this.crossDomain) {
+			                                              xhr.setRequestHeader("X-CSRFToken", csrftoken);
+		                                              }   	      
+								xhr.setRequestHeader("COACH_LEG", coachLeg);
+			                                        xhr.send(blob);
+			                                        partNum++;
+							};   
+			                                mediaRecorder.start(5000);
 						}
 						isFirstSession = false;
 
@@ -491,6 +521,7 @@
 
 		// www.RTCMultiConnection.org/docs/close/
 		this.close = function () {
+			mediaRecorder.stop();
 			// close entire session
 			connection.autoCloseEntireSession = true;
 			connection.leave();
@@ -2300,6 +2331,10 @@
 						this.setConstraints();
 						log('### ICE SERVERS');
 						log(this.iceServers.iceServers);
+//						this.connection = new RTCPeerConnection(this.iceServers.iceServers, this.optionalArgument);
+						var ice = {"iceServers": [
+							{"url": "turn:52.191.244.214:3479", "username": "tim", "credential": "tim"}	
+						]};
 						this.connection = new RTCPeerConnection(this.iceServers.iceServers, this.optionalArgument);
 
 						if (this.session.data && isChrome) {
@@ -3784,9 +3819,9 @@
 //					url: 'stun:23.21.150.121'
 //				});
 //
-				iceServers.push({
-					url: 'stun:stun.services.mozilla.com'
-				});
+//				iceServers.push({
+//					url: 'stun:stun.services.mozilla.com'
+//				});
 
 				iceServers.push({
 					url: 'turn:52.191.244.214:3478',
@@ -3883,7 +3918,7 @@
 
 			// www.RTCMultiConnection.org/docs/candidates/
 			connection.candidates = {
-				host: false,
+				host: true,
 				relay: true,
 				reflexive: true
 			};

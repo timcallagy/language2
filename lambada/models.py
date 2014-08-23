@@ -49,31 +49,7 @@ class Topic(models.Model):
 #	text = BleachField()
 	def get_absolute_url(self):
 		return reverse('topic_detail', kwargs={'pk': self.pk})
-#	@property
-#	def likes(self):
-#		return TopicLikes.objects.filter(topic=self).count()
-#	@property
-#	def already_liked(self):
-#		user = User.objects.filter(username=self.created_by)
-#		print(user)
-#		userProfile = UserProfile.objects.filter(user=user)
-#		print(userProfile)
-#		print("#### 1 ")
-#		print("User: " + self)
-#		return TopicLikes.objects.filter(topic=self).exists()
-#		return TopicLikes.objects.filter(userProfile=userProfile).exists()
 
-#secretballot.enable_voting_on(Topic)
-
-class TopicLikes(models.Model):
-	class Meta:
-		unique_together = (('userProfile','topic'),)
-	userProfile = models.ForeignKey(UserProfile, default=1)
-	topic = models.ForeignKey(Topic, default=1)
-
-#class PracticeDateTime(models.Model):
-#	dateTime = models.DateTimeField(_(u"Practice Session Time"))
- 
 
 class Practice(models.Model):
 	user = models.ForeignKey(User)
@@ -95,12 +71,18 @@ class Report(models.Model):
 	call_end_time = models.DateTimeField(blank=True, null=True)
 
 
+class LearnerRecording(models.Model):
+	practice = models.ForeignKey(Practice)
+	recording = models.FileField(upload_to='learnerRecordings', blank=True, null=True)	
+
+
 class SpeakingError(models.Model):
 	report = models.ForeignKey(Report)
 	error_time_min = models.CharField(_("Minute"), max_length=2, blank=True, null=True, default='')
 	error_time_sec = models.CharField(_("Second"), max_length=2, blank=True, null=True, default='')
 	correction_text = models.CharField(_("Correction Text"), max_length=255, blank=True, null=True, default='')
-	correction_recording = models.BooleanField(blank=True, default=False) #You could replace this with the File upload.
+	correction_recording_flag = models.BooleanField(blank=True, default=False)
+	correction_recording = models.FileField(upload_to='corrections', blank=True, null=True)	
 
 
 class WritingError(models.Model):
@@ -109,10 +91,9 @@ class WritingError(models.Model):
 	correction_text = models.CharField(_("Correction Text"), max_length=255, blank=True, null=True, default='')
 
 
-class Recording(models.Model):
-	report = models.ForeignKey(Report)
-	#blob = models.BinaryField(blank=True)
-	partNum = models.IntegerField()
+#class CorrectionRecording(models.Model):
+#	error = models.ForeignKey(SpeakingError)
+#	correctionRec = models.FileField(upload_to='corrections')	
 
 
 class ChannelPrivate(models.Model):

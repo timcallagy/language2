@@ -9,7 +9,7 @@ from lambada.forms import UserForm, UserProfileForm, TopicForm, PracticeForm, Pr
 from django.contrib.auth.decorators import login_required
 import pytz
 from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
-from lambada.models import Topic, TopicLikes, UserProfile, Practice, Report, Recording, SpeakingError, WritingError, ChannelPrivate, ChannelDefault
+from lambada.models import Topic, UserProfile, Practice, Report, LearnerRecording, SpeakingError, WritingError, ChannelPrivate, ChannelDefault
 import datetime
 from django.utils.timezone import utc
 from django.utils.translation import ugettext as _
@@ -20,6 +20,7 @@ import os
 from django.conf import settings
 import json
 from django.core import serializers
+from django.core.files import File
 
 class Index(TemplateView):
 	template_name = 'lambada/index.html'
@@ -276,7 +277,7 @@ def recording_upload(request, pk, partNum):
 			print('### Learners file does not exist. New Recording!')
 			practice = Practice.objects.get(pk=pk)
 			report = practice.report
-			# DANGER!!! The timedelta here must correspond to the time delay set in the RTCMultiConnection.js file (in the _captureUserMedia function).
+			# DANGER!!! The timedelta here must correspond to the length of a blob of recording as set in the RTCMultiConnection.js file (in the _captureUserMedia function).
 			report.call_start_time = datetime.datetime.utcnow().replace(tzinfo=utc) - datetime.timedelta(seconds=5)
 			report.save()
 			target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg', 'a+b')
@@ -289,22 +290,23 @@ def recording_upload(request, pk, partNum):
 
 @login_required
 def recording_correction_upload(request, pk):
-	if os.path.isfile(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg'):
-		os.remove(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg')
-		target = open(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg', 'a+b')
-	else:
-		target = open(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg', 'a+b')
+	target = open(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg', 'a+b')
 	target.write(request.body)
-	target.close()
+	djangofile = File(target)
 	speakingError = SpeakingError.objects.get(pk=pk)
-	speakingError.correction_recording = True
+#	correction = CorrectionRecording(error=speakingError)
+#	correction.correctionRec.save('correction_' + pk + '_recording.ogg', djangofile)
+#	correction.save()
+	speakingError.correction_recording.save('correction_' + pk + '_recording.ogg', djangofile)
+	speakingError.correction_recording_flag = True
 	speakingError.save()
+	target.close()
+	os.remove(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg')
 	return HttpResponse()
 
 
 @login_required
 def recording_download(request, pk):
-	print('In recording download')
 	return StreamingHttpResponse(open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg'), content_type="audio/ogg")
 
 
@@ -378,13 +380,35 @@ def report_delete_writing_correction(request):
 	return HttpResponse() 
 
 	
+#@login_required
+#def report_add_speech(request, pk):
+#	context = RequestContext(request)
+#	practice = Practice.objects.get(pk=pk)
+#	report = practice.report 
+#	speaking_error_list = SpeakingError.objects.filter(report=report).order_by('id')
+#	return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm()}, context)
+
+
 @login_required
 def report_add_speech(request, pk):
-	context = RequestContext(request)
-	practice = Practice.objects.get(pk=pk)
-	report = practice.report 
-	speaking_error_list = SpeakingError.objects.filter(report=report).order_by('id')
-	return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm()}, context)
+        context = RequestContext(request)
+        practice = Practice.objects.get(pk=pk)
+        if os.path.isfile(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg'):
+                target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg', 'a+b')
+		djangofile = File(target)
+		try:
+			learnerRecording = LearnerRecording.objects.get(practice=practice)
+		except LearnerRecording.DoesNotExist:
+		        learnerRecording = LearnerRecording(practice=practice)
+	        	learnerRecording.recording.save('learner_session_' + pk + '_recording.ogg', djangofile)
+		        learnerRecording.save()
+#		        os.remove(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg')
+	        target.close()
+	        report = practice.report 
+	        speaking_error_list = SpeakingError.objects.filter(report=report).order_by('id')
+		return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'learnerRecording': learnerRecording, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
+        else:
+        	return HttpResponse("ERROR - Learner's recording not found on Server!")
 
 
 @login_required
@@ -400,9 +424,10 @@ def report_add_writing(request, pk):
 def practice_report_speaking_review(request, pk):
 	context = RequestContext(request)
 	practice = Practice.objects.get(pk=pk)
+	learnerRecording = LearnerRecording.objects.get(practice=practice)
 	report = practice.report 
-	speaking_error_list = SpeakingError.objects.filter(report=report).order_by('id').exclude(correction_text='', correction_recording=False)
-	return render_to_response('lambada/coach_report_speaking_review.html', {'practice': practice, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm()}, context)
+	speaking_error_list = SpeakingError.objects.filter(report=report).order_by('id').exclude(correction_text='', correction_recording_flag=False)
+	return render_to_response('lambada/coach_report_speaking_review.html', {'practice': practice, 'learnerRecording': learnerRecording, 'report': report,'speaking_error_list': speaking_error_list, 'S3_URL': settings.S3_URL}, context)
 
 
 @login_required
@@ -419,6 +444,7 @@ def practice_report_speaking_publish(request, pk):
 	practice = Practice.objects.get(pk=pk)
 	practice.speaking_report_published = True
 	practice.save()
+	SpeakingError.objects.filter(report=practice.report, correction_text='', correction_recording_flag=False).delete()
 	return HttpResponseRedirect('/dashboard/')
 
 

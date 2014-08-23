@@ -18,7 +18,6 @@ $(document).ready(function() {
 	if (!location.href.contains('coach')) {
 		var sessions = {};
 		connection.onNewSession = function(session) {
-			console.info('%%% In Connection.onNewSession of language2_audio.');
 			sessions[session.sessionid] = session;
 			$("[id^=waiting-for-coach]").hide();
 			$("[id^=coach-joined-msg]").show();

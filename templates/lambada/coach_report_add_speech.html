@@ -31,7 +31,7 @@
 {% trans "When" %}: {{ practice.dateTime  }}<br><br>
 {% trans "Language" %}: {{ practice.topic.language  }}<br><br>
 
-<p><audio id="main-audio" src="/recording/download/{{ practice.pk }}/" controls preload type="audio/ogg"></audio></p>
+<p><audio id="main-audio" src="{{S3_URL}}/{{ learnerRecording.recording }}" controls preload type="audio/ogg"></audio></p>
 </div>
 <br>
 {% for speakingError in speaking_error_list %}
@@ -72,7 +72,8 @@
 	<button id="record-correction" pk="{{ speakingError.pk }}" class="btn btn-primary btn-sm">{% trans "Add audio correction" %}</button>
 	<div id="recording" class="alert alert-warning" style="display:none;">{% trans "Recording for 5 seconds!" %}</div>
 </div>
-{% if speakingError.correction_recording == True %}<div id="audio-correction-{{ speakingError.pk }}" class="alert alert-success">{% trans "Audio correction uploaded." %}</div>{% endif %}
+{% if speakingError.correction_recording %}<div id="audio-correction-uploaded-{{ speakingError.pk }}" class="alert alert-success">{% trans "Audio correction uploaded." %}</div>{% endif %}
+<div id="new-audio-correction-uploaded-{{ speakingError.pk }}" class="alert alert-success" style="display:none;">{% trans "Audio correction uploaded." %}</div>
 </div>	
 
 </div>

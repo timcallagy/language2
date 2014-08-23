@@ -62,8 +62,12 @@ $(document).ready(function() {
 			       	xhr.open('POST', '/report/' +error_pk+ '/recording_correction_upload/', true);
 				xhr.onload = function(e) {
 			             if (this.status == 200) {
-					var p = document.getElementById("audio-correction-"+error_pk);
-					p.innerHTML = "Recording Uploaded";
+					$("#audio-correction-uploaded-"+error_pk).hide();
+					$("#new-audio-correction-uploaded-"+error_pk).show();
+					//var new_p = document.getElementById("new-audio-correction-uploaded-"+error_pk);
+					//new_p.show();
+					//var p = document.getElementById("audio-correction-uploaded-"+error_pk);
+					//p.hide();
 				     }
 				};
 		        	if(!this.crossDomain) {
