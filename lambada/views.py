@@ -267,7 +267,6 @@ def report_add_writing_correction(request, pk):
 
 @login_required
 def recording_upload(request, pk, partNum):
-	print('In recording upload'+settings.STATIC_PATH + '/session_' + pk + '_recording.ogg')
 	coachLeg = request.META['HTTP_COACH_LEG']
 	if coachLeg == 'false':
 		# Check whether the recording file exists to determine if this is the start of the call.

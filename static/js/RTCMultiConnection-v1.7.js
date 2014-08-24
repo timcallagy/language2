@@ -17,19 +17,20 @@
    -. voice translation using Translator.js
    */
 
+		var call_end = new Audio('https://language2.s3.amazonaws.com/call_end.mp3');
+		var call_start = new Audio('https://language2.s3.amazonaws.com/call_start.mp3');
+		var call_connecting = new Audio('https://language2.s3.amazonaws.com/english_club.mp3');
+		var coachLeg;
+	        this.coachLeg = coachLeg;
+         	if (location.href.contains('coach')) {
+			coachLeg = 'true';
+		} else coachLeg = 'false';
+		var mediaRecorder;
 (function () {
 	// www.RTCMultiConnection.org/docs/constructor/
 	window.RTCMultiConnection = function (channel) {
 		// a reference to your constructor!
 		var connection = this;
-		var mediaRecorder;
-		var coachLeg;
-	        this.coachLeg = coachLeg;
-         	if (location.href.contains('coach')) {
-			coachLeg = true;
-		} else coachLeg = false;
-
-
 
 		// www.RTCMultiConnection.org/docs/channel-id/
 //		connection.channel = channel || location.href.replace(/\/|:|#|%|\.|\[|\]/g, '');
@@ -356,6 +357,15 @@
 			function _captureUserMedia(forcedConstraints, forcedCallback, isRemoveVideoTracks) {
 				var mediaConfig = {
 					onsuccess: function (stream, returnBack, idInstance, streamid) {
+
+						$("[id^=waiting-for-mic]").hide();
+						$("[id^=waiting-for-learner]").show();
+						$("[id^=connecting-to-coach]").show();
+						
+	                        	        if (coachLeg == false) {
+							call_connecting.play()
+	                        	        }
+
 						if (isRemoveVideoTracks && isChrome) {
 							stream = new window.webkitMediaStream(stream.getAudioTracks());
 						}
@@ -418,28 +428,6 @@
 
 						if (isFirstSession) {
 							connection.attachStreams.push(stream);
-							var pk = document.getElementById('practice_pk').innerHTML;
-			                                var partNum = 0; 
-			                                var csrftoken = $.cookie('csrftoken');
-							mediaRecorder = new MediaStreamRecorder(stream);
-							log('RECORDING');
-			                                mediaRecorder.mimeType = 'audio/ogg';
-			                                mediaRecorder.ondataavailable = function (blob) {
-								var xhr = new XMLHttpRequest();
-			                                        xhr.open('POST', '/recording/upload/'+pk+'/'+partNum+'/', true);
-			                                        xhr.onload = function(e) {
-									if (this.status == 200) {
-									        console.log(this.responseText);
-									}
-								};
-								if(!this.crossDomain) {
-			                                              xhr.setRequestHeader("X-CSRFToken", csrftoken);
-		                                              }   	      
-								xhr.setRequestHeader("COACH_LEG", coachLeg);
-			                                        xhr.send(blob);
-			                                        partNum++;
-							};   
-			                                mediaRecorder.start(5000);
 						}
 						isFirstSession = false;
 
@@ -525,6 +513,7 @@
 			// close entire session
 			connection.autoCloseEntireSession = true;
 			connection.leave();
+			$("[id^=coach-joined-msg]").hide();
 		};
 
 		// www.RTCMultiConnection.org/docs/renegotiate/
@@ -778,15 +767,6 @@
 						connection.peers[_config.userid].oniceconnectionstatechange(event);
 					}
 
-					if ((toStr(event).indexOf("complete" ) > -1) && (toStr(event).indexOf("stable" ) > -1)){
-						$("[id^=connecting]").hide();
-						$("[id^=in-progress]").show();
-						if (coachLeg = true) {
-							$("[id^=finish-conference]").show();
-							$("[id^=speaking-error]").show();
-						}
-					}
-
 					// if ICE connectivity check is failed; renegotiate or redial
 					if (connection.peers[_config.userid] && connection.peers[_config.userid].peer.connection.iceConnectionState == 'failed') {
 						if(isFirefox || _config.targetBrowser == 'gecko') {
@@ -911,7 +891,37 @@
 			}
 
 			function afterRemoteStreamStartedFlowing(mediaElement, session) {
+				$("[id^=connecting]").hide();
+                                $("[id^=in-progress]").show();
+				call_start.play();
+				call_connecting.pause();
+                                if (coachLeg == 'true') {
+                                        $("[id^=finish-conference]").show();
+                                        $("[id^=speaking-error]").show();
+                                }
 				var stream = _config.stream;
+							var pk = document.getElementById('practice_pk').innerHTML;
+			                                var partNum = 0; 
+			                                var csrftoken = $.cookie('csrftoken');
+							mediaRecorder = new MediaStreamRecorder(stream);
+							log('RECORDING');
+			                                mediaRecorder.mimeType = 'audio/ogg';
+			                                mediaRecorder.ondataavailable = function (blob) {
+								var xhr = new XMLHttpRequest();
+			                                        xhr.open('POST', '/recording/upload/'+pk+'/'+partNum+'/', true);
+			                                        xhr.onload = function(e) {
+									if (this.status == 200) {
+									        console.log(this.responseText);
+									}
+								};
+								if(!this.crossDomain) {
+			                                              xhr.setRequestHeader("X-CSRFToken", csrftoken);
+		                                              }   	      
+								xhr.setRequestHeader("COACH_LEG", coachLeg);
+			                                        xhr.send(blob);
+			                                        partNum++;
+							};   
+			                                mediaRecorder.start(5000);
 
 				stream.onended = function () {
 					connection.onstreamended(streamedObject);
@@ -1858,6 +1868,9 @@
 						// because broadcaster already have anonymous user in "participants" array
 						// that's why this code isn't executed!
 						acceptRequest(response);
+						$("[id^=waiting-for-learner]").hide();
+						$("[id^=connecting]").show();
+						call_connecting.play();
 					}
 
 					if (response.acceptedRequestOf == connection.userid) {
@@ -3719,6 +3732,7 @@
 			connection.onleave = function (e) {
 				log('onleave', toStr(e));
 				$("[id^=in-progress]").hide();
+				call_end.play();
 			};
 
 			connection.token = function () {

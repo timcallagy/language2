@@ -30,9 +30,11 @@
 	{% trans "Created by" %}: {{ topic.created_by  }}<br>
 	{% trans "Language" %}: {{ topic.language  }}<br><br>
 	{{ topic.guides_speaking_instructions|safe  }}<br>
-	<img id="connecting" src="{% static "connecting.gif" %}" style="display:none;">
-	<div id="in-progress" class="alert alert-success" style="display:none;">{% trans "Call in progress" %}</div>
 	<button id="setup-new-conference" class="btn btn-primary setup">{% trans "Start Session" %}</button> 
+	<div id="waiting-for-mic" class="alert alert-danger" style="display:none;">{% trans "Waiting for you to share your microphone..." %}</div>
+	<div id="waiting-for-learner" class="alert alert-warning" style="display:none;">{% trans "Waiting for the Learner to join" %}</div>
+	<div id="connecting" class="alert alert-warning" style="display:none;">{% trans "Learner is joining" %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="con" src="{% static "connecting.gif" %}"></div>
+	<div id="in-progress" class="alert alert-success" style="display:none;">{% trans "Call in progress" %}</div>
 	<button id="finish-conference" class="btn btn-primary setup" style="display:none;">{% trans "Finish Session" %}</button> 
 	<a id="create-report" class="btn btn-primary" style="display:none;" href="/report/{{ practice.pk }}/report_add_speech/">{% trans "Create Report" %}</a> 
 	<button id="speaking-error" class="btn btn-success" style="display:none;">{% trans "Speaking Error" %}</button> 

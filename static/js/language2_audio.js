@@ -31,7 +31,9 @@ $(document).ready(function() {
 			joinRoomButton.onclick = function() {
 				console.info('%%% Join button clicked.');
 				$("[id^=rooms-list]").hide();
-				$("[id^=connecting]").show();
+		//		$("[id^=coach-joined-msg]").hide();
+				$("[id^=waiting-for-mic]").show();
+		//		$("[id^=connecting]").show();
 				var sessionid = this.getAttribute('data-sessionid');
 				session = sessions[sessionid];
 				if (!session) throw 'No such session exists.';
@@ -48,7 +50,8 @@ $(document).ready(function() {
 	$("[id^=setup-new-conference]").click(function(){
 		connection.open();
 		$("[id^=setup-new-conference]").hide();
-		$("[id^=connecting]").show();
+//		$("[id^=connecting]").show();
+		$("[id^=waiting-for-mic]").show();
 	});
 
 	$("[id^=speaking-error]").click(function(){
