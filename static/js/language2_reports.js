@@ -75,10 +75,14 @@ $(document).ready(function() {
 				}
 			        xhr.send(blob);
 			   };
+		 	   $("#audio-correction-uploaded-"+error_pk).hide();
+		 	   $("#new-audio-correction-uploaded-"+error_pk).hide();
+		 	   $("#recording-"+error_pk).show();
 			   mediaRecorder.start(6100); // This sets the length of the recording. 
 			   setTimeout(function(){
 				   mediaRecorder.stop();
 				   audio.pause();
+		 	   	   $("#recording-"+error_pk).hide();
 			   }, 6000); //This sets the length of the media stream opening for recording.
 	              }, function() {
 	              });

@@ -63,7 +63,7 @@ $(document).ready(function() {
 			if (this.status == 200) {
 				console.info(this.responseText);
 				var tr = document.createElement('tr');
-				tr.innerHTML = '<td id="speaking-error" class="bg-info">&nbsp;&nbsp;&nbsp;' + this.responseText.substring(3, 7) + '</p></td>';
+				tr.innerHTML = '<td id="speaking-error" class="bg-info">&nbsp;&nbsp;&nbsp;' + this.responseText.substring(2, 7) + '</p></td>';
 				errorList.insertBefore(tr, errorList.firstChild);
 			}
 		};

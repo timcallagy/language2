@@ -20,6 +20,7 @@
 			<label for"password">{% trans "Password:" %}</label>
 			<input class="form-control" type="password" name="password" value="" size="25" />
 		</div>
+		<input type="hidden" value="{{ next_page }}" name="next_page">
 		<input type="submit" class="btn btn-default"value={% trans "Login" %}>
 		<br>
 		<a href="/forgot_login/">{% trans "Forgot username or password?" %}</a>

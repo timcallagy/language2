@@ -38,7 +38,7 @@
 <div class="col-md-10 col-md-offset-1">
 <div class="panel panel-danger">
 	<div class="panel-heading">
-	<h3>Error at {% if speakingError.error_time_min|length = 1 %}0{% endif%}{{ speakingError.error_time_min }}: {% if speakingError.error_time_sec|length = 1 %}0{% endif%}{{ speakingError.error_time_sec }}</h3>	
+	<h3>Error at {% if speakingError.error_time_min|length = 1 %}0{% endif%}{{ speakingError.error_time_min }}:{% if speakingError.error_time_sec|length = 1 %}0{% endif%}{{ speakingError.error_time_sec }}</h3>	
 	</div>
 
 <div class="panel-body">
@@ -70,10 +70,10 @@
 <div>	
 	<audio id="sub-audio" controls preload type="audio/ogg" style="display:none;"></audio>		
 	<button id="record-correction" pk="{{ speakingError.pk }}" class="btn btn-primary btn-sm">{% trans "Add audio correction" %}</button>
-	<div id="recording" class="alert alert-warning" style="display:none;">{% trans "Recording for 5 seconds!" %}</div>
+	<div id="recording-{{ speakingError.pk }}" class="alert alert-danger" style="display:none;">{% trans "Recording for 5 seconds!" %}</div>
 </div>
-{% if speakingError.correction_recording %}<div id="audio-correction-uploaded-{{ speakingError.pk }}" class="alert alert-success">{% trans "Audio correction uploaded." %}</div>{% endif %}
-<div id="new-audio-correction-uploaded-{{ speakingError.pk }}" class="alert alert-success" style="display:none;">{% trans "Audio correction uploaded." %}</div>
+{% if speakingError.correction_recording %}<div id="audio-correction-uploaded-{{ speakingError.pk }}" class="alert alert-success">{% trans "Audio correction uploaded" %}</div>{% endif %}
+<div id="new-audio-correction-uploaded-{{ speakingError.pk }}" class="alert alert-success" style="display:none;">{% trans "New audio correction uploaded" %}</div>
 </div>	
 
 </div>

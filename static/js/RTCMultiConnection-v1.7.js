@@ -26,6 +26,10 @@
 			coachLeg = 'true';
 		} else coachLeg = 'false';
 		var mediaRecorder;
+		var ice_servs;
+		window.turnserversDotComAPI.iceServers(function(data){
+			ice_servs = data;
+		});
 (function () {
 	// www.RTCMultiConnection.org/docs/constructor/
 	window.RTCMultiConnection = function (channel) {
@@ -892,6 +896,7 @@
 
 			function afterRemoteStreamStartedFlowing(mediaElement, session) {
 				$("[id^=connecting]").hide();
+				$("[id^=waiting-for-learner]").hide();
                                 $("[id^=in-progress]").show();
 				call_start.play();
 				call_connecting.pause();
@@ -2344,11 +2349,8 @@
 						this.setConstraints();
 						log('### ICE SERVERS');
 						log(this.iceServers.iceServers);
-//						this.connection = new RTCPeerConnection(this.iceServers.iceServers, this.optionalArgument);
-						var ice = {"iceServers": [
-							{"url": "turn:52.191.244.214:3479", "username": "tim", "credential": "tim"}	
-						]};
-						this.connection = new RTCPeerConnection(this.iceServers.iceServers, this.optionalArgument);
+				//		this.connection = new RTCPeerConnection(this.iceServers.iceServers, this.optionalArgument);
+						this.connection = new RTCPeerConnection(ice_servs, this.optionalArgument);
 
 						if (this.session.data && isChrome) {
 							this.createDataChannel();
@@ -3891,6 +3893,10 @@
 				});
 			}
 			connection.iceServers = iceServers;
+			log('### iceServers:');
+			log(connection.iceServers);
+			log('### ice_servs');
+			log(ice_servs);
 
 			// www.RTCMultiConnection.org/docs/preferSCTP/
 			connection.preferSCTP = isFirefox || chromeVersion >= 32 ? true : false;
