@@ -422,7 +422,7 @@ def report_add_speech(request, pk):
 	practice = Practice.objects.get(pk=pk)
 	try:
 		learnerRecording = LearnerRecording.objects.get(practice=practice)
-	else:
+	except:
 		target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg', 'a+b')
 		djangofile = File(target)
 		learnerRecording = LearnerRecording(practice=practice)
