@@ -27,89 +27,100 @@
 </div>
 <br>
 <div class="col-md-10 col-md-offset-1">
-<h1>{{ practice.topic.headline }} - Speaking Report</h1>
-{% trans "When" %}: {{ practice.dateTime  }}<br><br>
-{% trans "Language" %}: {{ practice.topic.language  }}<br><br>
+	<h1>{{ practice.topic.headline }} - Speaking Report</h1>
+	{% trans "When" %}: {{ practice.dateTime  }}<br><br>
+	{% trans "Language" %}: {{ practice.topic.language  }}<br><br>
 
-<p><audio id="main-audio" src="{{S3_URL}}/{{ learnerRecording.recording }}" controls preload type="audio/ogg"></audio></p>
+
 </div>
+	{% for learnerRecording in learnerRecordings %}
 <br>
+<div class="col-md-10 col-md-offset-1">
+	<p><audio id="main-audio" src="{{S3_URL}}/{{ learnerRecording.recording }}" controls preload type="audio/ogg"></audio></p>
 {% for speakingError in speaking_error_list %}
-<div class="col-md-10 col-md-offset-1">
-<div class="panel panel-danger">
-	<div class="panel-heading">
-	<h3>Error at {% if speakingError.error_time_min|length = 1 %}0{% endif%}{{ speakingError.error_time_min }}:{% if speakingError.error_time_sec|length = 1 %}0{% endif%}{{ speakingError.error_time_sec }}</h3>	
+{% if speakingError.learnerRecording == learnerRecording %}
+	<div class="panel panel-danger">
+		<div class="panel-heading">
+			<h3>Error at {% if speakingError.error_time_min|length = 1 %}0{% endif%}{{ speakingError.error_time_min }}:{% if speakingError.error_time_sec|length = 1 %}0{% endif%}{{ speakingError.error_time_sec }}</h3>	
+		</div>
+
+		<div class="panel-body">
+
+			<div class="col-md-3">
+				<button id="play-error{{speakingError.pk}}" class="btn btn-primary btn-sm" errorTimeMin="{{ speakingError.error_time_min }}" errorTimeSec="{{ speakingError.error_time_sec }}">{% trans "Play Error"%}</button> 
+				<br>
+				<br>
+				<form id="delete-error-form" class="form form-horizontal" action="/report/{{ practice.pk }}/report_delete_speech_error/" method="post" accept-charset="utf-8">
+					{% csrf_token %}
+					<input type="hidden" value="{{ speakingError.pk }}" name="error_pk">
+					<button id="delete-error{{speakingError.pk}}" class="btn btn-primary btn-sm">{% trans "Delete Error"%}</button> 
+				</form>
+			</div>	
+
+
+
+			<div class="col-md-4">
+				<div>	
+					<input>
+					<button id="add-written-correction" pk="{{ speakingError.pk }}" class="btn btn-primary btn-sm">{% trans "Add written correction" %}</button>
+				</div>
+				<p id="written-correction-{{ speakingError.pk }}">{{ speakingError.correction_text }}</p>
+			</div>	
+
+
+
+			<div class="col-md-3">
+				<div>	
+					<audio id="sub-audio" controls preload type="audio/ogg" style="display:none;"></audio>		
+					<button id="record-correction" pk="{{ speakingError.pk }}" class="btn btn-primary btn-sm">{% trans "Add audio correction" %}</button>
+					<div id="recording-{{ speakingError.pk }}" class="alert alert-danger" style="display:none;">{% trans "Recording for 5 seconds!" %}</div>
+				</div>
+				{% if speakingError.correction_recording %}<div id="audio-correction-uploaded-{{ speakingError.pk }}" class="alert alert-success">{% trans "Audio correction uploaded" %}</div>{% endif %}
+				<div id="new-audio-correction-uploaded-{{ speakingError.pk }}" class="alert alert-success" style="display:none;">{% trans "New audio correction uploaded" %}</div>
+			</div>	
+
+		</div>
 	</div>
-
-<div class="panel-body">
-
-<div class="col-md-3">
-	<button id="play-error{{speakingError.pk}}" class="btn btn-primary btn-sm" errorTimeMin="{{ speakingError.error_time_min }}" errorTimeSec="{{ speakingError.error_time_sec }}">{% trans "Play Error"%}</button> 
-	<br>
-	<br>
-	<form id="delete-error-form" class="form form-horizontal" action="/report/{{ practice.pk }}/report_delete_speech_error/" method="post" accept-charset="utf-8">
-		{% csrf_token %}
-		<input type="hidden" value="{{ speakingError.pk }}" name="error_pk">
-		<button id="delete-error{{speakingError.pk}}" class="btn btn-primary btn-sm">{% trans "Delete Error"%}</button> 
-	</form>
-</div>	
-
-
-
-<div class="col-md-4">
-	<div>	
-		<input>
-		<button id="add-written-correction" pk="{{ speakingError.pk }}" class="btn btn-primary btn-sm">{% trans "Add written correction" %}</button>
-	</div>
-	<p id="written-correction-{{ speakingError.pk }}">{{ speakingError.correction_text }}</p>
-</div>	
-
-
-
-<div class="col-md-3">
-<div>	
-	<audio id="sub-audio" controls preload type="audio/ogg" style="display:none;"></audio>		
-	<button id="record-correction" pk="{{ speakingError.pk }}" class="btn btn-primary btn-sm">{% trans "Add audio correction" %}</button>
-	<div id="recording-{{ speakingError.pk }}" class="alert alert-danger" style="display:none;">{% trans "Recording for 5 seconds!" %}</div>
-</div>
-{% if speakingError.correction_recording %}<div id="audio-correction-uploaded-{{ speakingError.pk }}" class="alert alert-success">{% trans "Audio correction uploaded" %}</div>{% endif %}
-<div id="new-audio-correction-uploaded-{{ speakingError.pk }}" class="alert alert-success" style="display:none;">{% trans "New audio correction uploaded" %}</div>
-</div>	
-
-</div>
-</div>
-</div>
 <br>
 <br>
 <br>
-{% endfor  %}
+{% endif  %}
+{% endfor %}
+</div>
 <br>
 
+<div class="row">
 <div class="col-md-5 col-md-offset-3">
-<div class="panel panel-info">
-	<div class="panel-heading">
-		<h3>{% trans "Add an Error" %}</h3>
+	<div class="panel panel-info">
+		<div class="panel-heading">
+			<h3>{% trans "Add an Error" %}</h3>
+		</div>
+		<div class="panel-body">
+			<form id="speakingError-form" class="form form-horizontal col-md-4" action="/report/{{ practice.pk }}/report_add_speech_error/" method="post" accept-charset="utf-8">
+				{% csrf_token %}
+				{{ speaking_error_form|bootstrap}} 
+				<p><button id="booking-btn" class="btn btn-info" type="submit">{% trans "Add error" %}</button></p>
+			</div>
+		</form>
 	</div>
-	<div class="panel-body">
-		<form id="speakingError-form" class="form form-horizontal col-md-4" action="/report/{{ practice.pk }}/report_add_speech_error/" method="post" accept-charset="utf-8">
-			{% csrf_token %}
-			{{ speaking_error_form|bootstrap}} 
-		<p><button id="booking-btn" class="btn btn-info" type="submit">{% trans "Add error" %}</button></p>
-	</div>
-</form>
 </div>
 </div>
 <br>
+
+
+{% endfor %}
+
+
 <div class="col-md-10 col-md-offset-1">
-<a href="/practice/{{ practice.pk }}/report/speaking-review/" class="btn btn-primary">{% trans "Review Report" %}</a>
-<br>
-<br>
-<form id="report-publish-form" class="form form-horizontal" action="/practice/{{ practice.pk }}/report/speaking-publish/" method="post">
-	{% csrf_token %}
-	<button class="btn btn-primary" type="submit">{% trans "Publish Report" %}</button>
-</form>
-<br>
-<br>
+	<a href="/practice/{{ practice.pk }}/report/speaking-review/" class="btn btn-primary">{% trans "Review Report" %}</a>
+	<br>
+	<br>
+	<form id="report-publish-form" class="form form-horizontal" action="/practice/{{ practice.pk }}/report/speaking-publish/" method="post">
+		{% csrf_token %}
+		<button class="btn btn-primary" type="submit">{% trans "Publish Report" %}</button>
+	</form>
+	<br>
+	<br>
 </div>
 
 <div id="practice_pk" style="display:none;">{{ practice.pk }}</div>

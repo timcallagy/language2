@@ -1,12 +1,12 @@
-from django.db import models
-from django.contrib.auth.models import User
-from datetime import datetime, tzinfo
 import pytz
+import secretballot
+from tinymce.models import HTMLField
+from datetime import datetime, tzinfo
 from django.utils.timezone import utc
 from django.core.urlresolvers import reverse
-from tinymce.models import HTMLField
+from django.contrib.auth.models import User
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
-import secretballot
 
 # blank=True means the field will NOT be required in forms.
 # null=True means you are going to allow a field to be blank in your DB.
@@ -56,7 +56,9 @@ class Practice(models.Model):
 	topic = models.ForeignKey(Topic)
 	dateTime= models.DateTimeField(_(u"Practice Session Time"))
 	coach = models.CharField(_("Coach"), max_length=255, blank=True, null=True, default='')
-	learners_writing= HTMLField(_("Write your text here (2000 words maximum)."), max_length=255)
+	learners_writing = HTMLField(_("Write your text here (2000 words maximum)."), max_length=255)
+	coach_recording_count = models.IntegerField(null=False, default=0)
+	learner_recording_count = models.IntegerField(null=False, default=0)
 	writing_complete = models.BooleanField(blank=True, default=False)
 	speaking_report_published = models.BooleanField(blank=True, default=False)
 	writing_report_published = models.BooleanField(blank=True, default=False)
@@ -73,11 +75,14 @@ class Report(models.Model):
 
 class LearnerRecording(models.Model):
 	practice = models.ForeignKey(Practice)
-	recording = models.FileField(upload_to='learnerRecordings', blank=True, null=True)	
+	count = models.IntegerField(null=False, default=0)
+	recording = models.FileField(upload_to='learnerRecordings', blank=True, null=True)
+	call_start_time = models.DateTimeField(blank=True, null=True)
 
 
 class SpeakingError(models.Model):
-	report = models.ForeignKey(Report)
+	practice = models.ForeignKey(Practice)
+	learnerRecording = models.ForeignKey(LearnerRecording)
 	error_time_min = models.CharField(_("Minute"), max_length=2, blank=True, null=True, default='')
 	error_time_sec = models.CharField(_("Second"), max_length=2, blank=True, null=True, default='')
 	correction_text = models.CharField(_("Correction Text"), max_length=255, blank=True, null=True, default='')

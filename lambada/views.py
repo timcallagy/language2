@@ -1,26 +1,26 @@
-from django.contrib.auth.models import User
+import os
+import json
+import pytz
+import datetime
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.contrib.auth import authenticate, login, logout
 from django.utils.translation import ugettext_lazy as _
 from django.shortcuts import render
 from django.views.generic import TemplateView, CreateView, DeleteView, UpdateView, DetailView, ListView
-from lambada.forms import UserForm, UserProfileForm, TopicForm, PracticeForm, PracticeWritingForm, SpeakingErrorForm
 from django.contrib.auth.decorators import login_required
-import pytz
 from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
-from lambada.models import Topic, UserProfile, Practice, Report, LearnerRecording, SpeakingError, WritingError, ChannelPrivate, ChannelDefault
-import datetime
 from django.utils.timezone import utc
 from django.utils.translation import ugettext as _
 from django.utils import translation
 from django.core.mail import send_mail
 from django.views.decorators.csrf import ensure_csrf_cookie
-import os
 from django.conf import settings
-import json
 from django.core import serializers
 from django.core.files import File
+from django.contrib.auth.models import User
+from lambada.forms import UserForm, UserProfileForm, TopicForm, PracticeForm, PracticeWritingForm, SpeakingErrorForm
+from lambada.models import Topic, UserProfile, Practice, Report, LearnerRecording, SpeakingError, WritingError, ChannelPrivate, ChannelDefault
 
 class Index(TemplateView):
 	template_name = 'lambada/index.html'
@@ -270,25 +270,55 @@ def report_add_writing_correction(request, pk):
 	return HttpResponse(writingError.pk)
 
 
+#@login_required
+#def recording_upload(request, pk, partNum):
+#	coachLeg = request.META['HTTP_COACH_LEG']
+#	if coachLeg == 'false':
+#		# Check whether the recording file exists to determine if this is the start of the call.
+#		if os.path.isfile(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg'):
+#			target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg', 'a+b')
+#		else:
+#			print('### Learners file does not exist. New Recording!')
+#			practice = Practice.objects.get(pk=pk)
+#			report = practice.report
+#			# DANGER!!! The timedelta here must correspond to the length of a blob of recording as set in the RTCMultiConnection.js file (in the _captureUserMedia function).
+#			report.call_start_time = datetime.datetime.utcnow().replace(tzinfo=utc) - datetime.timedelta(seconds=5)
+#			report.save()
+#			target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg', 'a+b')
+#	else:
+#		target = open(settings.STATIC_PATH + '/coach_session_' + pk + '_recording.ogg', 'a+b')
+#	target.write(request.body)
+#	target.close()
+#	return HttpResponse()
+
+
 @login_required
 def recording_upload(request, pk, partNum):
+	practice = Practice.objects.get(pk=pk)
 	coachLeg = request.META['HTTP_COACH_LEG']
-	if coachLeg == 'false':
-		# Check whether the recording file exists to determine if this is the start of the call.
-		if os.path.isfile(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg'):
-			target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg', 'a+b')
+	if partNum == '0':
+		if coachLeg == 'true':
+			practice.coach_recording_count +=1
+			count = practice.coach_recording_count
+			target = open(settings.STATIC_PATH + '/coach_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
 		else:
-			print('### Learners file does not exist. New Recording!')
-			practice = Practice.objects.get(pk=pk)
-			report = practice.report
-			# DANGER!!! The timedelta here must correspond to the length of a blob of recording as set in the RTCMultiConnection.js file (in the _captureUserMedia function).
-			report.call_start_time = datetime.datetime.utcnow().replace(tzinfo=utc) - datetime.timedelta(seconds=5)
-			report.save()
-			target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg', 'a+b')
-	else:
-		target = open(settings.STATIC_PATH + '/coach_session_' + pk + '_recording.ogg', 'a+b')
+			practice.learner_recording_count +=1
+			count = practice.learner_recording_count
+			call_start_time = datetime.datetime.utcnow().replace(tzinfo=utc) - datetime.timedelta(seconds=5)
+			learnerRecording = LearnerRecording(practice=practice, count=count, call_start_time=call_start_time)
+			learnerRecording.save()
+			target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
+	else: 
+		if coachLeg == 'true':
+			count = practice.coach_recording_count
+			target = open(settings.STATIC_PATH + '/coach_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
+		else:
+			count = practice.coach_recording_count
+			target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
+
 	target.write(request.body)
 	target.close()
+	practice.save()
 	return HttpResponse()
 
 
@@ -298,9 +328,6 @@ def recording_correction_upload(request, pk):
 	target = open(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg', 'a+b')
 	target.write(request.body)
 	djangofile = File(target)
-#	correction = CorrectionRecording(error=speakingError)
-#	correction.correctionRec.save('correction_' + pk + '_recording.ogg', djangofile)
-#	correction.save()
 	speakingError.correction_recording.save('correction_' + pk + '_recording.ogg', djangofile)
 	speakingError.correction_recording_flag = True
 	speakingError.save()
@@ -336,12 +363,14 @@ def recording_correction_download(request, pk):
 def speaking_error_notification(request, pk):
 	error_time = datetime.datetime.utcnow().replace(tzinfo=utc)
 	print('### error_time: ' + str(error_time))
-	report = Report.objects.get(pk=pk)
-	time_of_error = error_time - report.call_start_time
+	practice = Practice.objects.get(pk=pk)
+	count = practice.learner_recording_count
+	learner_recording = LearnerRecording.objects.get(practice=practice, count=count)
+	time_of_error = error_time - learner_recording.call_start_time
 	print('### time_of_error: ' + str(time_of_error))
 	hours, remainder = divmod(time_of_error.seconds, 3600)
 	minutes, seconds = divmod(remainder, 60)
-	speaking_error = SpeakingError(report=report, error_time_min=minutes, error_time_sec=seconds)
+	speaking_error = SpeakingError(practice=practice, learnerRecording=learner_recording, error_time_min=minutes, error_time_sec=seconds)
 	speaking_error.save()
 	return HttpResponse(time_of_error)
 
@@ -420,37 +449,22 @@ def report_delete_writing_correction(request):
 def report_add_speech(request, pk):
 	context = RequestContext(request)
 	practice = Practice.objects.get(pk=pk)
-	try:
-		learnerRecording = LearnerRecording.objects.get(practice=practice)
-	except:
-		target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg', 'a+b')
-		djangofile = File(target)
-		learnerRecording = LearnerRecording(practice=practice)
-		learnerRecording.recording.save('learner_session_' + pk + '_recording.ogg', djangofile)
-		learnerRecording.save()
-#		os.remove(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg')
-		target.close()
+	count = practice.learner_recording_count
+	for x in range(1, count+1):
+		learnerRecording = LearnerRecording.objects.get(practice=practice, count=x)
+		if learnerRecording.recording == "":
+			print('In if')
+			target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(x) + '.ogg', 'a+b')
+			djangofile = File(target)
+#			learnerRecording = LearnerRecording(practice=practice, count=x)
+			learnerRecording.recording.save('learner_session_' + pk + '_recording_' + str(x) + '.ogg', djangofile)
+			learnerRecording.save()
+			target.close()
+			os.remove(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(x) + '.ogg')
         report = practice.report 
-        speaking_error_list = SpeakingError.objects.filter(report=report).order_by('id')
-	return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'learnerRecording': learnerRecording, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
-
-
-#        if os.path.isfile(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg'):
-#                target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg', 'a+b')
-#		djangofile = File(target)
-#		try:
-#			learnerRecording = LearnerRecording.objects.get(practice=practice)
-#		except LearnerRecording.DoesNotExist:
-#		        learnerRecording = LearnerRecording(practice=practice)
-#	        	learnerRecording.recording.save('learner_session_' + pk + '_recording.ogg', djangofile)
-#		        learnerRecording.save()
-#		        os.remove(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg')
-#	        target.close()
-#	        report = practice.report 
-#	        speaking_error_list = SpeakingError.objects.filter(report=report).order_by('id')
-#		return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'learnerRecording': learnerRecording, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
-#       else:
-#
+	learnerRecordings = LearnerRecording.objects.filter(practice=practice)
+        speaking_error_list = SpeakingError.objects.filter(practice=practice).order_by('id')
+	return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'learnerRecordings': learnerRecordings, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
 
 
 @login_required
