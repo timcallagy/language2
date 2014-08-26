@@ -5,6 +5,7 @@
 {% load i18n %}
 {% load tz %}
 {% load bootstrap %}
+{% load static from staticfiles %}
 
 	{{ form.media }}
 
@@ -24,6 +25,8 @@
 	</div>
 	<div class="col-md-10 col-md-offset-1">
 	<h1>{% trans "Practice Sessions" %}</h1>
+	<br>
+	Current time: {{ current_time }}
 	<br>
 	<div class="panel panel-primary">
 		<div class="panel-heading">{% trans "Your Upcoming Practice Sessions" %}</div>
@@ -46,9 +49,18 @@
 					{% localtime on %}
 					<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
 					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
+					<script>
+						var myCountdown1 = new Countdown({
+							time:{{ practice.timeUntil }},
+							hideLine : true,		
+							rangeHi : "day",
+							numbers : {
+								bkgd : "#FF9966"
+							}	
+						});
+					</script>
 					<div class="row">
 						<div class="col-md-4">
-						{% if practice.dateTime > current_time %}
 						<br>
 							<div class="col-md-3"><a class="btn btn-primary btn-sm" href="/practice/{{ practice.pk }}/update/">{% trans "Modify" %}</a></div>
 							<form action="/practice/{{ practice.pk }}/delete/" method="post" accept-charset="utf-8">
@@ -56,7 +68,6 @@
 								<div class="col-md-3"><input class="btn btn-primary btn-sm" type="submit" value={% trans "Cancel" %}></div>
 					       		</form>
 							<div class="col-md-3"><a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br></div>
-							{% endif %}
 						</div>
 					</div>
 					{% endlocaltime %}
@@ -141,5 +152,6 @@
 	{% endif %}
 
 </div>
+
 
 {% endblock%}

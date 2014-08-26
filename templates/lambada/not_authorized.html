@@ -1,0 +1,25 @@
+{% extends 'lambada/base.html' %}
+
+{% block title %} Language Lambada {% endblock %}
+
+{% load i18n %}
+{% load tz %}
+
+{% block top_menu %}
+	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
+	<li><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
+	<li><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
+	<li><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
+	<li><a href="/help/">{% trans "How does this work?" %}</a></li>
+{% endblock %}
+
+{% block body %}
+
+
+	<br>
+	<div class="col-md-4 col-md-offset-1">
+		<h1 id="h1">{% trans "Not Authorized" %}</h1>
+		<p>{% trans "You are not authorized to view this page" %}</p>
+	</div>
+
+{% endblock%}

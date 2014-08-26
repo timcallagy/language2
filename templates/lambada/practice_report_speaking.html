@@ -29,21 +29,23 @@
 	{% trans "Language" %}: {{ practice.topic.language  }}<br><br>
 	{% trans "Session start time" %}: {{ practice.dateTime  }}<br><br>
 
-	<p><audio id="main-audio" src="/recording/download/{{ practice.pk }}/" controls preload type="audio/ogg"></audio></p>
 </div>
+	{% for learnerRecording in learnerRecordings %}
 <br>
-<br>
-{% for speakingError in speaking_error_list %}
 <div class="col-md-10 col-md-offset-1">
+<br>
+	<p><audio id="recording-{{ learnerRecording.count }}" src="{{S3_URL}}/{{ learnerRecording.recording }}" controls preload type="audio/ogg"></audio></p>
+{% for speakingError in speaking_error_list %}
+{% if speakingError.learnerRecording == learnerRecording %}
 	<div class="panel panel-danger">
 		<div class="panel-heading">
-			<h3>Error at {% if speakingError.error_time_min|length = 1 %}0{% endif%}{{ speakingError.error_time_min }}: {% if speakingError.error_time_sec|length = 1 %}0{% endif%}{{ speakingError.error_time_sec }}</h3>	
+			<h3>Mistake at {% if speakingError.error_time_min|length = 1 %}0{% endif%}{{ speakingError.error_time_min }}:{% if speakingError.error_time_sec|length = 1 %}0{% endif%}{{ speakingError.error_time_sec }}</h3>	
 		</div>
 
 		<div class="panel-body">
 
 			<div class="col-md-3">
-				<button id="play-error{{speakingError.pk}}" class="btn btn-primary btn-sm" errorTimeMin="{{ speakingError.error_time_min }}" errorTimeSec="{{ speakingError.error_time_sec }}">{% trans "Play Error"%}</button> 
+				<button id="play-error{{speakingError.pk}}" class="btn btn-primary btn-sm" errorTimeMin="{{ speakingError.error_time_min }}" errorTimeSec="{{ speakingError.error_time_sec }}" recordingNumber=" {{ learnerRecording.count }}">{% trans "Play Mistake"%}</button> 
 			</div>
 
 			<div class="col-md-4">
@@ -55,8 +57,8 @@
 			</div>
 
 			<div class="col-md-4">
-				{% if speakingError.correction_recording == True %}
-				<audio id="play-correction{{speakingError.pk}}" src="/recording/correction/{{speakingError.pk}}/download/" controls preload type="audio/ogg"></audio>
+				{% if speakingError.correction_recording %}
+				<audio id="play-correction{{speakingError.pk}}" src="{{S3_URL}}/{{ speakingError.correction_recording }}" controls preload type="audio/ogg"></audio>
 				{% else %}
 				<p id="play-error-correction-{{ speakingError.pk }}">{% trans "There is no recorded correction." %}</p>
 				{% endif %}
@@ -64,10 +66,12 @@
 			<br>
 		</div>
 	</div>
+{% endif %}
+{% endfor %}
 </div>
-			<br>
+<br>
 
-			{% endfor  %}
+{% endfor  %}
 
 
 <div class="col-md-10 col-md-offset-1">

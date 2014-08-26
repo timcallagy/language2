@@ -2,6 +2,7 @@ import os
 import json
 import pytz
 import datetime
+import time
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.contrib.auth import authenticate, login, logout
@@ -9,15 +10,16 @@ from django.utils.translation import ugettext_lazy as _
 from django.shortcuts import render
 from django.views.generic import TemplateView, CreateView, DeleteView, UpdateView, DetailView, ListView
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse, Http404, HttpResponseForbidden
 from django.utils.timezone import utc
 from django.utils.translation import ugettext as _
 from django.utils import translation
 from django.core.mail import send_mail
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.conf import settings
 from django.core import serializers
 from django.core.files import File
+from django.core.exceptions import ObjectDoesNotExist
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.conf import settings
 from django.contrib.auth.models import User
 from lambada.forms import UserForm, UserProfileForm, TopicForm, PracticeForm, PracticeWritingForm, SpeakingErrorForm
 from lambada.models import Topic, UserProfile, Practice, Report, LearnerRecording, SpeakingError, WritingError, ChannelPrivate, ChannelDefault
@@ -96,12 +98,13 @@ def user_login(request):
 def topic_publish(request, pk):
 	context = RequestContext(request)
 	try:
-		print("start try")
 		topic=Topic.objects.get(pk=pk)
-		topic.published=True
-		topic.save()
-		print("end try")
-		return HttpResponseRedirect('/topic/list/')
+		if topic.created_by == request.user:
+			topic.published=True
+			topic.save()
+			return HttpResponseRedirect('/topic/list/')
+		else:
+			return render_to_response('lambada/404.html', {}, context)
 	except Topic.DoesNotExist:
 		return HttpResponse('Error: Topic does not exist.')
 
@@ -168,6 +171,19 @@ class TopicUpdate(UpdateView):
 
 class TopicDetail(DetailView):
 	model = Topic
+
+	def get_object(self, queryset=None):
+		if queryset is None:
+			queryset = self.get_queryset()
+		pk = self.kwargs.get(self.pk_url_kwarg, None)
+		queryset = queryset.filter(pk=pk, created_by=self.request.user)
+		try:
+			obj = queryset.get()
+		except ObjectDoesNotExist:
+			raise Http404()
+		return obj
+
+
 
 
 class TopicList(ListView):
@@ -403,8 +419,9 @@ def report_delete_speech_error(request, pk):
 		os.remove(settings.STATIC_PATH + '/correction_' + error_pk + '_recording.ogg')
 	practice = Practice.objects.get(pk=pk)
 	report = practice.report 
-	speaking_error_list = SpeakingError.objects.filter(report=report).order_by('id')
-	return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm()}, context)
+	learnerRecordings = LearnerRecording.objects.filter(practice=practice)
+	speaking_error_list = SpeakingError.objects.filter(practice=practice).order_by('id')
+	return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'learnerRecordings': learnerRecordings, 'report': report, 'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
 
 	
 @login_required
@@ -413,58 +430,29 @@ def report_delete_writing_correction(request):
 	writing_error = WritingError.objects.filter(pk=error_pk).delete()
 	return HttpResponse() 
 
-	
-#@login_required
-#def report_add_speech(request, pk):
-#	context = RequestContext(request)
-#	practice = Practice.objects.get(pk=pk)
-#	report = practice.report 
-#	speaking_error_list = SpeakingError.objects.filter(report=report).order_by('id')
-#	return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm()}, context)
-
-
-#@login_required
-#def report_add_speech(request, pk):
-#       context = RequestContext(request)
-#      practice = Practice.objects.get(pk=pk)
-#        if os.path.isfile(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg'):
-#                target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg', 'a+b')
-#		djangofile = File(target)
-#		try:
-#			learnerRecording = LearnerRecording.objects.get(practice=practice)
-#		except LearnerRecording.DoesNotExist:
-#		        learnerRecording = LearnerRecording(practice=practice)
-#	        	learnerRecording.recording.save('learner_session_' + pk + '_recording.ogg', djangofile)
-#		        learnerRecording.save()
-#		        os.remove(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg')
-#	        target.close()
-#	        report = practice.report 
-#	        speaking_error_list = SpeakingError.objects.filter(report=report).order_by('id')
-#		return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'learnerRecording': learnerRecording, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
-#       else:
-#        	return HttpResponse("ERROR - Learner's recording not found on Server!")
-
 
 @login_required
 def report_add_speech(request, pk):
 	context = RequestContext(request)
 	practice = Practice.objects.get(pk=pk)
-	count = practice.learner_recording_count
-	for x in range(1, count+1):
-		learnerRecording = LearnerRecording.objects.get(practice=practice, count=x)
-		if learnerRecording.recording == "":
-			print('In if')
-			target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(x) + '.ogg', 'a+b')
-			djangofile = File(target)
-#			learnerRecording = LearnerRecording(practice=practice, count=x)
-			learnerRecording.recording.save('learner_session_' + pk + '_recording_' + str(x) + '.ogg', djangofile)
-			learnerRecording.save()
-			target.close()
-			os.remove(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(x) + '.ogg')
-        report = practice.report 
-	learnerRecordings = LearnerRecording.objects.filter(practice=practice)
-        speaking_error_list = SpeakingError.objects.filter(practice=practice).order_by('id')
-	return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'learnerRecordings': learnerRecordings, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
+	if practice.coach == request.user.username:
+		count = practice.learner_recording_count
+		for x in range(1, count+1):
+			learnerRecording = LearnerRecording.objects.get(practice=practice, count=x)
+			if learnerRecording.recording == "":
+				print('In if')
+				target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(x) + '.ogg', 'a+b')
+				djangofile = File(target)
+				learnerRecording.recording.save('learner_session_' + pk + '_recording_' + str(x) + '.ogg', djangofile)
+				learnerRecording.save()
+				target.close()
+				os.remove(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(x) + '.ogg')
+	        report = practice.report 
+		learnerRecordings = LearnerRecording.objects.filter(practice=practice)
+	        speaking_error_list = SpeakingError.objects.filter(practice=practice).order_by('id')
+		return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'learnerRecordings': learnerRecordings, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
+	else: 
+		return render_to_response('lambada/404.html', {}, context)
 
 
 @login_required
@@ -480,10 +468,10 @@ def report_add_writing(request, pk):
 def practice_report_speaking_review(request, pk):
 	context = RequestContext(request)
 	practice = Practice.objects.get(pk=pk)
-	learnerRecording = LearnerRecording.objects.get(practice=practice)
+	learnerRecordings = LearnerRecording.objects.filter(practice=practice)
 	report = practice.report 
-	speaking_error_list = SpeakingError.objects.filter(report=report).order_by('id').exclude(correction_text='', correction_recording_flag=False)
-	return render_to_response('lambada/coach_report_speaking_review.html', {'practice': practice, 'learnerRecording': learnerRecording, 'report': report,'speaking_error_list': speaking_error_list, 'S3_URL': settings.S3_URL}, context)
+	speaking_error_list = SpeakingError.objects.filter(practice=practice).order_by('id').exclude(correction_text='', correction_recording_flag=False)
+	return render_to_response('lambada/coach_report_speaking_review.html', {'practice': practice, 'learnerRecordings': learnerRecordings, 'report': report,'speaking_error_list': speaking_error_list, 'S3_URL': settings.S3_URL}, context)
 
 
 @login_required
@@ -500,7 +488,7 @@ def practice_report_speaking_publish(request, pk):
 	practice = Practice.objects.get(pk=pk)
 	practice.speaking_report_published = True
 	practice.save()
-	SpeakingError.objects.filter(report=practice.report, correction_text='', correction_recording_flag=False).delete()
+	SpeakingError.objects.filter(practice=practice, correction_text='', correction_recording_flag=False).delete()
 	return HttpResponseRedirect('/dashboard/')
 
 
@@ -516,9 +504,13 @@ def practice_report_writing_publish(request, pk):
 def report_speaking(request, pk):
 	context = RequestContext(request)
 	practice = Practice.objects.get(pk=pk)
-	report = practice.report 
-	speaking_error_list = SpeakingError.objects.filter(report=report).order_by('id').exclude(correction_text='', correction_recording=False)
-	return render_to_response('lambada/practice_report_speaking.html', {'practice': practice, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm()}, context)
+	if practice.user == request.user:
+		report = practice.report 
+		learnerRecordings = LearnerRecording.objects.filter(practice=practice)
+		speaking_error_list = SpeakingError.objects.filter(practice=practice).order_by('id').exclude(correction_text='', correction_recording=False)
+		return render_to_response('lambada/practice_report_speaking.html', {'practice': practice, 'learnerRecordings': learnerRecordings, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
+	else: 
+		return render_to_response('lambada/404.html', {}, context)
 
 
 @login_required
@@ -535,16 +527,18 @@ class PracticeList(ListView):
 	template_name = 'lambada/practice_list.html'
 
 	def get_queryset (self):
-#		return Practice.objects.filter(user=self.request.user).order_by('-dateTime')
 		return Practice.objects.filter(user=self.request.user).filter(dateTime__lte=datetime.datetime.utcnow().replace(tzinfo=utc)).order_by('-dateTime')
 
 
 	def get_context_data(self, **kwargs):
 		context = super(PracticeList, self).get_context_data(**kwargs)
-		context['current_time'] = datetime.datetime.utcnow().replace(tzinfo=utc)
-		context['practice_upcoming'] = Practice.objects.filter(user=self.request.user).filter(dateTime__gte=datetime.datetime.utcnow().replace(tzinfo=utc)).order_by('dateTime')
-
-
+		now = datetime.datetime.utcnow().replace(tzinfo=utc)
+		practice_upcoming = Practice.objects.filter(user=self.request.user).filter(dateTime__gte=datetime.datetime.utcnow().replace(tzinfo=utc)).order_by('dateTime')
+		for practice in practice_upcoming:
+			date = practice.dateTime;
+			practice.timeUntil = ((date - now).total_seconds()) 
+			practice.save()
+		context['practice_upcoming'] = practice_upcoming
 		return context
 
 
@@ -681,3 +675,7 @@ def dashboard(request):
 	#reports = practices_finished_writing
 	#pending_writing_reports = practices_finished_writing.objects.exclude(reports.writing_report_published=True)
 	return render_to_response('lambada/dashboard.html', {'upcoming_coaching_sessions': upcoming_coaching_sessions, 'upcoming_practice_sessions': upcoming_practice_sessions, 'pending_speech_reports': pending_speech_reports, 'pending_writing_reports': pending_writing_reports}, context)
+
+
+def handler404(request):
+	return render_to_response('lambada/404.html', {})

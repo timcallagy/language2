@@ -54,7 +54,8 @@ class Topic(models.Model):
 class Practice(models.Model):
 	user = models.ForeignKey(User)
 	topic = models.ForeignKey(Topic)
-	dateTime= models.DateTimeField(_(u"Practice Session Time"))
+	dateTime = models.DateTimeField(_(u"Practice Session Time"))
+	timeUntil = models.IntegerField(null=False, default=0)
 	coach = models.CharField(_("Coach"), max_length=255, blank=True, null=True, default='')
 	learners_writing = HTMLField(_("Write your text here (2000 words maximum)."), max_length=255)
 	coach_recording_count = models.IntegerField(null=False, default=0)

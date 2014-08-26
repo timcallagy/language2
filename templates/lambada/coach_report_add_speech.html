@@ -22,7 +22,7 @@
 	<ol class="breadcrumb">
 		<li><a href="/practice/list/">{% trans "Coaching Sessions" %}</a></li>
 		<li><a href="/coach/practice/{{ practice.pk }}">{{ practice.topic.headline }}</a></li>
-		<li class="active">{% trans "Speech Correction" %}<li>
+		<li class="active">{% trans "Speech Correction" %}</li>
 	</ol>
 </div>
 <br>
@@ -30,24 +30,22 @@
 	<h1>{{ practice.topic.headline }} - Speaking Report</h1>
 	{% trans "When" %}: {{ practice.dateTime  }}<br><br>
 	{% trans "Language" %}: {{ practice.topic.language  }}<br><br>
-
-
 </div>
 	{% for learnerRecording in learnerRecordings %}
 <br>
 <div class="col-md-10 col-md-offset-1">
-	<p><audio id="main-audio" src="{{S3_URL}}/{{ learnerRecording.recording }}" controls preload type="audio/ogg"></audio></p>
+	<p><audio id="recording-{{ learnerRecording.count }}" src="{{S3_URL}}/{{ learnerRecording.recording }}" controls preload type="audio/ogg"></audio></p>
 {% for speakingError in speaking_error_list %}
 {% if speakingError.learnerRecording == learnerRecording %}
 	<div class="panel panel-danger">
 		<div class="panel-heading">
-			<h3>Error at {% if speakingError.error_time_min|length = 1 %}0{% endif%}{{ speakingError.error_time_min }}:{% if speakingError.error_time_sec|length = 1 %}0{% endif%}{{ speakingError.error_time_sec }}</h3>	
+			<h3>Mistake at {% if speakingError.error_time_min|length = 1 %}0{% endif%}{{ speakingError.error_time_min }}:{% if speakingError.error_time_sec|length = 1 %}0{% endif%}{{ speakingError.error_time_sec }}</h3>	
 		</div>
 
 		<div class="panel-body">
 
 			<div class="col-md-3">
-				<button id="play-error{{speakingError.pk}}" class="btn btn-primary btn-sm" errorTimeMin="{{ speakingError.error_time_min }}" errorTimeSec="{{ speakingError.error_time_sec }}">{% trans "Play Error"%}</button> 
+				<button id="play-error{{speakingError.pk}}" class="btn btn-primary btn-sm" errorTimeMin="{{ speakingError.error_time_min }}" errorTimeSec="{{ speakingError.error_time_sec }}" recordingNumber=" {{ learnerRecording.count }}">{% trans "Play Mistake"%}</button> 
 				<br>
 				<br>
 				<form id="delete-error-form" class="form form-horizontal" action="/report/{{ practice.pk }}/report_delete_speech_error/" method="post" accept-charset="utf-8">

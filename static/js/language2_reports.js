@@ -1,6 +1,6 @@
 $(document).ready(function() {
 
-	var audioElement = document.getElementById('main-audio');
+//	var audioElement = document.getElementById('main-audio');
 	var audioStream;
         var recorder;
 	var audioConstraints = {
@@ -13,6 +13,8 @@ $(document).ready(function() {
 		console.log('In play-error');
 		var min = parseInt(this.getAttribute("errorTimeMin"));
 		var sec = parseInt(this.getAttribute("errorTimeSec"));
+		var recordingNumber = parseInt(this.getAttribute("recordingNumber"));
+		var audioElement = document.getElementById('recording-'+recordingNumber);
 		audioElement.pause();
 		audioElement.currentTime = (min*60) + sec - 4;
 		console.log(audioElement.currentTime);
