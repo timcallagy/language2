@@ -26,8 +26,6 @@
 	<div class="col-md-10 col-md-offset-1">
 	<h1>{% trans "Practice Sessions" %}</h1>
 	<br>
-	Current time: {{ current_time }}
-	<br>
 	<div class="panel panel-primary">
 		<div class="panel-heading">{% trans "Your Upcoming Practice Sessions" %}</div>
 		{% if practice_upcoming %}
@@ -48,18 +46,7 @@
 					<h3>{{practice.topic.headline}}</h3>
 					{% localtime on %}
 					<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
-					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
-					<script>
-						var myCountdown1 = new Countdown({
-							time:{{ practice.timeUntil }},
-							hideLine : true,		
-							rangeHi : "day",
-							numbers : {
-								bkgd : "#FF9966"
-							}	
-						});
-					</script>
-					<div class="row">
+					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>					<div class="row">
 						<div class="col-md-4">
 						<br>
 							<div class="col-md-3"><a class="btn btn-primary btn-sm" href="/practice/{{ practice.pk }}/update/">{% trans "Modify" %}</a></div>
@@ -67,9 +54,26 @@
 					        	        {% csrf_token %}
 								<div class="col-md-3"><input class="btn btn-primary btn-sm" type="submit" value={% trans "Cancel" %}></div>
 					       		</form>
-							<div class="col-md-3"><a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br></div>
+							<div id="prepare-{{ practice.id }}" class="col-md-3"><a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Prepare" %}</a><br></div>
+							<div id="start-{{ practice.id }}" class="col-md-3" style="display:none;"><a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Prepare" %}</a><br></div>
 						</div>
-					</div>
+					</div><br><br>
+
+
+					<script>
+						function countdownComplete(result){
+							alert('Hi');
+						}
+						var myCountdown1 = new Countdown({
+							time:{{ practice.timeUntil }},
+							hideLine : true,		
+							rangeHi : "day",
+							numbers : {
+								bkgd : "#FF9966"
+							},
+							onComplete : countdownComplete
+						});
+					</script>
 					{% endlocaltime %}
 					
 				</li>

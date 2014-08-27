@@ -22,7 +22,15 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.conf import settings
 from django.contrib.auth.models import User
 from lambada.forms import UserForm, UserProfileForm, TopicForm, PracticeForm, PracticeWritingForm, SpeakingErrorForm
-from lambada.models import Topic, UserProfile, Practice, Report, LearnerRecording, SpeakingError, WritingError, ChannelPrivate, ChannelDefault
+from lambada.models import Topic, UserProfile, Practice, LearnerRecording, SpeakingError, WritingError, ChannelPrivate, ChannelDefault
+
+
+##################################
+###
+### Landing Page 
+###
+##################################
+
 
 class Index(TemplateView):
 	template_name = 'lambada/index.html'
@@ -33,6 +41,14 @@ class Index(TemplateView):
 		context['user_form'] = UserForm()
 		context['userprofile_form'] = UserProfileForm()
 		return context
+
+
+##################################
+###
+### Registration and Authorization
+###
+##################################
+
 
 def register(request):
 	context = RequestContext(request)
@@ -94,19 +110,6 @@ def user_login(request):
 	else:
 		return render_to_response('lambada/login.html', {'user_form': user_form, 'userprofile_form': userprofile_form, 'next_page': next_page}, context)
 
-@login_required
-def topic_publish(request, pk):
-	context = RequestContext(request)
-	try:
-		topic=Topic.objects.get(pk=pk)
-		if topic.created_by == request.user:
-			topic.published=True
-			topic.save()
-			return HttpResponseRedirect('/topic/list/')
-		else:
-			return render_to_response('lambada/404.html', {}, context)
-	except Topic.DoesNotExist:
-		return HttpResponse('Error: Topic does not exist.')
 
 @login_required
 def user_logout(request):
@@ -134,6 +137,32 @@ def forgot_login(request):
 		return render_to_response('lambada/forgot_login.html', context)
 
 
+################################
+###
+### Dashboard
+###
+################################
+
+
+@login_required
+def dashboard(request):
+	context = RequestContext(request)
+	current_time = datetime.datetime.utcnow().replace(tzinfo=utc)
+	end_of_week = current_time + datetime.timedelta(days=7)
+	upcoming_coaching_sessions = Practice.objects.filter(coach=request.user.username, dateTime__lte=end_of_week, dateTime__gte=current_time)
+	upcoming_practice_sessions = Practice.objects.filter(user_id=request.user.id, dateTime__lte=end_of_week, dateTime__gte=current_time)
+	pending_speech_reports = Practice.objects.filter(coach=request.user.username, dateTime__lte=current_time, speaking_report_published=False).order_by('dateTime')
+	pending_writing_reports = Practice.objects.filter(coach=request.user.username, writing_complete=True, writing_report_published=False)
+	return render_to_response('lambada/dashboard.html', {'upcoming_coaching_sessions': upcoming_coaching_sessions, 'upcoming_practice_sessions': upcoming_practice_sessions, 'pending_speech_reports': pending_speech_reports, 'pending_writing_reports': pending_writing_reports}, context)
+
+
+################################
+###
+### Topics
+###
+################################
+
+
 class TopicCreate(CreateView):
 	model = Topic
 	form_class = TopicForm
@@ -142,31 +171,6 @@ class TopicCreate(CreateView):
 		form.instance.created_by = self.request.user
 		form.instance.creation_date = datetime.datetime.now()
 		return super(TopicCreate, self).form_valid(form)
-
-	# This code gets User and Profile forms to display in the Registration popup box.
-	def get_context_data(self, **kwargs):
-		context = super(TopicCreate, self).get_context_data(**kwargs)
-		context['user_form'] = UserForm()
-		context['userprofile_form'] = UserProfileForm()
-		return context
-
-
-class TopicDelete(DeleteView):
-	model = Topic
-	success_url = '/topic/list/'
-
-	# This code gets User and Profile forms to display in the Registration popup box.
-	def get_context_data(self, **kwargs):
-		context = super(TopicDelete, self).get_context_data(**kwargs)
-		context['user_form'] = UserForm()
-		context['userprofile_form'] = UserProfileForm()
-		return context
-
-
-class TopicUpdate(UpdateView):
-	model = Topic
-	form_class = TopicForm
-	template_name = 'lambada/topic_update.html'
 
 
 class TopicDetail(DetailView):
@@ -182,8 +186,7 @@ class TopicDetail(DetailView):
 		except ObjectDoesNotExist:
 			raise Http404()
 		return obj
-
-
+	###$ Class Designer
 
 
 class TopicList(ListView):
@@ -191,56 +194,85 @@ class TopicList(ListView):
 		
 	def get_queryset (self):
 		return Topic.objects.filter(created_by=self.request.user)
- 
-	
-	# This code gets User and Profile forms to display in the Registration popup box.
+
+
+@login_required
+def topic_publish(request, pk):
+	context = RequestContext(request)
+	try:
+		topic=Topic.objects.get(pk=pk)
+		if topic.created_by == request.user:
+			topic.published=True
+			topic.save()
+			return HttpResponseRedirect('/topic/list/')
+		else:
+			return render_to_response('lambada/404.html', {}, context)
+	except Topic.DoesNotExist:
+		return HttpResponse('Error: Topic does not exist.')
+
+
+class TopicUpdate(UpdateView):
+	model = Topic
+	form_class = TopicForm
+	template_name = 'lambada/topic_update.html'
+
+	def get_object(self, queryset=None):
+		if queryset is None:
+			queryset = self.get_queryset()
+		pk = self.kwargs.get(self.pk_url_kwarg, None)
+		queryset = queryset.filter(pk=pk, created_by=self.request.user)
+		try:
+			obj = queryset.get()
+		except ObjectDoesNotExist:
+			raise Http404()
+		return obj
+
+
+class TopicDelete(DeleteView):
+	model = Topic
+	success_url = '/topic/list/'
+
+	def get_object(self, queryset=None):
+		if queryset is None:
+			queryset = self.get_queryset()
+		pk = self.kwargs.get(self.pk_url_kwarg, None)
+		queryset = queryset.filter(pk=pk, created_by=self.request.user)
+		try:
+			obj = queryset.get()
+		except ObjectDoesNotExist:
+			raise Http404()
+		return obj
+
+
+################################
+###
+### Learner's Practice sessions
+###
+################################
+
+
+# Learner views Topics available for booking on this page.
+class PracticeBook(ListView):
+	paginate_by = 3
+	template_name = 'lambada/practice_book.html'
+
+	def get_queryset (self):
+		return Topic.objects.filter(published=True).exclude(created_by=self.request.user)
+		
 	def get_context_data(self, **kwargs):
-		context = super(TopicList, self).get_context_data(**kwargs)
-		context['user_form'] = UserForm()
-		context['userprofile_form'] = UserProfileForm()
+		context = super(PracticeBook, self).get_context_data(**kwargs)
+		context['practice_form'] = PracticeForm()
 		return context
 
 
-@login_required
-def like_topic(request):
-	print("####### 1")
-	user = request.user 
-	userProfile = UserProfile.objects.get(user=user)
-	topic_id = request.GET['topic_id']
-	topic = Topic.objects.get(id=topic_id)
-	print("####### 2")
-	like, created = TopicLikes.objects.get_or_create(
-			userProfile = userProfile,
-			topic = topic
-	)
-	if not created:
-		print("This is the second time this user has like this topic.")
-		return HttpResponse('4')
-	else:
-		print("This is the first time this user has liked this topic.")
-		likes = TopicLikes.objects.filter(topic=topic).count()
-		return HttpResponse(likes)
-
-
-@login_required
-def practice_payment(request, pk):
-	context = RequestContext(request)
-	topic = Topic.objects.get(pk=pk)
-	naive = datetime.datetime.strptime(request.POST.get('dateTime_0', datetime.datetime.now), '%Y-%m-%d %H:%M:%S')
-	print('practice_payment dateTime NAIVE: ' + str(naive))
-	tz = pytz.timezone(request.session['django_timezone'])
-	aware = tz.localize(naive)
-	print('practice_payment dateTime AWARE: ' + str(aware))
-	return render_to_response('lambada/practice_payment.html', {'object': topic, 'dateTime': aware}, context)
-	
+# Learner books a Practice session here. 
 @login_required
 def practice_add(request, pk):
 	context = RequestContext(request)
-	user_id=request.user.id
-	user = User.objects.get(pk=user_id)
+#	user_id=request.user.id
+#	user = User.objects.get(pk=user_id)
 	topic = Topic.objects.get(pk=pk)
 	dateTime = request.POST.get('dateTime_0')
-	print('practice_payment dateTime AWARE: ' + str(dateTime))
 	practice, created = Practice.objects.get_or_create(
 			user = request.user,
 			topic = topic,
@@ -249,188 +281,246 @@ def practice_add(request, pk):
 			### Smart coach picking ##
 			coach = "timc"
 	)
-	print(practice.id)
-	report, created = Report.objects.get_or_create(
-			practice = practice
-	)
-
-#	return HttpResponseRedirect('/practice/' + str(practice.id))
 	return HttpResponseRedirect('/practice/list/')
 
+
+# Learner pays for their Practice session here.
+@login_required
+def practice_payment(request, pk):
+	context = RequestContext(request)
+	topic = Topic.objects.get(pk=pk)
+	naive = datetime.datetime.strptime(request.POST.get('dateTime_0', datetime.datetime.now), '%Y-%m-%d %H:%M:%S')
+	tz = pytz.timezone(request.session['django_timezone'])
+	aware = tz.localize(naive)
+	return render_to_response('lambada/practice_payment.html', {'object': topic, 'dateTime': aware}, context)
+	###$ Method Learner
+	
+	
+# Details (time, language, instructions) of a learner's particular Practice session are shown on this page. Redundant?
+class PracticeTopicDetail(DetailView):
+	model = Topic
+	template_name = 'lambada/practice_topic_detail.html'
+
+	def get_context_data(self, **kwargs):
+		context = super(PracticeTopicDetail, self).get_context_data(**kwargs)
+		context['practice_form'] = PracticeForm()
+		return context
+
+
+# Learner views a list of their booked Practice sessions on this page. 
+class PracticeList(ListView):
+	paginate_by = 3
+	template_name = 'lambada/practice_list.html'
+
+	def get_queryset (self):
+		return Practice.objects.filter(user=self.request.user).filter(dateTime__lte=datetime.datetime.utcnow().replace(tzinfo=utc)).order_by('-dateTime')
+
+	def get_context_data(self, **kwargs):
+		context = super(PracticeList, self).get_context_data(**kwargs)
+		now = datetime.datetime.utcnow().replace(tzinfo=utc)
+		practice_upcoming = Practice.objects.filter(user=self.request.user).filter(dateTime__gte=datetime.datetime.utcnow().replace(tzinfo=utc)).order_by('dateTime')
+		for practice in practice_upcoming:
+			date = practice.dateTime;
+			practice.timeUntil = ((date - now).total_seconds()) 
+			practice.save()
+		context['practice_upcoming'] = practice_upcoming
+		return context
+
+
+class PracticeUpdate(UpdateView):
+	model = Practice 
+	form_class = PracticeForm
+	template_name = 'lambada/practice_update.html'
+
+	def get_object(self, queryset=None):
+                if queryset is None:
+                        queryset = self.get_queryset()
+                pk = self.kwargs.get(self.pk_url_kwarg, None)
+                queryset = queryset.filter(pk=pk, user=self.request.user)
+                try:
+                        obj = queryset.get()
+                except ObjectDoesNotExist:
+                        raise Http404()
+                return obj 
+
+
+class PracticeDelete(DeleteView):
+	model = Practice
+	success_url = '/practice/list/'
+
+	def get_object(self, queryset=None):
+                if queryset is None:
+                        queryset = self.get_queryset()
+                pk = self.kwargs.get(self.pk_url_kwarg, None)
+                queryset = queryset.filter(pk=pk, user=self.request.user)
+                try:
+                        obj = queryset.get()
+                except ObjectDoesNotExist:
+                        raise Http404()
+                return obj 
+
+
+################################
+###
+### Coach's Practice sessions
+###
+################################
+
+
+class CoachList(ListView):
+	paginate_by = 3
+	template_name = 'lambada/coach_list.html'
+
+	def get_queryset (self):
+		return Practice.objects.filter(coach=self.request.user).order_by('dateTime')
+
+
+@login_required
+def coach_practice_cancel(request, pk):
+	### TO DO ###
+	### REmove this coach and assign a new one ###
+	context = RequestContext(request)
+        try:
+                practice=Practice.objects.get(pk=pk)
+                if practice.coach == request.user.username:
+                        # Assign a new coach
+                        #return HttpResponseRedirect('/coach/list/')
+			return HttpResponse('Error: Coach cancellation not implemented yet.')
+                else:
+                        return render_to_response('lambada/404.html', {}, context)
+        except Practice.DoesNotExist:
+                return HttpResponse('Error: Practice session does not exist.')
+
+
+################################
+###
+### Practice session execution 
+###
+################################
+
+
+# Learner makes their phone call and does their writing exercise on this page.
+class PracticeDetail(DetailView):
+	model = Practice
+
+	def get_context_data(self, **kwargs):
+		context = super(PracticeDetail, self).get_context_data(**kwargs)
+		context['practice_writing_form'] = PracticeWritingForm()
+		return context
+
+	def get_object(self, queryset=None):
+                if queryset is None:
+                        queryset = self.get_queryset()
+                pk = self.kwargs.get(self.pk_url_kwarg, None)
+                queryset = queryset.filter(pk=pk, user=self.request.user)
+                try:
+                        obj = queryset.get()
+                except ObjectDoesNotExist:
+                        raise Http404()
+                return obj 
+
+
+
+# Learner submits their writing exercise here.
 @login_required
 def practice_add_writing(request, pk):
 	context = RequestContext(request)
 	learners_writing = request.POST.get('learners_writing')
 	practice = Practice.objects.get(pk=pk)
-	practice.learners_writing = learners_writing
-	practice.writing_complete = True
-	practice.save()
-	return HttpResponseRedirect('/practice/list/')
+	if practice.user == request.user:
+		practice.learners_writing = learners_writing
+		practice.writing_complete = True
+		practice.save()
+		return HttpResponseRedirect('/practice/list/')
+	else:
+		return render_to_response('lambada/404.html', {}, context)
 	
 
+# Coach makes their phone call on this page.
 @login_required
-def report_add_speech_correction(request, pk):
-	speakingError = SpeakingError.objects.get(pk=pk)
-	speakingError.correction_text = request.POST['error_correction']
-	speakingError.save()
-	return HttpResponse()
-
-
-@login_required
-def report_add_writing_correction(request, pk):
+def coach_practice_detail(request, pk):
+	context = RequestContext(request)
 	practice = Practice.objects.get(pk=pk)
-	report = practice.report
-	print('original_text: ' +request.POST['original_text'])
-	writingError = WritingError(report=report, original_text=request.POST['original_text'], correction_text=request.POST['correction_text']) 
-	writingError.save()
-	return HttpResponse(writingError.pk)
+	if practice.coach == request.user.username:
+		topic = practice.topic
+		return render_to_response('lambada/coach_practice_detail.html', {'topic': topic, 'practice': practice}, context)
+	else:
+		return render_to_response('lambada/404.html', {}, context)
 
 
-#@login_required
-#def recording_upload(request, pk, partNum):
-#	coachLeg = request.META['HTTP_COACH_LEG']
-#	if coachLeg == 'false':
-#		# Check whether the recording file exists to determine if this is the start of the call.
-#		if os.path.isfile(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg'):
-#			target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg', 'a+b')
-#		else:
-#			print('### Learners file does not exist. New Recording!')
-#			practice = Practice.objects.get(pk=pk)
-#			report = practice.report
-#			# DANGER!!! The timedelta here must correspond to the length of a blob of recording as set in the RTCMultiConnection.js file (in the _captureUserMedia function).
-#			report.call_start_time = datetime.datetime.utcnow().replace(tzinfo=utc) - datetime.timedelta(seconds=5)
-#			report.save()
-#			target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg', 'a+b')
-#	else:
-#		target = open(settings.STATIC_PATH + '/coach_session_' + pk + '_recording.ogg', 'a+b')
-#	target.write(request.body)
-#	target.close()
-#	return HttpResponse()
+# Coach marks time of speaking errors here.
+@login_required
+def speaking_error_notification(request, pk):
+	error_time = datetime.datetime.utcnow().replace(tzinfo=utc)
+	practice = Practice.objects.get(pk=pk)
+	if practice.coach == request.user.username:
+		count = practice.learner_recording_count
+		learner_recording = LearnerRecording.objects.get(practice=practice, count=count)
+		time_of_error = error_time - learner_recording.call_start_time
+		hours, remainder = divmod(time_of_error.seconds, 3600)
+		minutes, seconds = divmod(remainder, 60)
+		speaking_error = SpeakingError(practice=practice, learnerRecording=learner_recording, error_time_min=minutes, error_time_sec=seconds, coach=request.user)
+		speaking_error.save()
+		return HttpResponse(time_of_error)
+	else:
+		return render_to_response('lambada/404.html', {}, context)
 
 
+# Creation of sessions recordings is done here.
 @login_required
 def recording_upload(request, pk, partNum):
 	practice = Practice.objects.get(pk=pk)
 	coachLeg = request.META['HTTP_COACH_LEG']
-	if partNum == '0':
-		if coachLeg == 'true':
-			practice.coach_recording_count +=1
-			count = practice.coach_recording_count
-			target = open(settings.STATIC_PATH + '/coach_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
-		else:
-			practice.learner_recording_count +=1
-			count = practice.learner_recording_count
-			call_start_time = datetime.datetime.utcnow().replace(tzinfo=utc) - datetime.timedelta(seconds=5)
-			learnerRecording = LearnerRecording(practice=practice, count=count, call_start_time=call_start_time)
-			learnerRecording.save()
-			target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
-	else: 
-		if coachLeg == 'true':
-			count = practice.coach_recording_count
-			target = open(settings.STATIC_PATH + '/coach_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
-		else:
-			count = practice.coach_recording_count
-			target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
-
-	target.write(request.body)
-	target.close()
-	practice.save()
-	return HttpResponse()
-
-
-@login_required
-def recording_correction_upload(request, pk):
-	speakingError = SpeakingError.objects.get(pk=pk)
-	target = open(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg', 'a+b')
-	target.write(request.body)
-	djangofile = File(target)
-	speakingError.correction_recording.save('correction_' + pk + '_recording.ogg', djangofile)
-	speakingError.correction_recording_flag = True
-	speakingError.save()
-	target.close()
-	os.remove(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg')
-	return HttpResponse()
+	if practice.user == request.user or practice.coach == request.user.username:
+		if partNum == '0':
+			if coachLeg == 'true':
+				practice.coach_recording_count +=1
+				count = practice.coach_recording_count
+				target = open(settings.STATIC_PATH + '/coach_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
+			else:
+				practice.learner_recording_count +=1
+				count = practice.learner_recording_count
+				call_start_time = datetime.datetime.utcnow().replace(tzinfo=utc) - datetime.timedelta(seconds=5)
+				learnerRecording = LearnerRecording(practice=practice, count=count, call_start_time=call_start_time)
+				learnerRecording.save()
+				target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
+		else: 
+			if coachLeg == 'true':
+				count = practice.coach_recording_count
+				target = open(settings.STATIC_PATH + '/coach_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
+			else:
+				count = practice.coach_recording_count
+				target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
+		target.write(request.body)
+		target.close()
+		practice.save()
+		return HttpResponse()
+	else:
+		return render_to_response('lambada/404.html', {}, context)
+		
 
 
-@login_required
-def recording_download(request, pk):
-	return StreamingHttpResponse(open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg'), content_type="audio/ogg")
-
-
+# Logs of the signalling messages sent on the default channel can be accessed here.
 @login_required
 def defaultChannel_log_download(request, pk):
-	print('In DefaultChannel log download')
 	return HttpResponse(open(settings.STATIC_PATH + '/session_' + pk + '_default_channel.txt'), content_type="text/plain")
 
 
+# Logs of the signalling messages sent on the private channel can be accessed here.
 @login_required
 def privateChannel_log_download(request, pk):
 	print('In PrivateChannel log download')
 	return HttpResponse(open(settings.STATIC_PATH + '/session_' + pk + '_private_channel.txt'), content_type="text/plain")
 
 
-@login_required
-def recording_correction_download(request, pk):
-	print('In recording correction download')
-	return StreamingHttpResponse(open(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg'), content_type="audio/ogg")
+################################
+###
+### Speaking Report
+###
+################################
 
 
-@login_required
-def speaking_error_notification(request, pk):
-	error_time = datetime.datetime.utcnow().replace(tzinfo=utc)
-	print('### error_time: ' + str(error_time))
-	practice = Practice.objects.get(pk=pk)
-	count = practice.learner_recording_count
-	learner_recording = LearnerRecording.objects.get(practice=practice, count=count)
-	time_of_error = error_time - learner_recording.call_start_time
-	print('### time_of_error: ' + str(time_of_error))
-	hours, remainder = divmod(time_of_error.seconds, 3600)
-	minutes, seconds = divmod(remainder, 60)
-	speaking_error = SpeakingError(practice=practice, learnerRecording=learner_recording, error_time_min=minutes, error_time_sec=seconds)
-	speaking_error.save()
-	return HttpResponse(time_of_error)
-
-
-@login_required
-def report_create(request, pk):
-	print('In report_Create')
-	context = RequestContext(request)
-	return render_to_response('lambada/report_form.html', {'practice_id': pk}, context)
-
-@login_required
-def report_add_speech_error(request, pk):
-	context = RequestContext(request)
-	minutes = request.POST['error_time_min']
-	seconds = request.POST['error_time_sec']
-	practice = Practice.objects.get(pk=pk)
-	report = practice.report
-	speaking_error = SpeakingError(report=report, error_time_min=minutes, error_time_sec=seconds)
-	speaking_error.save()
-	speaking_error_list = SpeakingError.objects.filter(report=report).order_by('id')
-	return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm()}, context)
-
-
-@login_required
-def report_delete_speech_error(request, pk):
-	context = RequestContext(request)
-	error_pk = request.POST['error_pk']
-	speaking_error = SpeakingError.objects.filter(pk=error_pk).delete()
-	if os.path.isfile(settings.STATIC_PATH + '/correction_' + error_pk + '_recording.ogg'):
-		os.remove(settings.STATIC_PATH + '/correction_' + error_pk + '_recording.ogg')
-	practice = Practice.objects.get(pk=pk)
-	report = practice.report 
-	learnerRecordings = LearnerRecording.objects.filter(practice=practice)
-	speaking_error_list = SpeakingError.objects.filter(practice=practice).order_by('id')
-	return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'learnerRecordings': learnerRecordings, 'report': report, 'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
-
-	
-@login_required
-def report_delete_writing_correction(request):
-	error_pk = request.POST['error_pk']
-	writing_error = WritingError.objects.filter(pk=error_pk).delete()
-	return HttpResponse() 
-
-
+# Coach creates the Speaking report here. This view also transfers the recordings from the local server to AWS.
 @login_required
 def report_add_speech(request, pk):
 	context = RequestContext(request)
@@ -447,235 +537,265 @@ def report_add_speech(request, pk):
 				learnerRecording.save()
 				target.close()
 				os.remove(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(x) + '.ogg')
-	        report = practice.report 
 		learnerRecordings = LearnerRecording.objects.filter(practice=practice)
 	        speaking_error_list = SpeakingError.objects.filter(practice=practice).order_by('id')
-		return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'learnerRecordings': learnerRecordings, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
+		return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'learnerRecordings': learnerRecordings, 'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
 	else: 
 		return render_to_response('lambada/404.html', {}, context)
 
 
+# Coach adds a written correction to a single Speaking Error here.
 @login_required
-def report_add_writing(request, pk):
+def report_add_speech_correction(request, pk):
+	speakingError = SpeakingError.objects.get(pk=pk)
+	if speakingError.coach == request.user:
+		speakingError.correction_text = request.POST['error_correction']
+		speakingError.save()
+		return HttpResponse()
+	else:
+		return render_to_response('lambada/404.html', {}, context)
+
+
+# Coach adds a recorded correction to a single Speaking Error here.
+@login_required
+def recording_correction_upload(request, pk):
+	speakingError = SpeakingError.objects.get(pk=pk)
+	if speakingError.coach == request.user:
+		target = open(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg', 'a+b')
+		target.write(request.body)
+		djangofile = File(target)
+		speakingError.correction_recording.save('correction_' + pk + '_recording.ogg', djangofile)
+		speakingError.correction_recording_flag = True
+		speakingError.save()
+		target.close()
+		os.remove(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg')
+		return HttpResponse()
+	else: 
+		return render_to_response('lambada/404.html', {}, context)
+
+
+# Recording of Learner's leg of the session is downloaded here.
+#@login_required
+#def recording_download(request, pk):
+#	return StreamingHttpResponse(open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording.ogg'), content_type="audio/ogg")
+
+
+# Recording of Coach's error correction is downloaded here.
+#@login_required
+#def recording_correction_download(request, pk):
+#	return StreamingHttpResponse(open(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg'), content_type="audio/ogg")
+
+
+# Coach adds the time of a Speaking Error to the report here.
+@login_required
+def report_add_speech_error(request, pk):
 	context = RequestContext(request)
+	minutes = request.POST['error_time_min']
+	seconds = request.POST['error_time_sec']
 	practice = Practice.objects.get(pk=pk)
-	report = practice.report 
-	writing_error_list = WritingError.objects.filter(report=report).order_by('id')
-	return render_to_response('lambada/coach_report_add_writing.html', {'practice': practice, 'report': report, 'writing_error_list': writing_error_list}, context)
+	if practice.coach == request.user.username:
+		speaking_error = SpeakingError(practice=practice, error_time_min=minutes, error_time_sec=seconds)
+		speaking_error.save()
+		speaking_error_list = SpeakingError.objects.filter(practice=practice).order_by('id')
+		return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm()}, context)
+	else:
+		return render_to_response('lambada/404.html', {}, context)
 
 
+# Coach deletes the time of a Speaking Error from the report here.
+@login_required
+def report_delete_speech_error(request, pk):
+	context = RequestContext(request)
+	error_pk = request.POST['error_pk']
+	practice = Practice.objects.get(pk=pk)
+	if practice.coach == request.user.username:
+		speaking_error = SpeakingError.objects.filter(pk=error_pk).delete()
+		if os.path.isfile(settings.STATIC_PATH + '/correction_' + error_pk + '_recording.ogg'):
+			os.remove(settings.STATIC_PATH + '/correction_' + error_pk + '_recording.ogg')
+		learnerRecordings = LearnerRecording.objects.filter(practice=practice)
+		speaking_error_list = SpeakingError.objects.filter(practice=practice).order_by('id')
+		return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'learnerRecordings': learnerRecordings, 'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
+	else:
+		return render_to_response('lambada/404.html', {}, context)
+
+
+# Coach reviews the Speaking Report here.
 @login_required
 def practice_report_speaking_review(request, pk):
 	context = RequestContext(request)
 	practice = Practice.objects.get(pk=pk)
-	learnerRecordings = LearnerRecording.objects.filter(practice=practice)
-	report = practice.report 
-	speaking_error_list = SpeakingError.objects.filter(practice=practice).order_by('id').exclude(correction_text='', correction_recording_flag=False)
-	return render_to_response('lambada/coach_report_speaking_review.html', {'practice': practice, 'learnerRecordings': learnerRecordings, 'report': report,'speaking_error_list': speaking_error_list, 'S3_URL': settings.S3_URL}, context)
+	if practice.coach == request.user.username:
+		learnerRecordings = LearnerRecording.objects.filter(practice=practice)
+		speaking_error_list = SpeakingError.objects.filter(practice=practice).order_by('id').exclude(correction_text='', correction_recording_flag=False)
+		return render_to_response('lambada/coach_report_speaking_review.html', {'practice': practice, 'learnerRecordings': learnerRecordings, 'speaking_error_list': speaking_error_list, 'S3_URL': settings.S3_URL}, context)
+	else:
+		return render_to_response('lambada/404.html', {}, context)
 
 
-@login_required
-def practice_report_writing_review(request, pk):
-	context = RequestContext(request)
-	practice = Practice.objects.get(pk=pk)
-	report = practice.report 
-	writing_error_list = WritingError.objects.filter(report=report).order_by('id')
-	return render_to_response('lambada/coach_report_writing_review.html', {'practice': practice, 'report': report,'writing_error_list': writing_error_list}, context)
-
-
+# Coach publishes the Speaking report here.
 @login_required
 def practice_report_speaking_publish(request, pk):
 	practice = Practice.objects.get(pk=pk)
-	practice.speaking_report_published = True
-	practice.save()
-	SpeakingError.objects.filter(practice=practice, correction_text='', correction_recording_flag=False).delete()
-	return HttpResponseRedirect('/dashboard/')
+	if practice.coach == request.user.username:
+		practice.speaking_report_published = True
+		practice.save()
+		SpeakingError.objects.filter(practice=practice, correction_text='', correction_recording_flag=False).delete()
+		return HttpResponseRedirect('/dashboard/')
+	else:
+		return render_to_response('lambada/404.html', {}, context)
 
 
-@login_required
-def practice_report_writing_publish(request, pk):
-	practice = Practice.objects.get(pk=pk)
-	practice.writing_report_published = True
-	practice.save()
-	return HttpResponseRedirect('/dashboard/')
-
-
+# Learner views the Speaking report.
 @login_required
 def report_speaking(request, pk):
 	context = RequestContext(request)
 	practice = Practice.objects.get(pk=pk)
 	if practice.user == request.user:
-		report = practice.report 
 		learnerRecordings = LearnerRecording.objects.filter(practice=practice)
 		speaking_error_list = SpeakingError.objects.filter(practice=practice).order_by('id').exclude(correction_text='', correction_recording=False)
-		return render_to_response('lambada/practice_report_speaking.html', {'practice': practice, 'learnerRecordings': learnerRecordings, 'report': report,'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
+		return render_to_response('lambada/practice_report_speaking.html', {'practice': practice, 'learnerRecordings': learnerRecordings, 'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
 	else: 
 		return render_to_response('lambada/404.html', {}, context)
 
 
+################################
+###
+### Writing Report
+###
+################################
+
+
+# Coach creates the report for the Writing exercise here. 	
+@login_required
+def report_add_writing(request, pk):
+	context = RequestContext(request)
+	practice = Practice.objects.get(pk=pk)
+	if practice.coach == request.user.username:
+		writing_error_list = WritingError.objects.filter(practice=practice).order_by('id')
+		return render_to_response('lambada/coach_report_add_writing.html', {'practice': practice, 'writing_error_list': writing_error_list}, context)
+	else: 
+		return render_to_response('lambada/404.html', {}, context)
+
+
+# Coach adds a written correction to a single Written Error of the report here.
+@login_required
+def report_add_writing_correction(request, pk):
+	practice = Practice.objects.get(pk=pk)
+	if practice.coach == request.user.username:
+		writingError = WritingError(practice=practice, original_text=request.POST['original_text'], correction_text=request.POST['correction_text']) 
+		writingError.save()
+		return HttpResponse(writingError.pk)
+	else: 
+		return render_to_response('lambada/404.html', {}, context)
+
+
+# Coach deletes a single Written Error correction here.
+@login_required
+def report_delete_writing_correction(request):
+	error_pk = request.POST['error_pk']
+	writing_error = WritingError.objects.filter(pk=error_pk)
+	if writing_error.coach == request.user.username:
+		writing_error.delete()	
+		return HttpResponse() 
+	else:
+		return render_to_response('lambada/404.html', {}, context)
+
+
+# Coach reviews the Writing report here.
+@login_required
+def practice_report_writing_review(request, pk):
+	context = RequestContext(request)
+	practice = Practice.objects.get(pk=pk)
+	if practice.coach == request.user.username:
+		writing_error_list = WritingError.objects.filter(practice=practice).order_by('id')
+		return render_to_response('lambada/coach_report_writing_review.html', {'practice': practice, 'writing_error_list': writing_error_list}, context)
+	else:
+		return render_to_response('lambada/404.html', {}, context)
+
+
+# Coach publishes the Writing report here.
+@login_required
+def practice_report_writing_publish(request, pk):
+	practice = Practice.objects.get(pk=pk)
+	if practice.coach == request.user.username:
+		practice.writing_report_published = True
+		practice.save()
+		return HttpResponseRedirect('/dashboard/')
+	else:
+		return render_to_response('lambada/404.html', {}, context)
+
+
+# Learner views the Writing report.
 @login_required
 def report_writing(request, pk):
 	context = RequestContext(request)
 	practice = Practice.objects.get(pk=pk)
-	report = practice.report 
-	writing_error_list = WritingError.objects.filter(report=report).order_by('id')
-	return render_to_response('lambada/practice_report_writing.html', {'practice': practice, 'report': report,'writing_error_list': writing_error_list}, context)
+	if practice.user == request.user.username:
+		writing_error_list = WritingError.objects.filter(practice=practice).order_by('id')
+		return render_to_response('lambada/practice_report_writing.html', {'practice': practice, 'writing_error_list': writing_error_list}, context)
+	else:
+		return render_to_response('lambada/404.html', {}, context)
 
 
-class PracticeList(ListView):
-	paginate_by = 3
-	template_name = 'lambada/practice_list.html'
-
-	def get_queryset (self):
-		return Practice.objects.filter(user=self.request.user).filter(dateTime__lte=datetime.datetime.utcnow().replace(tzinfo=utc)).order_by('-dateTime')
-
-
-	def get_context_data(self, **kwargs):
-		context = super(PracticeList, self).get_context_data(**kwargs)
-		now = datetime.datetime.utcnow().replace(tzinfo=utc)
-		practice_upcoming = Practice.objects.filter(user=self.request.user).filter(dateTime__gte=datetime.datetime.utcnow().replace(tzinfo=utc)).order_by('dateTime')
-		for practice in practice_upcoming:
-			date = practice.dateTime;
-			practice.timeUntil = ((date - now).total_seconds()) 
-			practice.save()
-		context['practice_upcoming'] = practice_upcoming
-		return context
-
-
-class PracticeBook(ListView):
-	paginate_by = 3
-	template_name = 'lambada/practice_book.html'
-
-	def get_queryset (self):
-		return Topic.objects.filter(published=True).exclude(created_by=self.request.user)
-		
-	def get_context_data(self, **kwargs):
-		context = super(PracticeBook, self).get_context_data(**kwargs)
-		context['practice_form'] = PracticeForm()
-		return context
-
-
-class PracticeTopicDetail(DetailView):
-	model = Topic
-	template_name = 'lambada/practice_topic_detail.html'
-
-	def get_context_data(self, **kwargs):
-		context = super(PracticeTopicDetail, self).get_context_data(**kwargs)
-		context['practice_form'] = PracticeForm()
-		return context
-
-
-class PracticeDetail(DetailView):
-	model = Practice
-
-	def get_context_data(self, **kwargs):
-		context = super(PracticeDetail, self).get_context_data(**kwargs)
-		context['practice_writing_form'] = PracticeWritingForm()
-		return context
-
-
-class PracticeDelete(DeleteView):
-	model = Practice
-	success_url = '/practice/list/'
-
-
-class PracticeUpdate(UpdateView):
-	model = Practice 
-	form_class = PracticeForm
-	template_name = 'lambada/practice_update.html'
-
-
-class CoachList(ListView):
-	paginate_by = 3
-	template_name = 'lambada/coach_list.html'
-
-	def get_queryset (self):
-		return Practice.objects.filter(coach=self.request.user).order_by('dateTime')
-
-
-#class CoachPracticeDetail(DetailView):
-#	model = Topic
-#	template_name = 'lambada/coach_practice_detail.html'
-
-
-@login_required
-def coach_practice_detail(request, pk):
-	context = RequestContext(request)
-	practice = Practice.objects.get(pk=pk)
-	topic = practice.topic
-	return render_to_response('lambada/coach_practice_detail.html', {'topic': topic, 'practice': practice}, context)
-
-@login_required
-def coach_practice_cancel(request, pk):
-	### TO DO ###
-	### REmove this coach and assign a new one ###
-	return HttpResponse('Error: Coach cancellation not implemented yet.')
-
-
-@login_required
-def private_channel_write(request, pk):
-	response_data = {}
-	message = request.POST.get('message')
-	target = open(settings.STATIC_PATH + '/session_' + pk + '_private_channel.txt', 'a+b')
-	target.write(str(datetime.datetime.now()) + " -- " + message + "\n \n")
-	target.close()
-	# Consider checking messages before deleting them. You might delete a message before the other party has had a chance to read it.
-	ChannelPrivate.objects.filter(practice_pk=pk).delete()
-	channel = ChannelPrivate(practice_pk=pk, message=message)
-	channel.save()
-	response_data['message'] = 'success'
-	return HttpResponse(json.dumps(response_data), content_type="application/json")
-
-
-@login_required
-def default_channel_write(request, pk):
-	response_data = {}
-	message = request.POST.get('message')
-	target = open(settings.STATIC_PATH + '/session_' + pk + '_default_channel.txt', 'a+b')
-	target.write(str(datetime.datetime.now()) + " -- " + message + "\n \n")
-	target.close()
-	# Consider checking messages before deleting them. You might delete a message before the other party has had a chance to read it.
-	ChannelDefault.objects.filter(practice_pk=pk).delete()
-	channel = ChannelDefault(practice_pk=pk, message=message)
-	channel.save()
-	response_data['message'] = 'success'
-	return HttpResponse(json.dumps(response_data), content_type="application/json")
-
-
-
-@login_required
-def private_channel_check(request, pk):
-	try:
-		channel = ChannelPrivate.objects.filter(practice_pk=pk)
-		data = serializers.serialize("json", channel)
-	except ChannelPrivate.DoesNotExist:
-		return HttpResponse()
-	return HttpResponse(data, mimetype = "application/json")
-
-
-@login_required
-def default_channel_check(request, pk):
-	try:
-		channel = ChannelDefault.objects.filter(practice_pk=pk)
-		data = serializers.serialize("json", channel)
-	except ChannelDefault.DoesNotExist:
-		return HttpResponse()
-	return HttpResponse(data, mimetype = "application/json")
-
-
-@login_required
-def dashboard(request):
-	context = RequestContext(request)
-	current_time = datetime.datetime.utcnow().replace(tzinfo=utc)
-	end_of_week = current_time + datetime.timedelta(days=7)
-	upcoming_coaching_sessions = Practice.objects.filter(coach=request.user.username, dateTime__lte=end_of_week, dateTime__gte=current_time)
-	upcoming_practice_sessions = Practice.objects.filter(user_id=request.user.id, dateTime__lte=end_of_week, dateTime__gte=current_time)
-	pending_speech_reports = Practice.objects.filter(coach=request.user.username, dateTime__lte=current_time, speaking_report_published=False).order_by('dateTime')
-	pending_writing_reports = Practice.objects.filter(coach=request.user.username, writing_complete=True, writing_report_published=False)
-	#reports = practices_finished_writing
-	#pending_writing_reports = practices_finished_writing.objects.exclude(reports.writing_report_published=True)
-	return render_to_response('lambada/dashboard.html', {'upcoming_coaching_sessions': upcoming_coaching_sessions, 'upcoming_practice_sessions': upcoming_practice_sessions, 'pending_speech_reports': pending_speech_reports, 'pending_writing_reports': pending_writing_reports}, context)
+################################
+###
+### Error Handling
+###
+################################
 
 
 def handler404(request):
 	return render_to_response('lambada/404.html', {})
+
+
+#@login_required
+#def private_channel_write(request, pk):
+#	response_data = {}
+#	message = request.POST.get('message')
+#	target = open(settings.STATIC_PATH + '/session_' + pk + '_private_channel.txt', 'a+b')
+#	target.write(str(datetime.datetime.now()) + " -- " + message + "\n \n")
+#	target.close()
+#	# Consider checking messages before deleting them. You might delete a message before the other party has had a chance to read it.
+#	ChannelPrivate.objects.filter(practice_pk=pk).delete()
+#	channel = ChannelPrivate(practice_pk=pk, message=message)
+#	channel.save()
+#	response_data['message'] = 'success'
+#	return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+
+#@login_required
+#def default_channel_write(request, pk):
+#	response_data = {}
+#	message = request.POST.get('message')
+#	target = open(settings.STATIC_PATH + '/session_' + pk + '_default_channel.txt', 'a+b')
+#	target.write(str(datetime.datetime.now()) + " -- " + message + "\n \n")
+#	target.close()
+#	# Consider checking messages before deleting them. You might delete a message before the other party has had a chance to read it.
+#	ChannelDefault.objects.filter(practice_pk=pk).delete()
+#	channel = ChannelDefault(practice_pk=pk, message=message)
+#	channel.save()
+#	response_data['message'] = 'success'
+#	return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+
+
+#@login_required
+#def private_channel_check(request, pk):
+#	try:
+#		channel = ChannelPrivate.objects.filter(practice_pk=pk)
+#		data = serializers.serialize("json", channel)
+#	except ChannelPrivate.DoesNotExist:
+#		return HttpResponse()
+#	return HttpResponse(data, mimetype = "application/json")
+
+
+#@login_required
+#def default_channel_check(request, pk):
+#	try:
+#		channel = ChannelDefault.objects.filter(practice_pk=pk)
+#		data = serializers.serialize("json", channel)
+#	except ChannelDefault.DoesNotExist:
+#		return HttpResponse()
+#	return HttpResponse(data, mimetype = "application/json")
+
+

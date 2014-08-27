@@ -58,7 +58,7 @@ $(document).ready(function() {
 		var pk = document.getElementById('practice_pk').innerHTML;
 		var csrftoken = $.cookie('csrftoken');
 		var xhr = new XMLHttpRequest();
-		xhr.open('POST', '/practice/speaking_error_notification/'+pk+'/', true);
+		xhr.open('POST', '/practice/'+pk+'/speaking_error_notification/', true);
 		xhr.onload = function(e) {
 			if (this.status == 200) {
 				console.info(this.responseText);

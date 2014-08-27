@@ -68,10 +68,10 @@ class Practice(models.Model):
 		return reverse('practice_list')
 
 
-class Report(models.Model):
-	practice = models.OneToOneField(Practice, primary_key=True)
-	call_start_time = models.DateTimeField(blank=True, null=True)
-	call_end_time = models.DateTimeField(blank=True, null=True)
+#class Report(models.Model):
+#	practice = models.OneToOneField(Practice, primary_key=True)
+#	call_start_time = models.DateTimeField(blank=True, null=True)
+#	call_end_time = models.DateTimeField(blank=True, null=True)
 
 
 class LearnerRecording(models.Model):
@@ -83,6 +83,7 @@ class LearnerRecording(models.Model):
 
 class SpeakingError(models.Model):
 	practice = models.ForeignKey(Practice)
+	coach = models.ForeignKey(User)
 	learnerRecording = models.ForeignKey(LearnerRecording)
 	error_time_min = models.CharField(_("Minute"), max_length=2, blank=True, null=True, default='')
 	error_time_sec = models.CharField(_("Second"), max_length=2, blank=True, null=True, default='')
@@ -92,7 +93,8 @@ class SpeakingError(models.Model):
 
 
 class WritingError(models.Model):
-	report = models.ForeignKey(Report)
+	practice = models.ForeignKey(Practice)
+	coach = models.ForeignKey(User)
 	original_text = models.CharField(_("Original Text"), max_length=255, blank=True, null=True, default='')
 	correction_text = models.CharField(_("Correction Text"), max_length=255, blank=True, null=True, default='')
 
