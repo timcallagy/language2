@@ -21,6 +21,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from lambada.forms import UserForm, UserProfileForm, TopicForm, PracticeForm, PracticeWritingForm, SpeakingErrorForm
 from lambada.models import Topic, UserProfile, Practice, LearnerRecording, SpeakingError, WritingError, ChannelPrivate, ChannelDefault
 
@@ -308,23 +309,53 @@ class PracticeTopicDetail(DetailView):
 
 
 # Learner views a list of their booked Practice sessions on this page. 
-class PracticeList(ListView):
-	paginate_by = 3
-	template_name = 'lambada/practice_list.html'
+#class PracticeList(ListView):
+#	paginate_by = 6
+#	template_name = 'lambada/practice_list.html'
 
-	def get_queryset (self):
-		return Practice.objects.filter(user=self.request.user).filter(dateTime__lte=datetime.datetime.utcnow().replace(tzinfo=utc)).order_by('-dateTime')
+#	def get_queryset (self):
+#		return Practice.objects.filter(user=self.request.user).filter(dateTime__lte=datetime.datetime.utcnow().replace(tzinfo=utc)).order_by('-dateTime')
 
-	def get_context_data(self, **kwargs):
-		context = super(PracticeList, self).get_context_data(**kwargs)
-		now = datetime.datetime.utcnow().replace(tzinfo=utc)
-		practice_upcoming = Practice.objects.filter(user=self.request.user).filter(dateTime__gte=datetime.datetime.utcnow().replace(tzinfo=utc)).order_by('dateTime')
-		for practice in practice_upcoming:
-			date = practice.dateTime;
-			practice.timeUntil = ((date - now).total_seconds()) 
-			practice.save()
-		context['practice_upcoming'] = practice_upcoming
-		return context
+#	def get_context_data(self, **kwargs):
+#		context = super(PracticeList, self).get_context_data(**kwargs)
+#		now = datetime.datetime.utcnow().replace(tzinfo=utc)
+#		practice_upcoming = Practice.objects.filter(user=self.request.user).filter(dateTime__gte=datetime.datetime.utcnow().replace(tzinfo=utc)).order_by('dateTime')
+#		for practice in practice_upcoming:
+#			date = practice.dateTime;
+#			practice.timeUntil = ((date - now).total_seconds()) 
+#			practice.save()
+#		context['practice_upcoming'] = practice_upcoming
+
+@login_required
+def practice_list(request):
+	context = RequestContext(request)
+	practices_list = Practice.objects.filter(user=request.user).order_by('-dateTime')
+	now = datetime.datetime.utcnow().replace(tzinfo=utc)
+	paginator = Paginator(practices_list, 6)
+
+	page = request.GET.get('page')
+	try:
+		practices = paginator.page(page)
+	except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+		practices = paginator.page(1)
+	except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+		practices = paginator.page(paginator.num_pages)
+
+	for practice in practices:
+		date = practice.dateTime;
+		timeUntil = (date - now).total_seconds()
+		practice.timeUntil = timeUntil
+		if timeUntil > 0:
+			practice.state = 'WAITING'
+		elif timeUntil <= 0 and timeUntil > -1500:
+			practice.state = 'SPEAKING'
+		elif timeUntil < -1500 and timeUntil > -3600:
+			practice.state = 'WRITING'
+		else:
+			practice.state = 'COMPLETE'
+	return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator}, context)
 
 
 class PracticeUpdate(UpdateView):
@@ -400,38 +431,45 @@ def coach_practice_cancel(request, pk):
 
 
 # Learner makes their phone call and does their writing exercise on this page.
-class PracticeDetail(DetailView):
-	model = Practice
+#class PracticeDetail(DetailView):
+#	model = Practice
+#
+#	def get_context_data(self, **kwargs):
+#		context = super(PracticeDetail, self).get_context_data(**kwargs)
+#		context['practice_writing_form'] = PracticeWritingForm()
+#		return context
 
-	def get_context_data(self, **kwargs):
-		context = super(PracticeDetail, self).get_context_data(**kwargs)
-		context['practice_writing_form'] = PracticeWritingForm()
-		return context
-
-	def get_object(self, queryset=None):
-                if queryset is None:
-                        queryset = self.get_queryset()
-                pk = self.kwargs.get(self.pk_url_kwarg, None)
-                queryset = queryset.filter(pk=pk, user=self.request.user)
-                try:
-                        obj = queryset.get()
-                except ObjectDoesNotExist:
-                        raise Http404()
-                return obj 
+#	def get_object(self, queryset=None):
+#               if queryset is None:
+#                        queryset = self.get_queryset()
+#                pk = self.kwargs.get(self.pk_url_kwarg, None)
+#                queryset = queryset.filter(pk=pk, user=self.request.user)
+#                try:
+#                        obj = queryset.get()
+#                except ObjectDoesNotExist:
+#                        raise Http404()
+#                return obj 
 
 
-
-# Learner submits their writing exercise here.
-@login_required
-def practice_add_writing(request, pk):
+# Learner makes their phone call and does their writing exercise on this page.
+def practice_detail(request, pk):
 	context = RequestContext(request)
-	learners_writing = request.POST.get('learners_writing')
 	practice = Practice.objects.get(pk=pk)
+	practice_writing_form = PracticeWritingForm()
 	if practice.user == request.user:
-		practice.learners_writing = learners_writing
-		practice.writing_complete = True
-		practice.save()
-		return HttpResponseRedirect('/practice/list/')
+		now = datetime.datetime.utcnow().replace(tzinfo=utc)
+		date = practice.dateTime;
+		timeUntil = (date - now).total_seconds()
+		practice.timeUntil = timeUntil
+		if timeUntil > 0:
+			practice.state = 'WAITING'
+		elif timeUntil <= 0 and timeUntil > -1500:
+			practice.state = 'SPEAKING'
+		elif timeUntil < -1500 and timeUntil > -3600:
+			practice.state = 'WRITING'
+		else:
+			practice.state = 'COMPLETE'
+		return render_to_response('lambada/practice_detail.html', {'practice': practice, 'practice_writing_form': practice_writing_form}, context)
 	else:
 		return render_to_response('lambada/404.html', {}, context)
 	
@@ -472,12 +510,16 @@ def recording_upload(request, pk, partNum):
 	practice = Practice.objects.get(pk=pk)
 	coachLeg = request.META['HTTP_COACH_LEG']
 	if practice.user == request.user or practice.coach == request.user.username:
+		print('1')
 		if partNum == '0':
+			print('2')
 			if coachLeg == 'true':
+				print('3')
 				practice.coach_recording_count +=1
 				count = practice.coach_recording_count
 				target = open(settings.STATIC_PATH + '/coach_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
 			else:
+				print('4')
 				practice.learner_recording_count +=1
 				count = practice.learner_recording_count
 				call_start_time = datetime.datetime.utcnow().replace(tzinfo=utc) - datetime.timedelta(seconds=5)
@@ -485,10 +527,13 @@ def recording_upload(request, pk, partNum):
 				learnerRecording.save()
 				target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
 		else: 
+			print('5')
 			if coachLeg == 'true':
+				print('6')
 				count = practice.coach_recording_count
 				target = open(settings.STATIC_PATH + '/coach_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
 			else:
+				print('7')
 				count = practice.coach_recording_count
 				target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
 		target.write(request.body)
@@ -496,9 +541,24 @@ def recording_upload(request, pk, partNum):
 		practice.save()
 		return HttpResponse()
 	else:
+		print('8')
 		return render_to_response('lambada/404.html', {}, context)
 		
 
+# Learner submits their writing exercise here.
+@login_required
+def practice_add_writing(request, pk):
+	context = RequestContext(request)
+	learners_writing = request.POST.get('learners_writing')
+	practice = Practice.objects.get(pk=pk)
+	if practice.user == request.user:
+		practice.learners_writing = learners_writing
+		practice.writing_complete = True
+		practice.save()
+		return HttpResponseRedirect('/practice/list/')
+	else:
+		return render_to_response('lambada/404.html', {}, context)
+	
 
 # Logs of the signalling messages sent on the default channel can be accessed here.
 @login_required

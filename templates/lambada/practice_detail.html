@@ -23,28 +23,56 @@
 	<div class="pull-right">
 		<ol class="breadcrumb">
 			<li><a href="/practice/list/">{% trans "Practice Sessions" %}</a></li>
-			<li class="active">{{ object.topic.headline }}</li>
+			<li class="active">{{ practice.topic.headline }}</li>
 		</ol>
 	</div>
 	<div class="col-md-10 col-md-offset-1">
-	<h1>{{ object.topic.headline }}</h1>
-	{% trans "Language" %}: {{ object.topic.language  }}<br>
-	{% trans "Date and Time" %}: {{ object.dateTime  }}<br><br>
+	<h1>{{ practice.topic.headline }}</h1>
+	{% trans "Language" %}: {{ practice.topic.language  }}<br>
+	{% trans "Date and Time" %}: {{ practice.dateTime  }}<br><br>
+					<script>
+						function countdownComplete(result){
+							document.getElementById("session-not-started").style.display = "none";
+							document.getElementById("waiting-for-coach").style.display = "block";
+						}
+						var myCountdown1 = new Countdown({
+							time:{{ practice.timeUntil }},
+							hideLine : true,		
+							rangeHi : "day",
+							numbers : {
+								bkgd : "#FF9966"
+							},
+							onComplete : countdownComplete
+						});
+					</script>
 	
 	<h2>{% trans "Speaking practice" %}</h2>
 
-	<div id="waiting-for-coach" class="alert alert-info">{% trans "Your coach hasn't joined yet..." %}</div>
-	<div id="coach-joined-msg" class="alert alert-warning" style="display:none;">{% trans "Your coach has joined!" %}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="rooms-list"><button id="join-button" style="display:none;"></button></span></div>
-	<div id="waiting-for-mic" class="alert alert-danger" style="display:none;">{% trans "Waiting for you to share your microphone..." %}</div>
-	<div id="connecting-to-coach" class="alert alert-warning" style="display:none;">{% trans "Joining" %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="con" src="{% static "connecting.gif" %}"></div>
-	<div id="in-progress" class="alert alert-success" style="display:none;">{% trans "Call in progress" %}</div>
-	<div id="audios-container" style="display:none;"></div>
+	{% if practice.state == "WAITING" %}
+		<div id="session-not-started" class="alert alert-warning">{% trans "This session is has not yet started." %}</div>
+		<div id="waiting-for-coach" class="alert alert-info" style="display:none;">{% trans "This session has started! Waiting for your coach to join." %}</div>
+	{% elif practice.state == "SPEAKING" %}
+		<div id="waiting-for-coach" class="alert alert-info">{% trans "Your coach hasn't joined yet..." %}</div>
+	{% elif practice.state == "WRITING" %}
+		{% if practice.writing_complete == True %} 
+			<div id="session-complete" class="alert alert-success">{% trans "This session has been completed." %}</div>
+		{% else %}
+			<div id="session-complete" class="alert alert-success">{% trans "The call has finished, but you still have time to do the Writing." %}</div>
+		{% endif %}
+	{% else %}
+		<div id="session-complete" class="alert alert-success">{% trans "This session has been completed." %}</div>
+	{% endif %}
+		<div id="coach-joined-msg" class="alert alert-warning" style="display:none;">{% trans "Your coach has joined!" %}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="rooms-list"><button id="join-button" style="display:none;"></button></span></div>
+		<div id="waiting-for-mic" class="alert alert-danger" style="display:none;">{% trans "Waiting for you to share your microphone..." %}</div>
+		<div id="connecting-to-coach" class="alert alert-warning" style="display:none;">{% trans "Joining" %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="con" src="{% static "connecting.gif" %}"></div>
+		<div id="in-progress" class="alert alert-success" style="display:none;">{% trans "Call in progress" %}</div>
+		<div id="audios-container" style="display:none;"></div>
 
-	{{object.topic.learners_speaking_instructions|safe }}
+	{{practice.topic.learners_speaking_instructions|safe }}
 
 	<h2>{% trans "Writing practice" %}</h2>
-	{{object.topic.learners_writing_instructions|safe }}
-	<form class="form form-horizontal" action="/practice/{{object.pk }}/add_writing/" method="post" accept-charset="utf-8">
+	{{practice.topic.learners_writing_instructions|safe }}
+	<form class="form form-horizontal" action="/practice/{{practice.pk }}/add_writing/" method="post" accept-charset="utf-8">
 		{% csrf_token %}
 		{{ practice_writing_form|bootstrap_horizontal }} 
 		<p><input class="btn btn-primary" type="submit" value={% trans "Submit" %}></p>
@@ -52,7 +80,7 @@
 </div>
 
 	<br>
-	<div id="practice_pk" style="display:none;">{{ object.pk }}</div>
+	<div id="practice_pk" style="display:none;">{{ practice.pk }}</div>
 	<br>
 	<script src="//api.turnservers.com/api.js?key=iPYeEvbSBxbhbknHBnjBSLsdUKLDKWVm"></script>
 	<script src="{% static "js/language2_audio.js" %}"></script>

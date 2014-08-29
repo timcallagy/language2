@@ -1,7 +1,7 @@
 from django.conf.urls import url, patterns
 from django.contrib.auth.decorators import login_required, permission_required
 from lambada import views
-from lambada.views import TopicCreate, TopicDetail, TopicUpdate, TopicDelete, TopicList, PracticeList, PracticeBook, PracticeTopicDetail, PracticeDetail, PracticeDelete, PracticeUpdate, CoachList
+from lambada.views import TopicCreate, TopicDetail, TopicUpdate, TopicDelete, TopicList, PracticeBook, PracticeTopicDetail, PracticeDelete, PracticeUpdate, CoachList
 
 urlpatterns = patterns('',
 		url(r'^$', views.dashboard),
@@ -16,11 +16,13 @@ urlpatterns = patterns('',
 		url(r'^topic/(?P<pk>[0-9]+)/update/$', login_required(TopicUpdate.as_view())),
 		url(r'^topic/(?P<pk>[0-9]+)/publish/$', views.topic_publish),
 		url(r'^topic/(?P<pk>[0-9]+)/delete/$', login_required(TopicDelete.as_view())),
-		url(r'^practice/list/$', login_required(PracticeList.as_view())),
+#		url(r'^practice/list/$', login_required(PracticeList.as_view())),
+		url(r'^practice/list/$',views.practice_list), 
 		url(r'^practice/book/$', login_required(PracticeBook.as_view())),
 		url(r'^practice/book/payment/(?P<pk>[0-9]+)/$', views.practice_payment),
 		url(r'^practice/topic/(?P<pk>[0-9]+)/$', login_required(PracticeTopicDetail.as_view())),
-		url(r'^practice/(?P<pk>[0-9]+)/$', login_required(PracticeDetail.as_view())),
+#		url(r'^practice/(?P<pk>[0-9]+)/$', login_required(PracticeDetail.as_view())),
+		url(r'^practice/(?P<pk>[0-9]+)/$', views.practice_detail),
 		url(r'^practice/(?P<pk>[0-9]+)/add/$', views.practice_add),
 		url(r'^practice/(?P<pk>[0-9]+)/delete/$', login_required(PracticeDelete.as_view())),
 		url(r'^practice/(?P<pk>[0-9]+)/update/$', login_required(PracticeUpdate.as_view())),
@@ -44,9 +46,9 @@ urlpatterns = patterns('',
 		url(r'^report/(?P<pk>[0-9]+)/report_add_speech_error/$', views.report_add_speech_error),
 		url(r'^report/(?P<pk>[0-9]+)/report_delete_speech_error/$', views.report_delete_speech_error),
 		url(r'^report/report_delete_writing_correction/$', views.report_delete_writing_correction),
+		url(r'^recording/upload/(?P<pk>[0-9]+)/(?P<partNum>[0-9]+)/$', views.recording_upload, name='recording_upload'),
 #		url(r'^report/add/(?P<pk>[0-9]+)/$', views.report_create, name='report_add'),
 #		url(r'^recording/correction/(?P<pk>[0-9]+)/download/$', views.recording_correction_download, name='recording_correction_download'),
-#		url(r'^recording/upload/(?P<pk>[0-9]+)/(?P<partNum>[0-9]+)/$', views.recording_upload, name='recording_upload'),
 #		url(r'^recording/download/(?P<pk>[0-9]+)/$', views.recording_download, name='recording_download'),
 #		url(r'^report/(?P<pk>[0-9]+)/recording_correction_upload/$', views.recording_correction_upload, name='recording_correction_upload'),
 #		url(r'^practice/private_channel_write/(?P<pk>[0-9]+)/$', views.private_channel_write),

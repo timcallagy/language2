@@ -90,6 +90,13 @@ class SpeakingError(models.Model):
 	correction_text = models.CharField(_("Correction Text"), max_length=255, blank=True, null=True, default='')
 	correction_recording_flag = models.BooleanField(blank=True, default=False)
 	correction_recording = models.FileField(upload_to='corrections', blank=True, null=True)	
+	STATES = (
+			('WAITING', 'Waiting'),
+			('SPEAKING', 'Speaking'),
+			('WRITING', 'Writing'),
+			('COMPLETE', 'Complete'),
+			)
+	state = models.CharField(max_length=8, choices=STATES)
 
 
 class WritingError(models.Model):

@@ -24,40 +24,25 @@
 		</ol>
 	</div>
 	<div class="col-md-10 col-md-offset-1">
-	<h1>{% trans "Practice your mistakes" %}</h1>
-	<br>
-	<div class="panel panel-primary">
-		<div class="panel-heading">{% trans "Your Mistakes" %}</div>
-			<div class="panel-body">
-				<p>{% trans "Practice your mistakes." %}</p>
-			</div>
-		<ul class="list-group">
-			{% for practice in practice_upcoming %}
-				<li class="list-group-item">
-					<h3>{{practice.topic.headline}}</h3>
-				</li>
-			{% endfor %}
-		</ul>
-	</div>
-
-
 	<h1>{% trans "Practice Sessions" %}</h1>
 	<br>
 	<div class="panel panel-primary">
-		<div class="panel-heading">{% trans "Your Practice Sessions" %}</div>
+		<div class="panel-heading">{% trans "Your Upcoming Practice Sessions" %}</div>
+		{% if practice_upcoming %}
 			<div class="panel-body">
-				<p>{% trans "View reports from your completed sessions." %}</p>
 				<p>{% trans "Start a session, modify a session or cancel a session." %}</p>
 				<p>{% trans "Book a Session by clicking below!" %}</p>
 				<a class="btn btn-primary" href="/practice/book/">{% trans "Book a Session" %}</a><br>
 			</div>
+		{% else %}
+			<div class="panel-body">
+				<p>{% trans "You have no upcoming Practice Sessions! Book a session below." %}</p>
+				<a class="btn btn-primary" href="/practice/book/">{% trans "Book a Session" %}</a><br>
+			</div>
+		{% endif %}
 		<ul class="list-group">
-			{% for practice in practices %}
+			{% for practice in practice_upcoming %}
 				<li class="list-group-item">
-
-
-
-					{% if practice.state == "WAITING" %}
 					<h3>{{practice.topic.headline}}</h3>
 					{% localtime on %}
 					<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
@@ -92,64 +77,27 @@
 					</script>
 					<div id="countdown-{{ practice.id }}" style="display:none;">{{ practice.timeUntil }}</div>
 					{% endlocaltime %}
-
-					{% endif %}
 					
+				</li>
+			{% endfor %}
+		</ul>
+	</div>
 
 
-					{% if practice.state == "SPEAKING" %}
-					<h3>{{practice.topic.headline}}</h3>
-					{% localtime on %}
-					<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
-					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>					<div class="row">
-						<div class="col-md-4">
-						<br>
-							<p>{% trans "The session has already started!" %}</p>
-							<div id="start-{{ practice.id }}" class="col-md-3"><a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br></div>
-						</div>
-					</div><br><br>
-					{% endlocaltime %}
-
-					{% endif %}
-
-
-
-					{% if practice.state == "WRITING" %}
-					{% localtime on %}
-					<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
-					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
-					<div class="row">
-					<div class="col-md-4">
-						<br><p>{% trans "Speaking Complete!" %}</p>
-						{% if practice.speaking_report_published %}
-							<a class="btn btn-sm btn-info" href="/report/{{ practice.pk }}/speaking/">{% trans "View Speaking Report" %}</a><br>
-						{% else %}
-							<div class="progress">
-								<div class="progress-bar progress-bar-striped progress-bar-warning active" role="progressbar" aria valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"> {% trans "Report in Progress..." %}
-								</div>
-							</div>
-						{% endif %}
-					</div>
-					<div class="col-md-4 col-md-offset-1">
-					<br>
-						
-					{% if practice.writing_complete == True %}
-						<p>{% trans "Writing Complete!" %}</p>
-						<div class="progress">
-							<div class="progress-bar progress-bar-striped  progress-bar-warning active" role="progressbar" aria valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"> {% trans "Report in Progress..." %}
-							</div>
-						</div>
-					{% else %}
-						<p>{% trans "You still have time to do the writing." %}
-						<a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a></p>
-
-					{% endif %}
-					{% endlocaltime %}
-					{% endif %}
-
-
-
-					{% if practice.state == "COMPLETE" %}
+	<div class="panel panel-primary">
+		<div class="panel-heading">{% trans "Your Completed Practice Sessions" %}</div>
+		{% if practice_list %}
+			<div class="panel-body">
+				<p>{% trans "View reports from your completed sessions." %}</p>
+			</div>
+		{% else %}
+			<div class="panel-body">
+				<p>{% trans "You have no Completed Practice Sessions!" %}</p>
+			</div>
+		{% endif %}
+		<ul class="list-group">
+			{% for practice in practice_list %}
+				<li class="list-group-item">
 					<h3>{{practice.topic.headline}}</h3>
 					{% localtime on %}
 					<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
@@ -184,31 +132,30 @@
 					</div>
 					</div>
 					{% endlocaltime %}
-					{% endif %}	
-
-
-
+					
 				</li>
 			{% endfor %}
 		</ul>
 	</div>	
+		{% if is_paginated %}
 		<ul class="pagination">
-			    {% if practices.has_previous %}
-				    <li><a href="?page={{ practices.previous_page_number }}">&laquo;</a></li>
+			    {% if page_obj.has_previous %}
+				    <li><a href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>
 			    {% else %}
 				    <li class="disabled"><span>&laquo;</span></li>
 			    {% endif %}
 		
 				{% for i in paginator.page_range %}
-				<li {% if practices.number == i %} class="active" {% endif %}><a href="?page={{ i }}">{{ i }}</a></li>
+				<li {% if page_obj.number == i %} class="active" {% endif %}><a href="?page={{ i }}">{{ i }}</a></li>
 				{% endfor %}
 		
-			    {% if practices.has_next %}
-			   	 <li><a href="?page={{ practices.next_page_number }}">&raquo;</a></li>
+			    {% if page_obj.has_next %}
+			   	 <li><a href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>
 			    {% else %}
 				    <li class="disabled"><span>&raquo;</span></li>
 	   	            {% endif %}
 		 </ul>
+	{% endif %}
 
 </div>
 
