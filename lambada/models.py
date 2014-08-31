@@ -53,10 +53,11 @@ class Topic(models.Model):
 
 class Practice(models.Model):
 	user = models.ForeignKey(User)
+	coach = models.CharField(_("Coach"), max_length=255, blank=True, null=True, default='')
 	topic = models.ForeignKey(Topic)
 	dateTime = models.DateTimeField(_(u"Practice Session Time"))
 	timeUntil = models.IntegerField(null=False, default=0)
-	coach = models.CharField(_("Coach"), max_length=255, blank=True, null=True, default='')
+	callTimeElapsed = models.IntegerField(null=False, default=0)
 	learners_writing = HTMLField(_("Write your text here (2000 words maximum)."), max_length=255)
 	coach_recording_count = models.IntegerField(null=False, default=0)
 	learner_recording_count = models.IntegerField(null=False, default=0)
@@ -83,25 +84,20 @@ class LearnerRecording(models.Model):
 
 class SpeakingError(models.Model):
 	practice = models.ForeignKey(Practice)
-	coach = models.ForeignKey(User)
+	learner = models.ForeignKey(User)
+	coach = models.CharField(_("Coach"), max_length=255, blank=True, null=True, default='')
 	learnerRecording = models.ForeignKey(LearnerRecording)
 	error_time_min = models.CharField(_("Minute"), max_length=2, blank=True, null=True, default='')
 	error_time_sec = models.CharField(_("Second"), max_length=2, blank=True, null=True, default='')
 	correction_text = models.CharField(_("Correction Text"), max_length=255, blank=True, null=True, default='')
 	correction_recording_flag = models.BooleanField(blank=True, default=False)
 	correction_recording = models.FileField(upload_to='corrections', blank=True, null=True)	
-	STATES = (
-			('WAITING', 'Waiting'),
-			('SPEAKING', 'Speaking'),
-			('WRITING', 'Writing'),
-			('COMPLETE', 'Complete'),
-			)
-	state = models.CharField(max_length=8, choices=STATES)
 
 
 class WritingError(models.Model):
 	practice = models.ForeignKey(Practice)
-	coach = models.ForeignKey(User)
+	learner = models.ForeignKey(User)
+	coach = models.CharField(_("Coach"), max_length=255, blank=True, null=True, default='')
 	original_text = models.CharField(_("Original Text"), max_length=255, blank=True, null=True, default='')
 	correction_text = models.CharField(_("Correction Text"), max_length=255, blank=True, null=True, default='')
 

@@ -52,6 +52,12 @@ class PracticeForm(forms.ModelForm):
 	dateTime = forms.DateTimeField(widget=DateTimeWidget({'id':"dateTime"},{'minView':"0"},usel10n = True))
 	
 	def clean(self):
+		date = self.cleaned_data.get('dateTime')
+		now = datetime.datetime.utcnow().replace(tzinfo=utc)
+		timeUntil = (date - now).total_seconds()
+		print('timeUntil: ' + timeUntil)
+		if timeUntil < 3600:
+			raise forms.ValidationError(_("You must allow at least 1 hour before the practice session."))
 		return self.cleaned_data
 
 	class Meta:
@@ -59,7 +65,6 @@ class PracticeForm(forms.ModelForm):
 		fields = ('dateTime',)
 
 class PracticeWritingForm(forms.ModelForm):
-	
 	def clean(self):
 		return self.cleaned_data
 

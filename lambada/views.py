@@ -3,6 +3,7 @@ import json
 import pytz
 import datetime
 import time
+from random import randint
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.contrib.auth import authenticate, login, logout
@@ -22,6 +23,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Max
 from lambada.forms import UserForm, UserProfileForm, TopicForm, PracticeForm, PracticeWritingForm, SpeakingErrorForm
 from lambada.models import Topic, UserProfile, Practice, LearnerRecording, SpeakingError, WritingError, ChannelPrivate, ChannelDefault
 
@@ -347,17 +349,27 @@ def practice_list(request):
 		date = practice.dateTime;
 		timeUntil = (date - now).total_seconds()
 		practice.timeUntil = timeUntil
-		if timeUntil > 0:
+		if timeUntil > 21600:
 			practice.state = 'WAITING'
+		elif timeUntil <= 21600 and timeUntil > 0:
+			practice.state = 'NOMODIFY'
 		elif timeUntil <= 0 and timeUntil > -1500:
 			practice.state = 'SPEAKING'
-		elif timeUntil < -1500 and timeUntil > -3600:
+		elif timeUntil <= -1500 and timeUntil > -3600:
 			practice.state = 'WRITING'
 		else:
 			practice.state = 'COMPLETE'
-	return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator}, context)
+
+	errors_max = SpeakingError.objects.filter(learner=practice.user).aggregate(Max('id'))['id__max']
+	try:
+		speakingError = SpeakingError.objects.get(pk=randint(1, errors_max))
+	except SpeakingError.DoesNotExist:
+		pass
+	print('errors_max: ' + str(errors_max))
+	return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'speakingError': speakingError, 'S3_URL': settings.S3_URL}, context)
 
 
+# TO DO: Don't allow Modifications if the pratice sessions is less than 6 hours away.
 class PracticeUpdate(UpdateView):
 	model = Practice 
 	form_class = PracticeForm
@@ -455,7 +467,7 @@ def coach_practice_cancel(request, pk):
 def practice_detail(request, pk):
 	context = RequestContext(request)
 	practice = Practice.objects.get(pk=pk)
-	practice_writing_form = PracticeWritingForm()
+	practice_writing_form = PracticeWritingForm(initial={'learners_writing': practice.learners_writing})
 	if practice.user == request.user:
 		now = datetime.datetime.utcnow().replace(tzinfo=utc)
 		date = practice.dateTime;
@@ -481,6 +493,18 @@ def coach_practice_detail(request, pk):
 	practice = Practice.objects.get(pk=pk)
 	if practice.coach == request.user.username:
 		topic = practice.topic
+		now = datetime.datetime.utcnow().replace(tzinfo=utc)
+		date = practice.dateTime;
+		timeUntil = (date - now).total_seconds()
+		practice.timeUntil = timeUntil
+		if timeUntil > 0:
+			practice.state = 'WAITING'
+		elif timeUntil <= 0 and timeUntil > -1500:
+			practice.state = 'SPEAKING'
+		elif timeUntil < -1500 and timeUntil > -3600:
+			practice.state = 'WRITING'
+		else:
+			practice.state = 'COMPLETE'
 		return render_to_response('lambada/coach_practice_detail.html', {'topic': topic, 'practice': practice}, context)
 	else:
 		return render_to_response('lambada/404.html', {}, context)
@@ -497,7 +521,7 @@ def speaking_error_notification(request, pk):
 		time_of_error = error_time - learner_recording.call_start_time
 		hours, remainder = divmod(time_of_error.seconds, 3600)
 		minutes, seconds = divmod(remainder, 60)
-		speaking_error = SpeakingError(practice=practice, learnerRecording=learner_recording, error_time_min=minutes, error_time_sec=seconds, coach=request.user)
+		speaking_error = SpeakingError(practice=practice, learnerRecording=learner_recording, error_time_min=minutes, error_time_sec=seconds, coach=request.user.username, learner=practice.user)
 		speaking_error.save()
 		return HttpResponse(time_of_error)
 	else:
@@ -510,38 +534,33 @@ def recording_upload(request, pk, partNum):
 	practice = Practice.objects.get(pk=pk)
 	coachLeg = request.META['HTTP_COACH_LEG']
 	if practice.user == request.user or practice.coach == request.user.username:
-		print('1')
 		if partNum == '0':
-			print('2')
 			if coachLeg == 'true':
-				print('3')
 				practice.coach_recording_count +=1
 				count = practice.coach_recording_count
 				target = open(settings.STATIC_PATH + '/coach_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
 			else:
-				print('4')
 				practice.learner_recording_count +=1
+				practice.callTimeElapsed +=5
 				count = practice.learner_recording_count
 				call_start_time = datetime.datetime.utcnow().replace(tzinfo=utc) - datetime.timedelta(seconds=5)
 				learnerRecording = LearnerRecording(practice=practice, count=count, call_start_time=call_start_time)
 				learnerRecording.save()
 				target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
 		else: 
-			print('5')
 			if coachLeg == 'true':
-				print('6')
 				count = practice.coach_recording_count
 				target = open(settings.STATIC_PATH + '/coach_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
 			else:
-				print('7')
+				practice.callTimeElapsed +=5
 				count = practice.coach_recording_count
 				target = open(settings.STATIC_PATH + '/learner_session_' + pk + '_recording_' + str(count) + '.ogg', 'a+b')
 		target.write(request.body)
 		target.close()
+		callTimeElapsed = practice.callTimeElapsed
 		practice.save()
-		return HttpResponse()
+		return HttpResponse(callTimeElapsed)
 	else:
-		print('8')
 		return render_to_response('lambada/404.html', {}, context)
 		
 
@@ -650,14 +669,18 @@ def recording_correction_upload(request, pk):
 @login_required
 def report_add_speech_error(request, pk):
 	context = RequestContext(request)
-	minutes = request.POST['error_time_min']
-	seconds = request.POST['error_time_sec']
 	practice = Practice.objects.get(pk=pk)
 	if practice.coach == request.user.username:
-		speaking_error = SpeakingError(practice=practice, error_time_min=minutes, error_time_sec=seconds)
+		minutes = request.POST['error_time_min']
+		seconds = request.POST['error_time_sec']
+		count = request.POST['recording_number']
+		print('LearnerRecording:' + count)
+		learnerRecordings = LearnerRecording.objects.filter(practice=practice)
+		learner_recording = learnerRecordings.get(practice=practice, count=count)
+		speaking_error = SpeakingError(practice=practice, learnerRecording=learner_recording, error_time_min=minutes, error_time_sec=seconds, coach=request.user.username, learner=practice.user)
 		speaking_error.save()
 		speaking_error_list = SpeakingError.objects.filter(practice=practice).order_by('id')
-		return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm()}, context)
+		return render_to_response('lambada/coach_report_add_speech.html', {'practice': practice, 'learnerRecordings': learnerRecordings, 'speaking_error_list': speaking_error_list, 'speaking_error_form': SpeakingErrorForm(), 'S3_URL': settings.S3_URL}, context)
 	else:
 		return render_to_response('lambada/404.html', {}, context)
 
@@ -742,7 +765,7 @@ def report_add_writing(request, pk):
 def report_add_writing_correction(request, pk):
 	practice = Practice.objects.get(pk=pk)
 	if practice.coach == request.user.username:
-		writingError = WritingError(practice=practice, original_text=request.POST['original_text'], correction_text=request.POST['correction_text']) 
+		writingError = WritingError(practice=practice, original_text=request.POST['original_text'], correction_text=request.POST['correction_text'], learner=practice.user) 
 		writingError.save()
 		return HttpResponse(writingError.pk)
 	else: 

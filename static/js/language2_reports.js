@@ -23,11 +23,18 @@ $(document).ready(function() {
 	        	audioElement.pause();
 		}, 10000);
 	});
+	
+	$("[id^=play-correction]").click(function(){
+		console.log('In play-correction');
+		var errorNumber = parseInt(this.getAttribute("errorNumber"));
+		var audioElement = document.getElementById('correction'+errorNumber);
+		audioElement.play();
+	});
 
 	$("[id^=add-written-correction]").click(function(event){
 		event.preventDefault();
 	        error_pk = this.getAttribute("pk");
-		error_correction = this.parentNode.children[0].value;
+		error_correction = this.parentNode.parentNode.children[0].value;
 		console.log("Error Correction: " + error_correction);
 		var formData = new FormData();
 		formData.append('error_correction', error_correction);

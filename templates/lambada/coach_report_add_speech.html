@@ -44,38 +44,46 @@
 
 		<div class="panel-body">
 
-			<div class="col-md-3">
-				<button id="play-error{{speakingError.pk}}" class="btn btn-primary btn-sm" errorTimeMin="{{ speakingError.error_time_min }}" errorTimeSec="{{ speakingError.error_time_sec }}" recordingNumber=" {{ learnerRecording.count }}">{% trans "Play Mistake"%}</button> 
+			<div class="col-md-2">
+				<a id="play-error{{speakingError.pk}}" class="btn" errorTimeMin="{{ speakingError.error_time_min }}" errorTimeSec="{{ speakingError.error_time_sec }}" recordingNumber=" {{ learnerRecording.count }}"><img src="{% static "play_mistake.png" %}"></a> 
 				<br>
 				<br>
 				<form id="delete-error-form" class="form form-horizontal" action="/report/{{ practice.pk }}/report_delete_speech_error/" method="post" accept-charset="utf-8">
 					{% csrf_token %}
 					<input type="hidden" value="{{ speakingError.pk }}" name="error_pk">
-					<button id="delete-error{{speakingError.pk}}" class="btn btn-primary btn-sm">{% trans "Delete Error"%}</button> 
+					<div class="text-center"><button id="delete-error{{speakingError.pk}}" class="btn btn-primary btn-sm">{% trans "Delete Error"%}</button></div> 
 				</form>
 			</div>	
 
 
 
-			<div class="col-md-4">
-				<div>	
-					<input>
-					<button id="add-written-correction" pk="{{ speakingError.pk }}" class="btn btn-primary btn-sm">{% trans "Add written correction" %}</button>
-				</div>
-				<p id="written-correction-{{ speakingError.pk }}">{{ speakingError.correction_text }}</p>
+			<div class="col-md-7">
+				<div><br>
+					<div class="input-group">	
+						<input class="form-control" value="Write your correction here">
+						<!--				<div class="text-center"><button id="add-written-correction" pk="{{ speakingError.pk }}" class="btn btn-primary btn-sm">{% trans "Add written correction" %}</button></div>-->
+						<span class="input-group-btn"><button class="btn btn-primary" type="button" id="add-written-correction" pk="{{ speakingError.pk }}" >{% trans "Add written correction" %}</button></span>
+					</div>
+				</div><br>
+				<h3 id="written-correction-{{ speakingError.pk }}" class="text-center">{{ speakingError.correction_text }}</h3>
 			</div>	
-
 
 
 			<div class="col-md-3">
-				<div>	
+				<br>	
+				<div class="text-center">
 					<audio id="sub-audio" controls preload type="audio/ogg" style="display:none;"></audio>		
-					<button id="record-correction" pk="{{ speakingError.pk }}" class="btn btn-primary btn-sm">{% trans "Add audio correction" %}</button>
-					<div id="recording-{{ speakingError.pk }}" class="alert alert-danger" style="display:none;">{% trans "Recording for 5 seconds!" %}</div>
+					<button id="record-correction" pk="{{ speakingError.pk }}" class="btn btn-primary">{% trans "Add audio correction" %}</button>
 				</div>
-				{% if speakingError.correction_recording %}<div id="audio-correction-uploaded-{{ speakingError.pk }}" class="alert alert-success">{% trans "Audio correction uploaded" %}</div>{% endif %}
+				<br>
+				<div id="recording-{{ speakingError.pk }}" class="alert alert-danger" style="display:none;">{% trans "Recording for 5 seconds!" %}</div>
+				
+				{% if speakingError.correction_recording %}
+					<div id="audio-correction-uploaded-{{ speakingError.pk }}" class="alert alert-success">{% trans "Audio correction uploaded" %}</div>
+				{% endif %}
 				<div id="new-audio-correction-uploaded-{{ speakingError.pk }}" class="alert alert-success" style="display:none;">{% trans "New audio correction uploaded" %}</div>
 			</div>	
+
 
 		</div>
 	</div>
@@ -96,6 +104,7 @@
 		<div class="panel-body">
 			<form id="speakingError-form" class="form form-horizontal col-md-4" action="/report/{{ practice.pk }}/report_add_speech_error/" method="post" accept-charset="utf-8">
 				{% csrf_token %}
+				<input type="hidden" id="recording_number" name="recording_number" value="{{ learnerRecording.count }}" />
 				{{ speaking_error_form|bootstrap}} 
 				<p><button id="booking-btn" class="btn btn-info" type="submit">{% trans "Add error" %}</button></p>
 			</div>
@@ -123,7 +132,7 @@
 
 <div id="practice_pk" style="display:none;">{{ practice.pk }}</div>
 <script src="{% static "js/language2_reports.js" %}"></script>
-<script src="{% static "js/RTCMultiConnection-v1.7.js" %}"></script> 
+<!-- <script src="{% static "js/RTCMultiConnection-v1.7.js" %}"></script>  -->
 <!-- <script src="{% static "js/RecordRTC.js" %}"></script>  -->
 <script src="{% static "js/MediaStreamRecorder.js" %}"> </script>
 

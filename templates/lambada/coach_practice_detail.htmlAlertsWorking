@@ -33,7 +33,6 @@
 					<script>
 						function countdownComplete(result){
 							document.getElementById("session-not-started").style.display = "none";
-							document.getElementById("countdown").style.display = "none";
 							document.getElementById("session-started").style.display = "block";
 							document.getElementById("setup-new-conference").style.display = "block";
 						}
@@ -51,44 +50,53 @@
 	{% endif %}
 
 	<h2>{% trans "Speaking practice" %}</h2>
-	<h1>	<p id="call-timer" class="text-center">00:00</p></h1>
-	<div class="progress">
-	<div id="progress-bar" class="progress-bar progress-bar-success" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
-	  </div>
-	</div>
+	<h1>	<p id="call-timer" class="text-center">--:--</p></h1>
+
+		<div id="session-started" class="alert alert-info">{% trans "Waiting for you to start the session" %}</div>
+		<button id="setup-new-conference" class="btn btn-primary setup">{% trans "Start Session" %}</button> 
+		<div id="waiting-for-mic" class="alert alert-danger" style="display:none;">{% trans "Waiting for you to share your microphone..." %}</div>
+		<div id="waiting-for-learner" class="alert alert-warning" style="display:none;">{% trans "Waiting for the Learner to join" %}</div>
+		<div id="connecting" class="alert alert-warning" style="display:none;">{% trans "Learner is joining" %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="con" src="{% static "connecting.gif" %}"></div>
+		<div id="in-progress" class="alert alert-success" style="display:none;">{% trans "Call in progress" %}</div>
+		<div id="session-complete" class="alert alert-success" style="display:none;">{% trans "This session has been completed." %}</div>
+		<div id="call-ended" class="alert alert-success" style="display:none;">{% trans "The call has finished. If there is time remaining for the call, please wait for the learner to re-join." %}</div>
+		<a id="create-report" class="btn btn-primary" style="display:none;" href="/report/{{ practice.pk }}/report_add_speech/">{% trans "Create Report" %}</a> 
+		<button id="speaking-error" class="btn btn-success" style="display:none;">{% trans "Speaking Error" %}</button> 
+
+
+
+<!--
 
 	{% if practice.state == "WAITING" or practice.state == "NOMODIFY" %}
 		<div id="session-not-started" class="alert alert-warning">{% trans "This session is has not yet started." %}</div>
-		<div id="session-started" class="alert alert-info" style="display:none;">{% trans "Waiting for you to start the call" %}</div>
-		<div id="setup-new-conference" style="display:none;"><button class="btn btn-primary setup">{% trans "Start Call" %}</button><br><br></div>
-		<div id="waiting-for-mic" class="alert alert-danger" style="display:none;">{% trans "Waiting for you to share your microphone..." %}</div>
-		<div id="waiting-for-learner" class="alert alert-warning" style="display:none;">{% trans "Waiting for the Learner to join" %}</div>
-		<div id="connecting" class="alert alert-warning" style="display:none;">{% trans "Learner is joining" %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="con" src="{% static "connecting.gif" %}"></div>
-		<div id="in-progress" class="alert alert-success" style="display:none;">{% trans "Call in progress" %}</div>
-		<div id="call-dropped" class="alert alert-danger" style="display:none;">{% trans "The call has dropped. Please wait for the learner to re-join." %}</div>
-		<div id="call-complete" class="alert alert-info" style="display:none;">{% trans "The call has been completed." %}</div>
-		<div id="create-report" style="display:none;"><a class="btn btn-primary" href="/report/{{ practice.pk }}/report_add_speech/">{% trans "Create Report" %}</a> <br><br></div>
-		<div id="speaking-error" style="display:none;"><button class="btn btn-success">{% trans "Speaking Error" %}</button><br><br></div>
-
-
-	{% elif practice.state == "SPEAKING"%}
-		<div id="session-started" class="alert alert-info">{% trans "Waiting for you to start the call" %}</div>
-		<div id="setup-new-conference"><button class="btn btn-primary setup">{% trans "Start Call" %}</button><br><br></div> 
-		<div id="waiting-for-mic" class="alert alert-danger" style="display:none;">{% trans "Waiting for you to share your microphone..." %}</div>
-		<div id="waiting-for-learner" class="alert alert-warning" style="display:none;">{% trans "Waiting for the Learner to join" %}</div>
-		<div id="connecting" class="alert alert-warning" style="display:none;">{% trans "Learner is joining" %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="con" src="{% static "connecting.gif" %}"></div>
-		<div id="in-progress" class="alert alert-success" style="display:none;">{% trans "Call in progress" %}</div>
-		<div id="call-dropped" class="alert alert-danger" style="display:none;">{% trans "The call has dropped. Please wait for the learner to re-join." %}</div>
-		<div id="call-complete" class="alert alert-info" style="display:none;">{% trans "The call has been completed." %}</div>
-		<div id="create-report" style="display:none;"><a class="btn btn-primary" href="/report/{{ practice.pk }}/report_add_speech/">{% trans "Create Report" %}</a> <br><br></div>
-		<div id="speaking-error" style="display:none;"><button class="btn btn-success">{% trans "Speaking Error" %}</button><br><br></div>
-
-	
+		<div id="session-started" class="alert alert-info" style="display:none;">{% trans "Waiting for you to start the session" %}</div>
+		<button id="setup-new-conference" class="btn btn-primary setup" style="display:none;">{% trans "Start Session" %}</button> 
+	{% elif practice.state == "SPEAKING" %}
+		<div id="session-started" class="alert alert-info">{% trans "Waiting for you to start the session" %}</div>
+		<button id="setup-new-conference" class="btn btn-primary setup">{% trans "Start Session" %}</button> 
 	{% else %}
 		<div id="session-complete" class="alert alert-success">{% trans "This session has been completed." %}</div>
-		<div id="create-report"><a class="btn btn-primary" href="/report/{{ practice.pk }}/report_add_speech/">{% trans "Create Report" %}</a> <br><br></div>
+		<a id="create-report" class="btn btn-primary" href="/report/{{ practice.pk }}/report_add_speech/">{% trans "Create Report" %}</a> 
 	{% endif %}
 
+		<button id="setup-new-conference" class="btn btn-primary setup" style="display:none;">{% trans "Start Session" %}</button> 
+		<div id="waiting-for-mic" class="alert alert-danger" style="display:none;">{% trans "Waiting for you to share your microphone..." %}</div>
+		<div id="waiting-for-learner" class="alert alert-warning" style="display:none;">{% trans "Waiting for the Learner to join" %}</div>
+		<div id="connecting" class="alert alert-warning" style="display:none;">{% trans "Learner is joining" %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="con" src="{% static "connecting.gif" %}"></div>
+		<div id="in-progress" class="alert alert-success" style="display:none;">{% trans "Call in progress" %}</div>
+		<div id="session-complete" class="alert alert-success" style="display:none;">{% trans "This session has been completed." %}</div>
+		<!--		<button id="finish-conference" class="btn btn-primary setup" style="display:none;">{% trans "Finish Session" %}</button>  -->
+
+		<!--
+
+		<a id="create-report" class="btn btn-primary" style="display:none;" href="/report/{{ practice.pk }}/report_add_speech/">{% trans "Create Report" %}</a> 
+		<button id="speaking-error" class="btn btn-success" style="display:none;">{% trans "Speaking Error" %}</button> 
+		<table style="width: 100%;" id="rooms-list"></table>
+	<br>
+	
+	-->	
+	
+	
 	
 	
 	<div id="audios-container" style="display:none;"></div>

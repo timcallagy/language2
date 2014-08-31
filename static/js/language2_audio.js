@@ -18,9 +18,17 @@ $(document).ready(function() {
 	if (!location.href.contains('coach')) {
 		var sessions = {};
 		connection.onNewSession = function(session) {
+//			if ($("[id^=waiting-for-mic]").is(":visible") || $("[id^=connecting]").is(":visible") || $("[id^=in-progress]").is(":visible") || $("[id^=call-ended]").is(":visible")){  /// This line causes the Join button to be hidden if the coach leg drops and rejoins.
+			if ($("[id^=waiting-for-mic]").is(":visible") || $("[id^=connecting]").is(":visible") || $("[id^=in-progress]").is(":visible")){  
+
+//				$("[id^=coach-joined-msg]").hide();
+				return;
+			} else {
 			sessions[session.sessionid] = session;
 			$("[id^=waiting-for-coach]").hide();
+			$("[id^=call-dropped]").hide();
 			$("[id^=coach-joined-msg]").show();
+			$("[id^=rooms-list]").show();
 			var oldJoinRoomButton = document.getElementById("join-button");
 			var joinRoomButton = document.createElement('input');
 			joinRoomButton.setAttribute('type', 'button');
@@ -31,9 +39,8 @@ $(document).ready(function() {
 			joinRoomButton.onclick = function() {
 				console.info('%%% Join button clicked.');
 				$("[id^=rooms-list]").hide();
-		//		$("[id^=coach-joined-msg]").hide();
+				$("[id^=coach-joined-msg]").hide();
 				$("[id^=waiting-for-mic]").show();
-		//		$("[id^=connecting]").show();
 				var sessionid = this.getAttribute('data-sessionid');
 				session = sessions[sessionid];
 				if (!session) throw 'No such session exists.';
@@ -43,14 +50,16 @@ $(document).ready(function() {
 			};
 			roomsList.insertBefore(joinRoomButton, oldJoinRoomButton);
 			roomsList.removeChild(oldJoinRoomButton);
+			}
 		};
 	};
+
 
 
 	$("[id^=setup-new-conference]").click(function(){
 		connection.open();
 		$("[id^=setup-new-conference]").hide();
-//		$("[id^=connecting]").show();
+		$("[id^=session-started]").hide();
 		$("[id^=waiting-for-mic]").show();
 	});
 

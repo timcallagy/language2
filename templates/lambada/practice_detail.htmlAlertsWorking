@@ -53,46 +53,37 @@
 	{% endif %}
 
 	<h2>{% trans "Speaking practice" %}</h2>
-	<h1>	<p id="call-timer" class="text-center">00:00</p></h1>
+	<h1>	<p id="call-timer" class="text-center">--:--</p></h1>
 
-	<div class="progress">
-	<div id="progress-bar" class="progress-bar progress-bar-success" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
-	  </div>
-	</div>
-
-
-	{% if practice.state == "WAITING" or practice.state == "NOMODIFY" %}
-		<div id="session-not-started" class="alert alert-warning">{% trans "This session is has not yet started." %}</div>
-		<div id="waiting-for-coach" class="alert alert-info" style="display:none;">{% trans "Waiting for your coach to join..." %}</div>
-		<div id="coach-joined-msg" class="alert alert-warning" style="display:none;" priv_id="joined1">{% trans "Your coach has joined!" %}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="rooms-list"><button id="join-button" style="display:none;"></button></span></div>
-		<div id="waiting-for-mic" class="alert alert-danger" style="display:none;">{% trans "Waiting for you to share your microphone..." %}</div>
-		<div id="connecting-to-coach" class="alert alert-warning" style="display:none;">{% trans "Joining" %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="con" src="{% static "connecting.gif" %}"></div>
-		<div id="in-progress" class="alert alert-success" style="display:none;">{% trans "Call in progress" %}</div>
-		<div id="call-dropped" class="alert alert-danger" style="display:none;">{% trans "The call has dropped. Please wait for your coach to re-join." %}</div>
-		<div id="call-complete" class="alert alert-info" style="display:none;">{% trans "The call has been completd." %}</div>
-
-
-	{% elif practice.state == "SPEAKING" %}
 		<div id="waiting-for-coach" class="alert alert-info">{% trans "Your coach hasn't joined yet..." %}</div>
 		<div id="coach-joined-msg" class="alert alert-warning" style="display:none;" priv_id="joined1">{% trans "Your coach has joined!" %}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="rooms-list"><button id="join-button" style="display:none;"></button></span></div>
 		<div id="waiting-for-mic" class="alert alert-danger" style="display:none;">{% trans "Waiting for you to share your microphone..." %}</div>
 		<div id="connecting-to-coach" class="alert alert-warning" style="display:none;">{% trans "Joining" %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="con" src="{% static "connecting.gif" %}"></div>
 		<div id="in-progress" class="alert alert-success" style="display:none;">{% trans "Call in progress" %}</div>
-		<div id="call-dropped" class="alert alert-danger" style="display:none;">{% trans "The call has dropped. Please wait for your coach to re-join." %}</div>
-		<div id="call-complete" class="alert alert-info" style="display:none;">{% trans "The call has been completd." %}</div>
+		<div id="call-ended" class="alert alert-success" style="display:none;">{% trans "The call has finished. If there is time remaining for the call, please wait for your coach to re-join. Otherwise, please do the Writing exercise below." %}</div>
 
-
+<!--
+	{% if practice.state == "WAITING" or practice.state == "NOMODIFY" %}
+		<div id="session-not-started" class="alert alert-warning">{% trans "This session is has not yet started." %}</div>
+		<div id="waiting-for-coach" class="alert alert-info" style="display:none;">{% trans "This session has started! Waiting for your coach to join." %}</div>
+	{% elif practice.state == "SPEAKING" %}
+		<div id="waiting-for-coach" class="alert alert-info">{% trans "Your coach hasn't joined yet..." %}</div>
 	{% elif practice.state == "WRITING" %}
 		{% if practice.writing_complete == True %} 
-			<div id="session-complete" class="alert alert-success">{% trans "This session has been completed. You still have some time left to improve your Writing exercise." %}</div>
+			<div id="session-complete" class="alert alert-success">{% trans "This session has been completed. You still have some time left for the Writing exercise." %}</div>
 		{% else %}
 			<div id="session-complete" class="alert alert-success">{% trans "The call has finished, time to do the Writing exercise below." %}</div>
 		{% endif %}
-
-
 	{% else %}
 		<div id="session-complete" class="alert alert-success">{% trans "This session has been completed." %}</div>
 	{% endif %}
+		<div id="coach-joined-msg" class="alert alert-warning" style="display:none;" priv_id="joined2">{% trans "Your coach has joined!" %}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="rooms-list"><button id="join-button" style="display:none;"></button></span></div>
+		<div id="waiting-for-mic" class="alert alert-danger" style="display:none;">{% trans "Waiting for you to share your microphone..." %}</div>
+		<div id="connecting-to-coach" class="alert alert-warning" style="display:none;">{% trans "Joining" %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="con" src="{% static "connecting.gif" %}"></div>
+		<div id="in-progress" class="alert alert-success" style="display:none;">{% trans "Call in progress" %}</div>
+		<div id="session-complete" class="alert alert-success" style="display:none;">{% trans "The call has finished, time to do the Writing." %}</div>
+
+-->
 
 
 		<div id="audios-container" style="display:none;"></div>
@@ -102,10 +93,10 @@
 
 	{% if practice.state == "WAITING" or practice.state == "NOMODIFY" or practice.state == "SPEAKING" %}
 		<br>
-	<div class="alert alert-info" style="display:none;">{% trans "Do the Writing exercise below." %}</div>
+	<div id="session-complete" class="alert alert-info" style="display:none;">{% trans "Do the Writing exercise below." %}</div>
 	{% elif practice.state == "WRITING" %}
 		<br>
-		<div class="alert alert-info">{% trans "Do the Writing exercise below." %}</div>
+		<div id="session-complete" class="alert alert-info">{% trans "Do the Writing exercise below." %}</div>
 	{% endif %}
 
 	<h2>{% trans "Writing practice" %}</h2>
