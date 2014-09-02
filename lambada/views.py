@@ -4,6 +4,7 @@ import pytz
 import datetime
 import time
 from random import randint
+from django.core.serializers.json import DjangoJSONEncoder
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.contrib.auth import authenticate, login, logout
@@ -332,42 +333,66 @@ class PracticeTopicDetail(DetailView):
 def practice_list(request):
 	context = RequestContext(request)
 	practices_list = Practice.objects.filter(user=request.user).order_by('-dateTime')
-	now = datetime.datetime.utcnow().replace(tzinfo=utc)
-	paginator = Paginator(practices_list, 6)
+	if practices_list:
+		now = datetime.datetime.utcnow().replace(tzinfo=utc)
+		paginator = Paginator(practices_list, 6)
 
-	page = request.GET.get('page')
-	try:
-		practices = paginator.page(page)
-	except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
-		practices = paginator.page(1)
-	except EmptyPage:
-        # If page is out of range (e.g. 9999), deliver last page of results.
-		practices = paginator.page(paginator.num_pages)
+		page = request.GET.get('page')
+		try:
+			practices = paginator.page(page)
+		except PageNotAnInteger:
+	       	 # If page is not an integer, deliver first page.
+			practices = paginator.page(1)
+		except EmptyPage:
+       		 # If page is out of range (e.g. 9999), deliver last page of results.
+			practices = paginator.page(paginator.num_pages)
 
-	for practice in practices:
-		date = practice.dateTime;
-		timeUntil = (date - now).total_seconds()
-		practice.timeUntil = timeUntil
-		if timeUntil > 21600:
-			practice.state = 'WAITING'
-		elif timeUntil <= 21600 and timeUntil > 0:
-			practice.state = 'NOMODIFY'
-		elif timeUntil <= 0 and timeUntil > -1500:
-			practice.state = 'SPEAKING'
-		elif timeUntil <= -1500 and timeUntil > -3600:
-			practice.state = 'WRITING'
+		for practice in practices:
+			date = practice.dateTime;
+			timeUntil = (date - now).total_seconds()
+			practice.timeUntil = timeUntil
+			if timeUntil > 21600:
+				practice.state = 'WAITING'
+			elif timeUntil <= 21600 and timeUntil > 0:
+				practice.state = 'NOMODIFY'
+			elif timeUntil <= 0 and timeUntil > -1500:
+				practice.state = 'SPEAKING'
+			elif timeUntil <= -1500 and timeUntil > -3600:
+				practice.state = 'WRITING'
+			else:
+				practice.state = 'COMPLETE'
+
+		errors_max = SpeakingError.objects.filter(learner=request.user).count()
+		if errors_max > 0:
+			speakingError = SpeakingError.objects.filter(learner=request.user).all()[randint(0, errors_max -1)]
+			return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'speakingError': speakingError, 'S3_URL': settings.S3_URL}, context)
 		else:
-			practice.state = 'COMPLETE'
+			return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'S3_URL': settings.S3_URL}, context)
+				
+#		errors_max = SpeakingError.objects.filter(learner=request.user).aggregate(Max('id'))['id__max']
+#		print('errors_max: ' + str(errors_max))
+#		if errors_max:
+#			try:
+#				speakingError = SpeakingError.objects.get(pk=randint(1, errors_max), learner=request.user)
+#				return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'speakingError': speakingError, 'S3_URL': settings.S3_URL}, context)
+#			except SpeakingError.DoesNotExist:
+#				return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'S3_URL': settings.S3_URL}, context)
+#		else:
+#			return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'S3_URL': settings.S3_URL}, context)
+#	else:
+#		return render_to_response('lambada/practice_list.html', {'S3_URL': settings.S3_URL}, context)
+		
 
-	errors_max = SpeakingError.objects.filter(learner=practice.user).aggregate(Max('id'))['id__max']
-	try:
-		speakingError = SpeakingError.objects.get(pk=randint(1, errors_max))
-	except SpeakingError.DoesNotExist:
-		pass
-	print('errors_max: ' + str(errors_max))
-	return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'speakingError': speakingError, 'S3_URL': settings.S3_URL}, context)
-
+@login_required
+def next_error(request):
+	errors_max = SpeakingError.objects.filter(learner=request.user).count()
+	if errors_max > 0:
+		speakingError = SpeakingError.objects.filter(learner=request.user).all()[randint(0, errors_max -1)]
+		data = serializers.serialize("json", [speakingError, speakingError.learnerRecording])
+		return HttpResponse(data, content_type = "application/json")
+	else:
+		return HttpResponse('There are no Speaking Errors.')
+	
 
 # TO DO: Don't allow Modifications if the pratice sessions is less than 6 hours away.
 class PracticeUpdate(UpdateView):
@@ -627,19 +652,19 @@ def report_add_speech(request, pk):
 @login_required
 def report_add_speech_correction(request, pk):
 	speakingError = SpeakingError.objects.get(pk=pk)
-	if speakingError.coach == request.user:
+	if speakingError.coach == request.user.username:
 		speakingError.correction_text = request.POST['error_correction']
 		speakingError.save()
 		return HttpResponse()
 	else:
-		return render_to_response('lambada/404.html', {}, context)
+		return render_to_response('lambada/404.html', {})
 
 
 # Coach adds a recorded correction to a single Speaking Error here.
 @login_required
 def recording_correction_upload(request, pk):
 	speakingError = SpeakingError.objects.get(pk=pk)
-	if speakingError.coach == request.user:
+	if speakingError.coach == request.user.username:
 		target = open(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg', 'a+b')
 		target.write(request.body)
 		djangofile = File(target)
@@ -650,7 +675,7 @@ def recording_correction_upload(request, pk):
 		os.remove(settings.STATIC_PATH + '/correction_' + pk + '_recording.ogg')
 		return HttpResponse()
 	else: 
-		return render_to_response('lambada/404.html', {}, context)
+		return render_to_response('lambada/404.html', {})
 
 
 # Recording of Learner's leg of the session is downloaded here.
@@ -813,7 +838,7 @@ def practice_report_writing_publish(request, pk):
 def report_writing(request, pk):
 	context = RequestContext(request)
 	practice = Practice.objects.get(pk=pk)
-	if practice.user == request.user.username:
+	if practice.user == request.user:
 		writing_error_list = WritingError.objects.filter(practice=practice).order_by('id')
 		return render_to_response('lambada/practice_report_writing.html', {'practice': practice, 'writing_error_list': writing_error_list}, context)
 	else:

@@ -7,235 +7,286 @@
 {% load bootstrap %}
 {% load static from staticfiles %}
 
-	{{ form.media }}
+{{ form.media }}
 
 {% block top_menu %}
-	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
-	<li class="active"><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
-	<li><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
-	<li><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
-	<li><a href="/help/">{% trans "How does this work?" %}</a></li>
+<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
+<li class="active"><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
+<li><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
+<li><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
+<li><a href="/help/">{% trans "How does this work?" %}</a></li>
 {% endblock %}
 
 {% block body %}
-	<div class="pull-right">
-		<ol class="breadcrumb">
-			<li class="active">{% trans "Practice Sessions" %}</li>
-		</ol>
-	</div>
-	<div class="col-md-10 col-md-offset-1">
+<div class="pull-right">
+	<ol class="breadcrumb">
+		<li class="active">{% trans "Practice Sessions" %}</li>
+	</ol>
+</div>
+
+<div class="col-md-10 col-md-offset-1">
+	{% if speakingError or writingError %}
 	<h1>{% trans "Practice your mistakes" %}</h1>
 	<br>
 	<div class="panel panel-primary">
 		<div class="panel-heading">{% trans "Your Mistakes" %}</div>
-			<div class="panel-body">
-			<p><audio id="recording-{{ speakingError.learnerRecording.count }}" src="{{S3_URL}}/{{ speakingError.learnerRecording.recording }}" controls preload type="audio/ogg"></audio></p>
-			<div class="col-md-2">
-				<a id="play-error{{speakingError.pk}}" class="btn" errorTimeMin="{{ speakingError.error_time_min }}" errorTimeSec="{{ speakingError.error_time_sec }}" recordingNumber=" {{ learnerRecording.count }}"><img src="{% static "play_mistake.png" %}"></a> 
-			</div>
+		<div id="mistakes-panel" class="panel-body">
+			{% if speakingError %}
+			<div style="vertical-align: middle;">
+			<p><audio id="recording" src="{{S3_URL}}/{{ speakingError.learnerRecording.recording }}" uniqueId="" controls preload type="audio/ogg" style="display:none;"></audio></p> 
 
 			<div class="col-md-2">
-				{% if speakingError.correction_recording %}
-				<audio id="correction{{speakingError.pk}}" style="display:none;" src="{{S3_URL}}/{{ speakingError.correction_recording }}" controls preload type="audio/ogg"></audio>
-				<a id="play-correction{{speakingError.pk}}" class="btn" errorNumber="{{speakingError.pk}}"><img src="{% static "play_correction.png" %}"></a> 
-				{% else %}
-				<br>
-				<p id="play-error-correction-{{ speakingError.pk }}">{% trans "There is no recorded correction." %}</p>
-				{% endif %}
+				<a id="play-error" class="btn" errorTimeMin="{{ speakingError.error_time_min }}" errorTimeSec="{{ speakingError.error_time_sec }}"><img src="{% static "play_mistake.png" %}"></a> 
+			</div>
+			
+
+			<div id="correction-cover">
+				<div class="col-md-8">
+					<div class="col-md-4 col-md-offset-4">
+						<br>
+						<button id="show-correction" class="btn btn-info btn-lg">{% trans "Show correction" %}</button>
+					</div>
+				</div>
+			</div>
+			
+			
+			<div id="correction-objects" style="display:none;">
+<!--				<div class="col-md-2">
+					{% if speakingError.correction_recording %}
+					<audio id="correction" isAudio="{{ speakingError.correction_recording_flag}}" style="display:none;" src="{{S3_URL}}/{{ speakingError.correction_recording }}" controls preload type="audio/ogg"></audio>
+					<a id="play-correction" class="btn" errorNumber="{{speakingError.pk}}"><img src="{% static "play_correction.png" %}"></a> 
+					{% else %}
+					<br>
+					<p id="no-audio-correction">{% trans "There is no recorded correction." %}</p>
+					{% endif %}
+				</div>
+-->
+				<div class="col-md-2">
+					<audio id="correction" isAudio="{{ speakingError.correction_recording_flag}}" style="display:none;" src="{{S3_URL}}/{{ speakingError.correction_recording }}" controls preload type="audio/ogg"></audio>
+					<a id="play-correction" class="btn" errorNumber="{{speakingError.pk}}"><img src="{% static "play_correction.png" %}"></a> 
+					<br>
+					<p id="no-audio-correction">{% trans "There is no recorded correction." %}</p>
+				</div>
+
+
+<!--
+				<div class="col-md-6">
+					{% if speakingError.correction_text %}
+					<h3 id="written-correction" class="text-center">{{ speakingError.correction_text }}</h3>
+					{% else %}
+					<br>
+					<p id="no-written-correction">{% trans "There is no written correction." %}</p>
+					{% endif %}
+				</div> -->
+
+				<div class="col-md-6">
+					<h3 id="written-correction" class="text-center">{{ speakingError.correction_text }}</h3>
+					<br>
+					<p id="no-written-correction">{% trans "There is no written correction." %}</p>
+				</div> 
+
 			</div>
 
-			<div class="col-md-7">
-				{% if speakingError.correction_text %}
-				<p id="written-correction-{{ speakingError.pk }}"><h3>{{ speakingError.correction_text }}</p></h3>
-				{% else %}
-				<br>
-				<p id="written-correction-{{ speakingError.pk }}">{% trans "There is no written correction." %}</p>
-				{% endif %}
+
+			<div class="col-md-1">
+				<button id="next-error" class="btn"><img src="{% static "arrow_right.png" %}"></button> 
 			</div>
+			{% elif writingError %}
+
+			{% endif %}
 			</div>
+		</div>
 		<ul class="list-group">
 			{% for practice in practice_upcoming %}
-				<li class="list-group-item">
-					<h3>{{practice.topic.headline}}</h3>
-				</li>
+			<li class="list-group-item">
+			<h3>{{practice.topic.headline}}</h3>
+			</li>
 			{% endfor %}
 		</ul>
+		{% endif %}
 	</div>
 
 
-	<h1>{% trans "Practice Sessions" %}</h1>
-	<br>
-	<div class="panel panel-primary">
-		<div class="panel-heading">{% trans "Your Practice Sessions" %}</div>
+		<h1>{% trans "Practice Sessions" %}</h1>
+		<br>
+		<div class="panel panel-primary">
+			<div class="panel-heading">{% trans "Your Practice Sessions" %}</div>
 			<div class="panel-body">
+				{% if practices %}
 				<p>{% trans "View reports from your completed sessions." %}</p>
 				<p>{% trans "Start a session, modify a session or cancel a session." %}</p>
+				{% else %}
+				<p>{% trans "You have not done any practice sessions." %}</p>
+				{% endif %}
 				<p>{% trans "Book a Session by clicking below!" %}</p>
 				<a class="btn btn-primary" href="/practice/book/">{% trans "Book a Session" %}</a><br>
 			</div>
-		<ul class="list-group">
-			{% for practice in practices %}
+			<ul class="list-group">
+				{% for practice in practices %}
 				<li class="list-group-item">
 
 
 
-					{% if practice.state == "WAITING" or practice.state == "NOMODIFY" %}
-					<h3>{{practice.topic.headline}}</h3>
-					{% localtime on %}
-					<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
-					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>					<div class="row">
-						<div class="col-md-4">
+				{% if practice.state == "WAITING" or practice.state == "NOMODIFY" %}
+				<h3>{{practice.topic.headline}}</h3>
+				{% localtime on %}
+				<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
+				<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>				
+				<div class="row">
+					<div class="col-md-4">
 						<br>
-							{% if practice.state == "WAITING" %}
-								<div class="col-md-3"><a class="btn btn-primary btn-sm" href="/practice/{{ practice.pk }}/update/">{% trans "Modify" %}</a></div>
-							{% endif %}
-							<form action="/practice/{{ practice.pk }}/delete/" method="post" accept-charset="utf-8">
-					        	        {% csrf_token %}
-								<div class="col-md-3"><input class="btn btn-primary btn-sm" type="submit" value={% trans "Cancel" %}></div>
-					       		</form>
-							<div id="prepare-{{ practice.id }}" class="col-md-3"><a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Prepare" %}</a><br></div>
-							<div id="start-{{ practice.id }}" class="col-md-3" style="display:none;"><a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br></div>
-						</div>
+						{% if practice.state == "WAITING" %}
+						<div class="col-md-3"><a class="btn btn-primary btn-sm" href="/practice/{{ practice.pk }}/update/">{% trans "Modify" %}</a></div>
+						{% endif %}
+						<form action="/practice/{{ practice.pk }}/delete/" method="post" accept-charset="utf-8">
+							{% csrf_token %}
+							<div class="col-md-3"><input class="btn btn-primary btn-sm" type="submit" value={% trans "Cancel" %}></div>
+						</form>
+						<div id="prepare-{{ practice.id }}" class="col-md-3"><a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Prepare" %}</a><br></div>
+						<div id="start-{{ practice.id }}" class="col-md-3" style="display:none;"><a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br></div>
 					</div><br><br>
+				</div>
 
 
-					<script>
-						function countdownComplete(result){
-							document.getElementById("prepare-{{ practice.id }}").style.display = "none";
-							document.getElementById("start-{{ practice.id }}").style.display = "inline";
-						}
-						var myCountdown1 = new Countdown({
-							time:{{ practice.timeUntil }},
-							hideLine : true,		
-							rangeHi : "day",
-							numbers : {
-								bkgd : "#FF9966"
-							},
-							onComplete : countdownComplete
-						});
-					</script>
-					<div id="countdown-{{ practice.id }}" style="display:none;">{{ practice.timeUntil }}</div>
-					{% endlocaltime %}
+				<script>
+	function countdownComplete(result){
+		document.getElementById("prepare-{{ practice.id }}").style.display = "none";
+		document.getElementById("start-{{ practice.id }}").style.display = "inline";
+	}
+	var myCountdown1 = new Countdown({
+	time:{{ practice.timeUntil }},
+	hideLine : true,		
+	rangeHi : "day",
+	numbers : {
+	bkgd : "#FF9966"
+	},
+	onComplete : countdownComplete
+	});
+				</script>
+				<div id="countdown-{{ practice.id }}" style="display:none;">{{ practice.timeUntil }}</div>
+				{% endlocaltime %}
 
-					{% endif %}
-					
+				{% endif %}
 
 
-					{% if practice.state == "SPEAKING" %}
-					<h3>{{practice.topic.headline}}</h3>
-					{% localtime on %}
-					<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
-					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>					<div class="row">
-						<div class="col-md-4">
+
+				{% if practice.state == "SPEAKING" %}
+				<h3>{{practice.topic.headline}}</h3>
+				{% localtime on %}
+				<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
+				<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>					<div class="row">
+					<div class="col-md-4">
 						<br>
-							<p>{% trans "The session has already started!" %}</p>
-							<div id="start-{{ practice.id }}" class="col-md-3"><a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br></div>
-						</div>
-					</div><br><br>
-					{% endlocaltime %}
+						<p>{% trans "The session has already started!" %}</p>
+						<div id="start-{{ practice.id }}" class="col-md-3"><a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br></div>
+					</div>
+				{% endlocaltime %}
 
-					{% endif %}
-
+				{% endif %}
 
 
-					{% if practice.state == "WRITING" %}
-					{% localtime on %}
-					<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
-					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
-					<div class="row">
+
+				{% if practice.state == "WRITING" %}
+				{% localtime on %}
+				<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
+				<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
+				<div class="row">
 					<div class="col-md-4">
 						<br><p>{% trans "Speaking Complete!" %}</p>
 						{% if practice.speaking_report_published %}
-							<a class="btn btn-sm btn-info" href="/report/{{ practice.pk }}/speaking/">{% trans "View Speaking Report" %}</a><br>
+						<a class="btn btn-sm btn-info" href="/report/{{ practice.pk }}/speaking/">{% trans "View Speaking Report" %}</a><br>
 						{% else %}
-							<div class="progress">
-								<div class="progress-bar progress-bar-striped progress-bar-warning active" role="progressbar" aria valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"> {% trans "Report in Progress..." %}
-								</div>
+						<div class="progress">
+							<div class="progress-bar progress-bar-striped progress-bar-warning active" role="progressbar" aria valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"> {% trans "Report in Progress..." %}
 							</div>
+						</div>
 						{% endif %}
 					</div>
-					</div>
 					<div class="col-md-4 col-md-offset-1">
-					<br>
-						
-					{% if practice.writing_complete == True %}
+						<br>
+
+						{% if practice.writing_complete == True %}
 						<p>{% trans "Writing Complete!" %}</p>
 						<div class="progress">
 							<div class="progress-bar progress-bar-striped  progress-bar-warning active" role="progressbar" aria valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"> {% trans "Report in Progress..." %}
 							</div>
 						</div>
-					{% else %}
+						{% else %}
 						<p class="text-center">{% trans "You still have time to do the writing." %}
 						<br><a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a></p>
 
-					{% endif %}
-					{% endlocaltime %}
-					{% endif %}
+						{% endif %}
+						{% endlocaltime %}
+					</div>
+				</div>
+				{% endif %}
 
 
 
-					{% if practice.state == "COMPLETE" %}
-					<h3>{{practice.topic.headline}}</h3>
-					{% localtime on %}
-					<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
-					<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
-					<div class="row">
+				{% if practice.state == "COMPLETE" %}
+				<h3>{{practice.topic.headline}}</h3>
+				{% localtime on %}
+				<strong>{% trans "When" %}: </strong>{{practice.dateTime}} <br>
+				<strong>{% trans "Language" %}: </strong>{{practice.topic.language}} <br>
+				<div class="row">
 					<div class="col-md-4">
 						<br><p>{% trans "Speaking Complete!" %}</p>
 						{% if practice.speaking_report_published %}
-							<a class="btn btn-sm btn-info" href="/report/{{ practice.pk }}/speaking/">{% trans "View Speaking Report" %}</a><br>
+						<a class="btn btn-sm btn-info" href="/report/{{ practice.pk }}/speaking/">{% trans "View Speaking Report" %}</a><br>
 						{% else %}
-							<div class="progress">
-								<div class="progress-bar progress-bar-striped progress-bar-warning active" role="progressbar" aria valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"> {% trans "Report in Progress..." %}
-								</div>
+						<div class="progress">
+							<div class="progress-bar progress-bar-striped progress-bar-warning active" role="progressbar" aria valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"> {% trans "Report in Progress..." %}
 							</div>
+						</div>
 						{% endif %}
 					</div>
 					<div class="col-md-4 col-md-offset-1">
-					<br>
-					{% if practice.writing_report_published == True %}
+						<br>
+						{% if practice.writing_report_published == True %}
+						<p>{% trans "Writing Complete!" %}</p>
 						<a class="btn btn-sm btn-info" href="/report/{{ practice.pk }}/writing/">{% trans "View Writing Report" %}</a><br>
-					{% elif practice.writing_complete == True %}
+						{% elif practice.writing_complete == False %}
 						<p>{% trans "Writing Complete!" %}</p>
 						<div class="progress">
 							<div class="progress-bar progress-bar-striped  progress-bar-warning active" role="progressbar" aria valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"> {% trans "Report in Progress..." %}
 							</div>
 						</div>
-					{% else %}
+						{% else %}
 						<p class="text-center">{% trans "You haven't done the writing yet." %}
 						<br><a class="btn btn-success btn-sm" href="/practice/{{ practice.pk }}/">{% trans "Start" %}</a></p>
 
-					{% endif %}
+						{% endif %}
 					</div>
-					</div>
-					{% endlocaltime %}
-					{% endif %}	
+				</div>
+				{% endlocaltime %}
+				{% endif %}	
 
 
 
 				</li>
-			{% endfor %}
-		</ul>
-	</div>	
-		<ul class="pagination">
-			    {% if practices.has_previous %}
-				    <li><a href="?page={{ practices.previous_page_number }}">&laquo;</a></li>
-			    {% else %}
-				    <li class="disabled"><span>&laquo;</span></li>
-			    {% endif %}
-		
-				{% for i in paginator.page_range %}
-				<li {% if practices.number == i %} class="active" {% endif %}><a href="?page={{ i }}">{{ i }}</a></li>
 				{% endfor %}
-		
-			    {% if practices.has_next %}
-			   	 <li><a href="?page={{ practices.next_page_number }}">&raquo;</a></li>
-			    {% else %}
-				    <li class="disabled"><span>&raquo;</span></li>
-	   	            {% endif %}
-		 </ul>
+			</ul>
+		</div>	
+		<ul class="pagination">
+			{% if practices.has_previous %}
+			<li><a href="?page={{ practices.previous_page_number }}">&laquo;</a></li>
+			{% else %}
+			<li class="disabled"><span>&laquo;</span></li>
+			{% endif %}
 
-</div>
+			{% for i in paginator.page_range %}
+			<li {% if practices.number == i %} class="active" {% endif %}><a href="?page={{ i }}">{{ i }}</a></li>
+			{% endfor %}
 
+			{% if practices.has_next %}
+			<li><a href="?page={{ practices.next_page_number }}">&raquo;</a></li>
+			{% else %}
+			<li class="disabled"><span>&raquo;</span></li>
+			{% endif %}
+		</ul>
 
-{% endblock%}
+	</div>
+
+<script src="{% static "js/language2_practice.js" %}"></script>
+
+	{% endblock%}
