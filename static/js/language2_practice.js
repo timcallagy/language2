@@ -14,6 +14,7 @@ $(document).ready(function() {
 	$("[id^=play-error]").click(function(){
 		var min = parseInt(this.getAttribute("errorTimeMin"));
 		var sec = parseInt(this.getAttribute("errorTimeSec"));
+		console.log('Min: ' + min + ' and Sec: ' + sec);
 		var audioElement = document.getElementById('recording');
 		var uniqueId = audioElement.getAttribute("uniqueId");
 		audioElement.pause();
@@ -29,8 +30,8 @@ $(document).ready(function() {
 		}, 10000);
 	});
 	
-	$("[id^=show-correction]").click(function(){
-		$("[id^=correction-cover]").hide();
+	$("[id^=show-speaking-correction]").click(function(){
+		$("[id^=speaking-correction-cover]").hide();
 		var audioElement = document.getElementById('correction');
 		if (audioElement.getAttribute("isAudio") == "False") {
 			$("[id^=play-correction]").hide();
@@ -47,7 +48,13 @@ $(document).ready(function() {
 			$("[id^=no-written-correction]").hide();
 			$("[id^=written-correction]").show();
 		}
-		$("[id^=correction-objects]").show();
+		$("[id^=audio-correction-objects]").show();
+
+	});
+
+	$("[id^=show-writing-correction]").click(function(){
+		$("[id^=writing-correction-cover]").hide();
+		$("[id^=writing-correction-objects]").show();
 
 	});
 
@@ -57,13 +64,12 @@ $(document).ready(function() {
 	});
 			
 
-	$("[id^=next-error]").click(function(){
-		$.get("/practice/next_error/", function(data){
-
-			$("#mistakes-panel").fadeOut(100);
-			$("[id^=correction-objects]").hide();
-			$("[id^=correction-cover]").fadeOut(100);
-			$("[id^=correction-cover]").fadeIn(1000);
+	$("[id^=next-speaking-error]").click(function(){
+		$.get("/practice/next_speaking_error/", function(data){
+			$("#speaking-mistakes-panel").fadeOut(100);
+			$("[id^=audio-correction-objects]").hide();
+			$("[id^=speaking-correction-cover]").fadeOut(100);
+			$("[id^=speaking-correction-cover]").fadeIn(1000);
 		
 
 			// "Recording" audio element set up.
@@ -102,12 +108,28 @@ $(document).ready(function() {
 			}
 
 
-			$("#mistakes-panel").fadeIn(1000);
+			$("#speaking-mistakes-panel").fadeIn(1000);
 		
 			// Auto-play the next mistake.	
 	        	setTimeout(function(){
 	        		btn.click();
 			}, 1000);
+		});
+	});
+
+
+	$("[id^=next-writing-error]").click(function(){
+		$.get("/practice/next_writing_error/", function(data){
+			$("#writing-mistakes-panel").fadeOut(100);
+			$("[id^=writing-correction-objects]").hide();
+			$("[id^=writing-correction-cover]").fadeOut(100);
+			$("[id^=writing-correction-cover]").fadeIn(1000);
+			console.log(data);	
+			var mistake = document.getElementById('written-error-text');
+			mistake.innerHTML = data[0].fields.original_text;
+			var correction = document.getElementById('writing-correction-text');
+			correction.innerHTML = data[0].fields.correction_text;
+			$("#writing-mistakes-panel").fadeIn(100);
 		});
 	});
 

@@ -32,22 +32,27 @@ if (location.href.contains('coach')) {
         coachLeg = 'true';
 } else coachLeg = 'false';
 var ice_servs = [];
-var RTCPeerConnection = window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
-window.turnserversDotComAPI.iceServers(function(data){
+	ice_servs.push({
+		url: 'turn:numb.viagenie.ca',
+		username: 'muwawa%40mail.ru',
+		credential: 'mauritius'
+	});
+//var RTCPeerConnection = window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
+//window.turnserversDotComAPI.iceServers(function(data){
 //        ice_servs = data;
 //        console.log(data[1].url);
-	var tokens = data[1].url.split('@');
-	userName = tokens[0].substring(5, data[0].length);
-	credenTial = data[1].credential;
-	ice_servs.push({
-		url: 'turn:85.25.243.74:3478?transport=udp',
-		credential: credenTial,
-		username: userName
-	});
+//	var tokens = data[1].url.split('@');
+//	userName = tokens[0].substring(5, data[0].length);
+//	credenTial = data[1].credential;
+//	ice_servs.push({
+//		url: 'turn:85.25.243.74:3478?transport=udp',
+//		credential: credenTial,
+//		username: userName
+//	});
 
-	console.log(ice_servs);
+//	console.log(ice_servs);
 //        pc = new RTCPeerConnection({ iceServers: ice_servs}, {});
-});
+//});
 
 (function () {
     // www.RTCMultiConnection.org/docs/constructor/

@@ -3,6 +3,7 @@ import json
 import pytz
 import datetime
 import time
+import random
 from random import randint
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template import RequestContext
@@ -361,42 +362,55 @@ def practice_list(request):
 				practice.state = 'WRITING'
 			else:
 				practice.state = 'COMPLETE'
+	
+		# Pick a random SpeakingError or WritingError (with preference for SpeakingError)	
+		speaking_errors_max = SpeakingError.objects.filter(learner=request.user).count()
+		speakingError = None
+		if speaking_errors_max > 0:
+			speakingError = SpeakingError.objects.filter(learner=request.user).all()[randint(0, speaking_errors_max -1)]
+		writing_errors_max = WritingError.objects.filter(learner_id=request.user.id).count()
+		if writing_errors_max > 0:
+			writingError = WritingError.objects.filter(learner_id=request.user.id).all()[randint(0, writing_errors_max -1)]
+		return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'speakingError': speakingError, 'writingError': writingError, 'S3_URL': settings.S3_URL}, context)
+			
 
-		errors_max = SpeakingError.objects.filter(learner=request.user).count()
-		if errors_max > 0:
-			speakingError = SpeakingError.objects.filter(learner=request.user).all()[randint(0, errors_max -1)]
-			return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'speakingError': speakingError, 'S3_URL': settings.S3_URL}, context)
-		else:
-			return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'S3_URL': settings.S3_URL}, context)
-	else:
-		return render_to_response('lambada/practice_list.html', {'S3_URL': settings.S3_URL}, context)
 
-				
-#		errors_max = SpeakingError.objects.filter(learner=request.user).aggregate(Max('id'))['id__max']
-#		print('errors_max: ' + str(errors_max))
-#		if errors_max:
-#			try:
-#				speakingError = SpeakingError.objects.get(pk=randint(1, errors_max), learner=request.user)
-#				return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'speakingError': speakingError, 'S3_URL': settings.S3_URL}, context)
-#			except SpeakingError.DoesNotExist:
-#				return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'S3_URL': settings.S3_URL}, context)
+
+#			return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'speakingError': speakingError, 'S3_URL': settings.S3_URL}, context)
 #		else:
-#			return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'S3_URL': settings.S3_URL}, context)
+#			errors_max = WritingError.objects.filter(learner_id=request.user.id).count()
+#			if errors_max > 0:
+#				writingError = WritingError.objects.filter(learner_id=request.user.id).all()[randint(0, errors_max -1)]
+#				return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'writingError': writingError, 'S3_URL': settings.S3_URL}, context)
+#			else:
+#				return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'S3_URL': settings.S3_URL}, context)
 #	else:
 #		return render_to_response('lambada/practice_list.html', {'S3_URL': settings.S3_URL}, context)
-		
+
+				
 
 @login_required
-def next_error(request):
+def next_speaking_error(request):
 	errors_max = SpeakingError.objects.filter(learner=request.user).count()
 	if errors_max > 0:
 		speakingError = SpeakingError.objects.filter(learner=request.user).all()[randint(0, errors_max -1)]
 		data = serializers.serialize("json", [speakingError, speakingError.learnerRecording])
 		return HttpResponse(data, content_type = "application/json")
 	else:
-		return HttpResponse('There are no Speaking Errors.')
-	
+		return HttpResponse('There are no Errors.')
 
+
+@login_required
+def next_writing_error(request):
+	errors_max = WritingError.objects.filter(learner_id=request.user.id).count()
+	if errors_max > 0:
+		writingError = WritingError.objects.filter(learner_id=request.user.id).all()[randint(0, errors_max -1)]
+		data = serializers.serialize("json", [writingError])
+		return HttpResponse(data, content_type = "application/json")
+	else:
+		return HttpResponse('There are no Errors.')
+		
+	
 # TO DO: Don't allow Modifications if the pratice sessions is less than 6 hours away.
 class PracticeUpdate(UpdateView):
 	model = Practice 
