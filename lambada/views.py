@@ -368,6 +368,9 @@ def practice_list(request):
 			return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'speakingError': speakingError, 'S3_URL': settings.S3_URL}, context)
 		else:
 			return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'S3_URL': settings.S3_URL}, context)
+	else:
+		return render_to_response('lambada/practice_list.html', {'S3_URL': settings.S3_URL}, context)
+
 				
 #		errors_max = SpeakingError.objects.filter(learner=request.user).aggregate(Max('id'))['id__max']
 #		print('errors_max: ' + str(errors_max))
