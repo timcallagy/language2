@@ -201,7 +201,7 @@ INSTALLED_APPS = (
     #'django_bleach',
     'bootstrapform',
     'datetimewidget',
-    'reservations',
+    #'reservations',
 )
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
