@@ -32,10 +32,15 @@ if (location.href.contains('coach')) {
         coachLeg = 'true';
 } else coachLeg = 'false';
 var ice_servs = [];
+//	ice_servs.push({
+//		url: 'turn:numb.viagenie.ca',
+//		username: 'muwawa%40mail.ru',
+//		credential: 'mauritius'
+//	});
 	ice_servs.push({
-		url: 'turn:numb.viagenie.ca',
-		username: 'muwawa%40mail.ru',
-		credential: 'mauritius'
+		url: 'turn:ec2-54-191-244-214.us-west-2.compute.amazonaws.com:3478',
+		username: 'tim',
+		credential: 'tim'
 	});
 //var RTCPeerConnection = window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
 //window.turnserversDotComAPI.iceServers(function(data){

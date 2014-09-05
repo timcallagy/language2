@@ -372,6 +372,9 @@ def practice_list(request):
 		if writing_errors_max > 0:
 			writingError = WritingError.objects.filter(learner_id=request.user.id).all()[randint(0, writing_errors_max -1)]
 		return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'speakingError': speakingError, 'writingError': writingError, 'S3_URL': settings.S3_URL}, context)
+	else:
+		return render_to_response('lambada/practice_list.html', {'S3_URL': settings.S3_URL}, context)
+		
 			
 
 
@@ -457,7 +460,13 @@ class CoachList(ListView):
 	template_name = 'lambada/coach_list.html'
 
 	def get_queryset (self):
-		return Practice.objects.filter(coach=self.request.user).order_by('dateTime')
+		return Practice.objects.filter(coach=self.request.user).order_by('-dateTime')
+
+
+@login_required
+def coach_settings(request):
+	context = RequestContext(request)
+	return render_to_response('lambada/coach_settings.html', {}, context)
 
 
 @login_required

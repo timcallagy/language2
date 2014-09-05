@@ -198,13 +198,10 @@ INSTALLED_APPS = (
     #'debug_toolbar',
     'djrill',
     'tinymce',
-    #'sorl.thumbnail',
-    #'mce_filebrowser',
     #'django_bleach',
     'bootstrapform',
-    #'secretballot',
-    #'likes',
     'datetimewidget',
+    'reservations',
 )
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

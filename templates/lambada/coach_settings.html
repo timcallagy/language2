@@ -1,0 +1,100 @@
+{% extends 'lambada/base.html' %}
+
+
+{% block title %} Language Lambada {% endblock %}
+
+{% load i18n %}
+{% load tz %}
+{% load bootstrap %}
+{% load static %}
+	<script src="{% static "js/fullcalendar.min.js" %}"></script>
+	<link rel='stylesheet' type='text/css' href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.css" />
+
+{% block top_menu %}
+<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
+<li><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
+<li class="active"><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
+<li><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
+<li><a href="/help/">{% trans "How does this work?" %}</a></li>
+{% endblock %}
+
+{% block body %}
+<div class="pull-right">
+	<ol class="breadcrumb">
+		<li><a href="">{% trans "Coaching Sessions" %}</a></li>
+		<li class="active">{% trans "Settings" %}</li>
+	</ol>
+</div>
+
+<div class="col-md-10 col-md-offset-1">
+	<h1>{% trans "Coaching Sessions" %}</h1>
+	<br>
+
+	<div id="calendar"></div>
+	<script type='text/javascript'>
+		$(document).ready(function() {
+		// page is now ready, initialize the calendar...
+		$('#calendar').fullCalendar({
+			// put your options and callbacks here
+			events: '/schedule/api/occurrences?calendar_slug=example'
+			})
+		});
+	</script>	
+
+
+	<div class="panel panel-primary">
+		<div class="panel-heading">{% trans "Your Upcoming Coaching Sessions" %}</div>
+		{% if practice_list %}
+		<div class="panel-body">
+			<p>{% trans "Prepare for a session, Start a session, cancel a session, or manage session reports." %}</p>
+		</div>
+		{% else %}
+		<div class="panel-body">
+			<p>{% trans "You have no upcoming Coaching Sessions!" %}</p>
+		</div>
+		{% endif %}
+		<ul class="list-group">
+			{% for practice in practice_list %}
+			<li class="list-group-item">
+			<h3>{{practice.topic.headline}}</h3>
+			{% localtime on %}
+			<strong>{% trans "When" %}: </strong>{{practice.dateTime}}<br>
+			<strong>{% trans "Language" %}: </strong>{{practice.topic.language}}<br>
+			<br>
+			<div class="col-md-1"><form action="/coach/practice/{{ practice.pk }}/cancel/" method="post" accept-charset="utf-8">
+					{% csrf_token %}
+					<p><input class="btn btn-primary" type="submit" value={% trans "Cancel" %}></p>
+			</form></div>
+			<div class="col-md-1"><a class="btn btn-success" href="/coach/practice/{{ practice.pk }}/">{% trans "Start" %}</a><br></div>
+			<br>
+			<br>
+			{% endlocaltime %}
+
+			</li>
+			{% endfor %}
+		</ul>
+	</div>	
+	<br>
+
+	{% if is_paginated %}
+	<ul class="pagination">
+		{% if page_obj.has_previous %}
+		<li><a href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+		{% else %}
+		<li class="disabled"><span>&laquo;</span></li>
+		{% endif %}
+
+		{% for i in paginator.page_range %}
+		<li {% if page_obj.number == i %} class="active" {% endif %}><a href="?page={{ i }}">{{ i }}</a></li>
+		{% endfor %}
+
+		{% if page_obj.has_next %}
+		<li><a href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>
+		{% else %}
+		<li class="disabled"><span>&raquo;</span></li>
+		{% endif %}
+	</ul>
+	{% endif %}
+</div>
+
+{% endblock%}

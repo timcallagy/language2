@@ -26,10 +26,9 @@
 	</div>
 <h1>{% trans "Design Topic" %}</h1>
 	<form class="form form-horizontal" action="/topic/add/" method="post" accept-charset="utf-8">
-		<p><input class="btn btn-primary" type="submit" value={% trans "Save" %}></p>
+		<button class="btn btn-primary" type="submit">{% trans "Save" %}</button>
 		{% csrf_token %}
 		{{ form|bootstrap_horizontal }} 
-		<p><input class="btn btn-primary" type="submit" value={% trans "Save" %}></p>
 	</form>
 
 {% endblock%}

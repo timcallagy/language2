@@ -25,7 +25,7 @@
 </div>
 
 <div class="col-md-10 col-md-offset-1">
-	{% if speakingError or writingError %}
+	{% if speakingError %}
 	<h1>{% trans "Practice your mistakes" %}</h1>
 
 	<br>
@@ -75,6 +75,7 @@
 		{% endif %}
 	</div>
 
+	{% if writingError %}
 	<br>
 	<div class="panel panel-primary">
 		<div class="panel-heading">{% trans "Your Writing Mistakes" %}</div>
@@ -106,6 +107,7 @@
 			</div>
 		</div>
 	</div>
+		{% endif %}
 
 
 
