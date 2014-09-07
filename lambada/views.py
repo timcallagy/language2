@@ -369,10 +369,11 @@ def practice_list(request):
 	
 		# Pick a random SpeakingError or WritingError (with preference for SpeakingError)	
 		speaking_errors_max = SpeakingError.objects.filter(learner=request.user).count()
+		writing_errors_max = WritingError.objects.filter(learner_id=request.user.id).count()
 		speakingError = None
+		writingError = None
 		if speaking_errors_max > 0:
 			speakingError = SpeakingError.objects.filter(learner=request.user).all()[randint(0, speaking_errors_max -1)]
-		writing_errors_max = WritingError.objects.filter(learner_id=request.user.id).count()
 		if writing_errors_max > 0:
 			writingError = WritingError.objects.filter(learner_id=request.user.id).all()[randint(0, writing_errors_max -1)]
 		return render_to_response('lambada/practice_list.html', {'practices': practices, 'paginator': paginator, 'speakingError': speakingError, 'writingError': writingError, 'S3_URL': settings.S3_URL}, context)
