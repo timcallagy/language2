@@ -11,6 +11,7 @@ django-bootstrap-form==3.1
 django-boto==0.3.1
 django-datetime-widget==0.6
 django-debug-toolbar==1.2.1
+django-scheduler==0.7.2
 django-secretballot==0.2.3
 django-storages==1.1.8
 django-tinymce==1.5.2
