@@ -1,7 +1,8 @@
 import pytz
 import secretballot
-from tinymce.models import HTMLField
 from datetime import datetime, tzinfo
+from tinymce.models import HTMLField
+from schedule.models.rules import Rule
 from django.utils.timezone import utc
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
@@ -64,6 +65,7 @@ class Practice(models.Model):
 	writing_complete = models.BooleanField(blank=True, default=False)
 	speaking_report_published = models.BooleanField(blank=True, default=False)
 	writing_report_published = models.BooleanField(blank=True, default=False)
+	rating = models.DecimalField(null=False, default=0, max_digits=7, decimal_places=1)
 
 	def get_absolute_url(self):
 		return reverse('practice_list')
@@ -115,4 +117,12 @@ class ChannelPrivate(models.Model):
 class ChannelDefault(models.Model):
 	practice_pk = models.CharField(max_length=255, blank=True, null=True)
 	message = models.CharField(max_length=3000, blank=True, null=True)
-# Create your models here.
+
+
+#class RuleChild(Rule):
+#	class Meta(Rule.Meta):
+#		abstract = True
+
+#	def __unicode__(self):
+#		"""Human readable string for Rule"""
+#		return '%s params %s' % (self.name, self.params)

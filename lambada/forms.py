@@ -5,6 +5,8 @@ import pytz
 from django.utils.translation import ugettext_lazy as _
 from language2 import settings
 from datetimewidget.widgets import DateTimeWidget
+from django.forms.widgets import SplitDateTimeWidget
+from django.db import models
 #from crispy_forms.helper import FormHelper
 #from crispy_forms.layout import MultiField, Layout, Alert
 
@@ -48,21 +50,33 @@ class TopicForm(forms.ModelForm):
 		fields = ('headline', 'language', 'learners_speaking_instructions', 'learners_writing_instructions', 'guides_speaking_instructions')
 
 
-class PracticeForm(forms.ModelForm):
-	dateTime = forms.DateTimeField(widget=DateTimeWidget({'id':"dateTime"},{'minView':"0"},usel10n = True))
-	
-	def clean(self):
-		date = self.cleaned_data.get('dateTime')
-		now = datetime.datetime.utcnow().replace(tzinfo=utc)
-		timeUntil = (date - now).total_seconds()
-		print('timeUntil: ' + timeUntil)
-		if timeUntil < 3600:
-			raise forms.ValidationError(_("You must allow at least 1 hour before the practice session."))
-		return self.cleaned_data
+#class PracticeForm(forms.ModelForm):
+#	dateTime = forms.DateTimeField(widget=DateTimeWidget({'id':"dateTime"},{'minView':"0"},usel10n = True))
+#	
+#	def clean(self):
+#		date = self.cleaned_data.get('dateTime')
+#		now = datetime.datetime.utcnow().replace(tzinfo=utc)
+#		timeUntil = (date - now).total_seconds()
+#		print('timeUntil: ' + timeUntil)
+#		if timeUntil < 3600:
+#			raise forms.ValidationError(_("You must allow at least 1 hour before the practice session."))
+#		return self.cleaned_data
+#
+#	class Meta:
+#		model = Practice
+#		fields = ('dateTime',)
 
+class PracticeForm(forms.ModelForm):
+	dateTime = forms.DateTimeField(label=_('When'), widget=forms.SplitDateTimeWidget(date_format='%Y-%m-%d'))
+	
 	class Meta:
 		model = Practice
-		fields = ('dateTime',)
+		fields = ('dateTime',)	
+		dateTime = forms.SplitDateTimeField(input_date_formats=['%Y-%m-%d'], input_time_formats=['%H:%M'])
+
+	def clean(self):
+		self.instance.dateTime=self.cleaned_data.get('dateTime_0')
+
 
 class PracticeWritingForm(forms.ModelForm):
 	def clean(self):

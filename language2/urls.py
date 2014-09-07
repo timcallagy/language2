@@ -7,6 +7,7 @@ urlpatterns = patterns('',
     url(r'^', include('lambada.urls')),
     url(r'^tinymce/', include('tinymce.urls')),
     url(r'i18n/', include('django.conf.urls.i18n')),
+    url(r'^schedule/', include('schedule.urls')),
     #url(r'^likes/', include('likes.urls')),
 )
 

@@ -1,0 +1,57 @@
+{% extends "lambada/coach_settings.html" %}
+{% load scheduletags static i18n %}
+{% block extra_head %}
+{% endblock %}
+
+{% block calendar %}
+
+{% include "schedule/_dialogs.html" %}
+
+	<div class="panel panel-primary">
+		<div class="panel-heading">{% trans "Your Upcoming Coaching Sessions" %}</div>
+		<ul class="list-group">
+			<br>
+			<p class="text-center">{% trans "In the calendar below, mark the times when you are available to coach" %}</p>
+			<br>
+		</ul>
+	</div>	
+
+
+<div class="navigation">
+  <a href="{% url "month_calendar" calendar.slug %}{% querystring_for_date periods.week.start 2 %}">
+    {% trans "Month" %}
+  </a>
+  <a href="{% url "year_calendar" calendar.slug %}{% querystring_for_date periods.week.start 1%}">
+    {% trans "Year" %}
+  </a>
+</div>
+
+<div class="tablewrapper">
+    {% prevnext "week_calendar" calendar.slug periods.week "\W\e\ek W, M Y" %}
+    <div class="now">
+      <a href="{% url "week_calendar" calendar.slug %}">
+        {% trans "This week" %}
+      </a>
+    </div>
+</div>
+
+<div id="week">
+  {% for day in periods.week.get_days %}
+    <div class="weekday weekday{{forloop.counter}}">
+      <div class="weekdayheader">
+        <a href="{% url "day_calendar" calendar.slug %}{% querystring_for_date day.start %}">
+          {{day.start|date:"l, d"}}
+        </a>
+      </div>
+      <div class="weekdaytable">
+      {% if forloop.first %}
+          {% daily_table day 230 80 600 9 21 %}
+      {% else %}
+          {% daily_table day 150 15 600 9 21 %}
+      {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

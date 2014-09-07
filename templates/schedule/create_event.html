@@ -1,0 +1,36 @@
+{% extends "lambada/coach_settings.html" %}
+{% load i18n bootstrap %}
+
+{% block calendar %}
+<div class="col-md-6 col-md-offset-1">
+<b>{% trans "Create or change event." %}</b>
+<br/><br/>
+<form class="form-horizontal" action="" method="post">
+  <div class="form-group">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+		{{ form.start.errors }}
+	  <label for="id_start_0">{% trans "Start: " %}</label> {{ form.start }}<br>
+		{{ form.end.errors }}
+	  <label for="id_end_0">{% trans "End: " %}</label> {{ form.end }}<br>
+	  <input id="id_title" type="hidden" name="title" value="{% trans "Available" %}">
+	  <label for="id_rule">{% trans "Recurrence: " %}</label>
+		<select id="id_rule" name="rule">
+			<option selected="selected" value="">{% trans "No Recurrence" %}</option>
+			<option value="1">{% trans "Repeat Daily" %}</option>
+			<option value="2">{% trans "Repeat Weekly" %}</option>
+			<option value="3">{% trans "Repeat Monthly" %}</option>
+		</select><br>
+		{{ form.end_recurring_period.errors }}
+	  <label for="id_end_recurring_period" name="end_recurring_period">{% trans "End of recurring period: " %}</label> {{ form.end_recurring_period }}<br>
+	
+  <br/>
+  <input class="btn btn-primary" type="submit" value="{% trans "Save" %}">
+  <input class="btn btn-primary" type="button" value="{% trans "Cancel" %}" onclick="window.location='{{next}}'"/>
+  <input type="hidden" name="next" value="{{next|default:""}}"/>
+  </div>
+</form>
+</div>
+
+
+{% endblock %}

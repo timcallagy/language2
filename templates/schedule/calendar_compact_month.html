@@ -1,0 +1,6 @@
+{% extends "lambada/coach_settings.html" %}
+{% load scheduletags %}
+{% block calendar %}
+<p align="center"><b>{{ calendar.name }}</b></p>
+{% month_table calendar periods.month "small" %}
+{% endblock %}

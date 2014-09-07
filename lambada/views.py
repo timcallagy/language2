@@ -15,6 +15,7 @@ from django.views.generic import TemplateView, CreateView, DeleteView, UpdateVie
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponse, StreamingHttpResponse, Http404, HttpResponseForbidden
 from django.utils.timezone import utc
+from django.utils.dateparse import parse_time
 from django.utils.translation import ugettext as _
 from django.utils import translation
 from django.core.mail import send_mail
@@ -294,7 +295,10 @@ def practice_add(request, pk):
 def practice_payment(request, pk):
 	context = RequestContext(request)
 	topic = Topic.objects.get(pk=pk)
-	naive = datetime.datetime.strptime(request.POST.get('dateTime_0', datetime.datetime.now), '%Y-%m-%d %H:%M:%S')
+#	naive = datetime.datetime.strptime(request.POST.get('dateTime_0', datetime.datetime.now), '%Y-%m-%d %H:%M:%S')
+	date = datetime.datetime.strptime(request.POST.get('dateTime_0', datetime.datetime.now), '%Y-%m-%d')
+	time = parse_time(request.POST.get('dateTime_1'))
+	naive = datetime.datetime.combine(date, time)
 	tz = pytz.timezone(request.session['django_timezone'])
 	aware = tz.localize(naive)
 	return render_to_response('lambada/practice_payment.html', {'object': topic, 'dateTime': aware}, context)
@@ -446,6 +450,17 @@ class PracticeDelete(DeleteView):
                 except ObjectDoesNotExist:
                         raise Http404()
                 return obj 
+
+
+@login_required
+def practice_rating(request, pk):
+	practice = Practice.objects.get(pk=pk)
+	if practice.user == request.user:
+		practice.rating = request.POST.get('rating')
+		practice.save()
+		return HttpResponse("Rating added")
+	else: 
+		return("Not authorized")
 
 
 ################################

@@ -10,13 +10,18 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{% block title %} Default Title {% endblock %}</title>
 	<link rel="stylesheet" href="{% static "css/bootstrap.css" %}" /> <!-- CSS -->
+	<link rel="stylesheet" href="{% static "schedule/css/schedule.css" %}" type="text/css" media="screen" />
+	<link rel="stylesheet" href="{% static "schedule/css/jquery-ui.css" %}" type="text/css" media="screen" />
 	<link rel="stylesheet" href="{% static "css/sticky-footer-navbar.css"%}" />
 	<link rel="stylesheet" href="{% static "css/datetimepicker.css"%}" />
-	<script src="{% static "js/jquery.js" %}"></script> 
-	<script src="{% static "js/jquery.cookie.js" %}"></script> 
+	<script src="{% static "schedule/js/jquery.js" %}"></script> 
+	<script type="text/javascript" src="{% static "schedule/js/jquery-ui.js" %}"></script>
+	<script type="text/javascript" src="{% static "schedule/js/jquery.timePicker.js" %}"></script>
+	<script type="text/javascript" src="{% static "js/language2_dates.js" %}"></script> 
+	<script src="{% static "js/jquery_cookie-1.4.1.js" %}"></script> 
 	<script src="{% static "js/bootstrap.js" %}"></script>
 	<script src="{% static "js/bootstrap-datetimepicker.js" %}"></script>
-	<script type="text/javascript" src={% static "js/tiny_mce/tiny_mce.js" %}></script>
+	<script type="text/javascript" src="{% static "js/tiny_mce/tiny_mce.js" %}"></script>
 	<script src="{% static "js/countdown/countdown.js" %}"></script>
 
 </head>
