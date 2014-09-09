@@ -29,6 +29,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Max
 from lambada.forms import UserForm, UserProfileForm, TopicForm, PracticeForm, PracticeWritingForm, SpeakingErrorForm
 from lambada.models import Topic, UserProfile, Practice, LearnerRecording, SpeakingError, WritingError, ChannelPrivate, ChannelDefault
+from schedule.models.events import Event
 
 
 ##################################
@@ -268,6 +269,11 @@ class PracticeBook(ListView):
 	def get_context_data(self, **kwargs):
 		context = super(PracticeBook, self).get_context_data(**kwargs)
 		context['practice_form'] = PracticeForm()
+		start = datetime.datetime(2007, 1, 1)
+		end = datetime.datetime(2016, 1, 1)
+		events = Event.objects.filter(start__gte=start, end__lte=end)
+		context['events'] = events
+		print(events.count())
 		return context
 
 

@@ -5,8 +5,16 @@
 {% load i18n %}
 {% load tz %}
 {% load bootstrap %}
+{% load static %}
 
 	{{ form.media }}
+
+{% block extra_head %}
+	<script src="{% static "schedule/js/jquery.js" %}"></script> 
+	<script type="text/javascript" src="{% static "schedule/js/jquery-ui.js" %}"></script> 
+	<script type="text/javascript" src="{% static "schedule/js/jquery.timePicker.js" %}"></script> 
+	<script type="text/javascript" src="{% static "js/language2_dates.js" %}"></script>  
+{% endblock %}
 
 {% block top_menu %}
 	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
@@ -27,6 +35,9 @@
 	<br>
 	<div class="panel panel-primary">
 		<div class="panel-heading">{% trans "Practice Session Topics" %}</div>
+		{% for event in events %}
+			{{ event }} <br>
+		{% endfor %}
 		{% if topic_list %}
 			<div class="panel-body">
 				<p>{% trans "Choose a Topic for your Practice Session." %}</p>

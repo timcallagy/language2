@@ -7,6 +7,11 @@
 {% load tz %}
 {% load bootstrap %}
 
+
+{% block extra_head %}
+	<script type="text/javascript" src="{% static "js/tiny_mce/tiny_mce.js" %}"></script> 
+{% endblock %}
+
 {% block top_menu %}
 	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
 	<li><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>

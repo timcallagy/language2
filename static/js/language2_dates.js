@@ -9,5 +9,5 @@ $(function(){
   $( '#id_end_1' ).timePicker({ timeFormat: 'H:i' });
 
   $( '[id^=id_dateTime_0]' ).datepicker({dateFormat: 'yy-mm-dd'});
-  $( '[id^=id_dateTime_1]' ).timePicker({ timeFormat: 'H:i' });
+  $( '[id^=id_dateTime_1]' ).timePicker({ timeFormat: 'H:i', 'useselect': true, disableTimeRanges: [['02:00', '03:00'],['2pm', '3pm']] });
 });

@@ -38,7 +38,8 @@ var ice_servs = [];
 //		credential: 'mauritius'
 //	});
 	ice_servs.push({
-		url: 'turn:ec2-54-191-244-214.us-west-2.compute.amazonaws.com:3478',
+		//url: 'turn:ec2-54-191-244-214.us-west-2.compute.amazonaws.com:3478',
+		url: 'turn:ec2-54-191-244-214.us-west-2.compute.amazonaws.com:3478?transport=tcp',
 		username: 'tim',
 		credential: 'tim'
 	});

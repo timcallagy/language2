@@ -9,6 +9,13 @@
 {% load static %}
 
 
+{% block alternative_jquery %}
+	<script src="{% static "schedule/js/jquery.js" %}"></script> 
+	<script type="text/javascript" src="{% static "schedule/js/jquery-ui.js" %}"></script> 
+	<script type="text/javascript" src="{% static "schedule/js/jquery.timePicker.js" %}"></script> 
+	<script type="text/javascript" src="{% static "js/language2_dates.js" %}"></script>  
+{% endblock %}
+
 {% block top_menu %}
 <li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
 <li><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>

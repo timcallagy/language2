@@ -70,7 +70,7 @@ $(document).ready(function() {
 			$("[id^=audio-correction-objects]").hide();
 			$("[id^=speaking-correction-cover]").fadeOut(100);
 			$("[id^=speaking-correction-cover]").fadeIn(1000);
-			var json = JSON.parse(data);
+//			var json = JSON.parse(data);
 		
 
 			// "Recording" audio element set up.
@@ -78,23 +78,23 @@ $(document).ready(function() {
 			var src = audioElementRec.getAttribute('src');
 			var tokens = src.split('/');
 			var S3 = tokens[0] + '/' + tokens[1] + '/' + tokens[2] + '/'; 
-			audioElementRec.setAttribute("src", S3 + json[1].fields.recording);
+			audioElementRec.setAttribute("src", S3 + data[1].fields.recording);
 			// Set a unique identifier between 0 and 1000 on this specific audio clip.
 			var randomnumber=Math.floor(Math.random()*1001);
 			audioElementRec.setAttribute("uniqueId", randomnumber);
 
 			// "PlayError" button set up.
 			var btn = document.getElementById('play-error');
-			btn.setAttribute("errorTimeMin", json[0].fields.error_time_min);
-			btn.setAttribute("errorTimeSec", json[0].fields.error_time_sec);
+			btn.setAttribute("errorTimeMin", data[0].fields.error_time_min);
+			btn.setAttribute("errorTimeSec", data[0].fields.error_time_sec);
 
 			// "Correction" audio element set up.
 			var audioElementRec = document.getElementById('correction');
-			if (json[0].fields.correction_recording_flag == true){
+			if (data[0].fields.correction_recording_flag == true){
 				var src = audioElementRec.getAttribute('src');
 				var tokens = src.split('/');
 				var S3 = tokens[0] + '/' + tokens[1] + '/' + tokens[2] + '/'; 
-				audioElementRec.setAttribute("src", S3 + json[0].fields.correction_recording);
+				audioElementRec.setAttribute("src", S3 + data[0].fields.correction_recording);
 				audioElementRec.setAttribute("isAudio", "True"); 
 			} else {
 				audioElementRec.setAttribute("isAudio", "False"); 
@@ -102,8 +102,8 @@ $(document).ready(function() {
 
 			// "WrittenCorrection" element set up.
 			var elem = document.getElementById('written-correction');
-			if (json[0].fields.correction_text){
-				elem.innerHTML = json[0].fields.correction_text;
+			if (data[0].fields.correction_text){
+				elem.innerHTML = data[0].fields.correction_text;
 			} else {
 				elem.innerHTML = "";
 			}
@@ -125,11 +125,13 @@ $(document).ready(function() {
 			$("[id^=writing-correction-objects]").hide();
 			$("[id^=writing-correction-cover]").fadeOut(100);
 			$("[id^=writing-correction-cover]").fadeIn(1000);
-			var json = JSON.parse(data);
+//			var json = JSON.parse();
 			var mistake = document.getElementById('written-error-text');
-			mistake.innerHTML = json[0].fields.original_text;
+//			mistake.innerHTML = json[0].fields.original_text;
+			mistake.innerHTML = data[0].fields.original_text;
 			var correction = document.getElementById('writing-correction-text');
-			correction.innerHTML = json[0].fields.correction_text;
+//			correction.innerHTML = json[0].fields.correction_text;
+			correction.innerHTML = data[0].fields.correction_text;
 			$("#writing-mistakes-panel").fadeIn(100);
 		});
 	});
