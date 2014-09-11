@@ -30,6 +30,8 @@ from django.db.models import Max
 from lambada.forms import UserForm, UserProfileForm, TopicForm, PracticeForm, PracticeWritingForm, SpeakingErrorForm
 from lambada.models import Topic, UserProfile, Practice, LearnerRecording, SpeakingError, WritingError, ChannelPrivate, ChannelDefault
 from schedule.models.events import Event
+from schedule.models.calendars import Calendar
+from schedule.periods import Day
 
 
 ##################################
@@ -78,6 +80,8 @@ def register(request):
 				request.session['django_timezone'] = request.POST['timezone']
 				profile.language = request.POST['language']
 				profile.save()
+				calendar = Calendar(name=user.username, slug=user.username)
+				calendar.save()
 				user = authenticate(username=user.username, password=request.POST['password'])
 				request.session['django_language'] = request.POST['language']
 				login(request, user)
@@ -269,11 +273,30 @@ class PracticeBook(ListView):
 	def get_context_data(self, **kwargs):
 		context = super(PracticeBook, self).get_context_data(**kwargs)
 		context['practice_form'] = PracticeForm()
-		start = datetime.datetime(2007, 1, 1)
-		end = datetime.datetime(2016, 1, 1)
-		events = Event.objects.filter(start__gte=start, end__lte=end)
-		context['events'] = events
-		print(events.count())
+		agg_event_list = []
+		calendar = Calendar.objects.all()
+		date = datetime.datetime(2014, 7, 7) 
+		for c in calendar:
+			event_list = c.event_set.all()
+			for e in event_list:
+				agg_event_list.append(e)
+		occurrences = Day(agg_event_list, date)._get_sorted_occurrences()
+		unavailability_list = []
+		unavailability_list.insert(0, date)
+		for n in range(0, 47):
+			unavailability_list.insert(n+1, unavailability_list[n] + datetime.timedelta(minutes=30))
+		# TO DO: NEED TO CHANGE THIS!!!
+		for n in range(0, 47):
+			unavailability_list[n] = pytz.timezone("UTC").localize(unavailability_list[n])
+		
+		print(unavailability_list.__len__())
+		for o in occurrences:
+			if o.start in unavailability_list:
+				print(o.start)
+				unavailability_list.remove(o.start)
+		print(unavailability_list)
+		print(unavailability_list.__len__())
+		context['unavailability_list'] = unavailability_list
 		return context
 
 
@@ -483,6 +506,11 @@ class CoachList(ListView):
 
 	def get_queryset (self):
 		return Practice.objects.filter(coach=self.request.user).order_by('-dateTime')
+	
+	def get_context_data(self, **kwargs):
+		context = super(CoachList, self).get_context_data(**kwargs)
+		context['calendar'] = self.request.user.username
+		return context
 
 
 @login_required

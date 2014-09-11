@@ -35,9 +35,11 @@
 	<br>
 	<div class="panel panel-primary">
 		<div class="panel-heading">{% trans "Practice Session Topics" %}</div>
-		{% for event in events %}
-			{{ event }} <br>
+		{% localtime on %}
+		{% for time_slot in unavailability_list %}
+			{{ time_slot.time }} <br>
 		{% endfor %}
+		{% endlocaltime %}
 		{% if topic_list %}
 			<div class="panel-body">
 				<p>{% trans "Choose a Topic for your Practice Session." %}</p>
