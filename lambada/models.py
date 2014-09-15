@@ -83,6 +83,7 @@ class Practice(models.Model):
 	speaking_report_published = models.BooleanField(blank=True, default=False)
 	writing_report_published = models.BooleanField(blank=True, default=False)
 	rating = models.IntegerField(null=False, default='0')
+	paid = models.BooleanField(blank=True, default=False)
 
 	def get_absolute_url(self):
 		return reverse('practice_list')

@@ -1,0 +1,59 @@
+{% extends 'lambada/base.html' %}
+
+{% block title %} Language Lambada {% endblock %}
+
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+
+{% block top_menu %}
+	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
+	<li><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
+	<li><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
+	<li><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
+	<li class="active"><a href="/settings/">{% trans "Settings" %}</a></li>
+{% endblock %}
+
+
+{% block body %}
+
+	<div class="pull-right">
+		<ol class="breadcrumb">
+			<li class="active">{% trans "Settings" %}</li>
+		</ol>
+	</div>
+	<br>
+<div class="col-md-10 col-md-offset-1">
+	<h1>{% trans "Settings" %}</h1>
+	<br>
+	<div class="panel panel-primary">
+		<div class="panel-heading">{% trans "General settings" %}</div>
+		<ul class="list-group">
+			<li class="list-group-item">
+				some text
+				<br>
+			</li>
+		</ul>
+	</div>
+	<br>
+	<div class="panel panel-primary">
+		<div class="panel-heading">{% trans "Learner settings" %}</div>
+		<ul class="list-group">
+			<li class="list-group-item">
+				some text
+				<br>
+			</li>
+		</ul>
+	</div>
+	<div class="panel panel-primary">
+		<div class="panel-heading">{% trans "Coach settings" %}</div>
+		<ul class="list-group">
+			<li class="list-group-item">
+				<form	
+				<br>
+			</li>
+		</ul>
+	</div>
+
+</div>
+{% endblock%}

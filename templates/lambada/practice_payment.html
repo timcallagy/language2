@@ -11,7 +11,7 @@
 	<li class="active"><a href="/practice/list/">{% trans "Practice a Language" %}</a></li>
 	<li><a href="/coach/list/">{% trans "Coach a Learner" %}</a></li>
 	<li><a href="/topic/list/">{% trans "Design a Topic" %}</a></li>
-	<li><a href="/help/">{% trans "How does this work?" %}</a></li>
+	<li><a href="/settings/">{% trans "Settings" %}</a></li>
 {% endblock %}
 
 
@@ -26,17 +26,21 @@
 		</ol>
 	</div>
 	<br>
-	<h1>{{ object.headline }}</h1>
-	<!--	<form id="booking-form" class="form form-horizontal" action="/practice/{{ topic.pk }}/add/" method="post" accept-charset="utf-8"> -->
 	<br>
 	Insert payment instructions here
 	<br>
 	<br>
-		<form id="booking-form" class="form form-horizontal" action="/practice/{{ object.pk }}/add/" method="post" accept-charset="utf-8">
+	{% for practice in unpaid_practices %}
+		{% localtime on %}
+		<h1>{{ practice.topic.headline }}</h1>
+		{% trans "When: " %} {{ practice.dateTime }} <br>
+		{% trans "Learner: " %} {{ practice.user.username }}<br> 
+		{% trans "Coach: " %} {{ practice.coach }} <br>
+		<form id="booking-form" class="form form-horizontal" action="/practice/{{ practice.pk }}/add/" method="post" accept-charset="utf-8">
 			{% csrf_token %}
-			<input type="hidden" id="dateTime_0" name="dateTime_0" value="{{ dateTime|unlocalize }}" />
-			<input type="hidden" id="topic_pk" name="topic_pk" value="{{ object.pk }}" />
 			<p><input id="booking-btn" class="btn btn-primary" type="submit" value={% trans "Complete Payment" %}></p>
 		</form>
+		{% endlocaltime %}
+	{% endfor %}
 	<br>
 {% endblock%}

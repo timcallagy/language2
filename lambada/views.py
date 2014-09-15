@@ -280,19 +280,11 @@ class PracticeBook(ListView):
 @login_required
 def practice_add(request, pk):
 	context = RequestContext(request)
-#	user_id=request.user.id
-#	user = User.objects.get(pk=user_id)
-	topic = Topic.objects.get(pk=pk)
-	dateTime = request.POST.get('dateTime_0')
-	practice, created = Practice.objects.get_or_create(
-			user = request.user,
-			topic = topic,
-			dateTime = dateTime,
-			### TO DO ###
-			### Smart coach picking ##
-			coach = "timc"
-	)
+	practice = Practice.objects.get(pk=pk)
+	practice.paid = True
+	practice.save()
 	return HttpResponseRedirect('/practice/list/')
+
 
 
 # Learner pays for their Practice session here.
@@ -304,10 +296,12 @@ def practice_payment(request, pk):
 	time = parse_time(request.POST.get('dateTime_1'))
 	naive = datetime.datetime.combine(date, time)
 	tz = pytz.timezone(request.session['django_timezone'])
-	aware = tz.localize(naive)
-	practice_form = PracticeForm(data=request.POST)
+	dateTime = tz.localize(naive)
+	practice_form = PracticeForm(data=request.POST, request=request, pk=pk)
 	if practice_form.is_valid():
-		return render_to_response('lambada/practice_payment.html', {'object': topic, 'dateTime': aware}, context)
+		unpaid_practices = Practice.objects.filter(user=request.user, paid=False)
+		print(unpaid_practices)
+		return render_to_response('lambada/practice_payment.html', {'unpaid_practices': unpaid_practices}, context)
 	else:
 		return render_to_response('lambada/practice_topic_detail.html', {'object': topic, 'practice_form': practice_form}, context)
 	
@@ -344,7 +338,7 @@ class PracticeTopicDetail(DetailView):
 @login_required
 def practice_list(request):
 	context = RequestContext(request)
-	practices_list = Practice.objects.filter(user=request.user).order_by('-dateTime')
+	practices_list = Practice.objects.filter(user=request.user, paid=True).order_by('-dateTime')
 	if practices_list:
 		now = datetime.datetime.utcnow().replace(tzinfo=utc)
 		paginator = Paginator(practices_list, 6)
@@ -566,6 +560,7 @@ def coach_unavailability(request, year, month, day):
 		if o.start in unavailability_list:
 			while o.start < o.end:
 				print('Time slot to remove: ' + str(o.start))
+				print(o.event.creator_id)
 				unavailability_list.remove(o.start)
 				o.start = o.start + datetime.timedelta(minutes=30)
 	
@@ -957,6 +952,17 @@ def report_writing(request, pk):
 	else:
 		return render_to_response('lambada/404.html', {}, context)
 
+
+################################
+###
+### Settings
+###
+################################
+
+@login_required
+def profile_settings(request):
+	context = RequestContext(request)
+	return render_to_response('lambada/profile_settings.html', {}, context)
 
 ################################
 ###
