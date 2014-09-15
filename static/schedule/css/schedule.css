@@ -21,8 +21,7 @@ div.occ_column {
 
 div.occ {
   position:absolute;
-  border:1px solid red;
-  background-color:#eee;
+  background-color: #c5dbff;
   cursor:pointer;
   overflow:hidden;
 }
@@ -129,11 +128,11 @@ table.calendar td.noday {
 	background-color: #eef
 }
 
-table.calendar td.free {
+table.calendar td.busy {
 	background-color: #c5dbff
 }
 
-table.calendar td.busy {
+table.calendar td.free {
 	background-color: #ffcece
 }
 

@@ -28,7 +28,7 @@ from django.contrib.auth.models import User
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Max
 from lambada.forms import UserForm, UserProfileForm, TopicForm, PracticeForm, PracticeWritingForm, SpeakingErrorForm
-from lambada.models import Topic, UserProfile, Practice, LearnerRecording, SpeakingError, WritingError, ChannelPrivate, ChannelDefault
+from lambada.models import Topic, UserProfile, Practice, CoachRating, TopicRating, LearnerRecording, SpeakingError, WritingError, ChannelPrivate, ChannelDefault
 from schedule.models.events import Event
 from schedule.models.calendars import Calendar
 from schedule.periods import Day
@@ -273,30 +273,6 @@ class PracticeBook(ListView):
 	def get_context_data(self, **kwargs):
 		context = super(PracticeBook, self).get_context_data(**kwargs)
 		context['practice_form'] = PracticeForm()
-		agg_event_list = []
-		calendar = Calendar.objects.all()
-		date = datetime.datetime(2014, 7, 7) 
-		for c in calendar:
-			event_list = c.event_set.all()
-			for e in event_list:
-				agg_event_list.append(e)
-		occurrences = Day(agg_event_list, date)._get_sorted_occurrences()
-		unavailability_list = []
-		unavailability_list.insert(0, date)
-		for n in range(0, 47):
-			unavailability_list.insert(n+1, unavailability_list[n] + datetime.timedelta(minutes=30))
-		# TO DO: NEED TO CHANGE THIS!!!
-		for n in range(0, 47):
-			unavailability_list[n] = pytz.timezone("UTC").localize(unavailability_list[n])
-		
-		print(unavailability_list.__len__())
-		for o in occurrences:
-			if o.start in unavailability_list:
-				print(o.start)
-				unavailability_list.remove(o.start)
-		print(unavailability_list)
-		print(unavailability_list.__len__())
-		context['unavailability_list'] = unavailability_list
 		return context
 
 
@@ -324,14 +300,16 @@ def practice_add(request, pk):
 def practice_payment(request, pk):
 	context = RequestContext(request)
 	topic = Topic.objects.get(pk=pk)
-#	naive = datetime.datetime.strptime(request.POST.get('dateTime_0', datetime.datetime.now), '%Y-%m-%d %H:%M:%S')
 	date = datetime.datetime.strptime(request.POST.get('dateTime_0', datetime.datetime.now), '%Y-%m-%d')
 	time = parse_time(request.POST.get('dateTime_1'))
 	naive = datetime.datetime.combine(date, time)
 	tz = pytz.timezone(request.session['django_timezone'])
 	aware = tz.localize(naive)
-	return render_to_response('lambada/practice_payment.html', {'object': topic, 'dateTime': aware}, context)
-	###$ Method Learner
+	practice_form = PracticeForm(data=request.POST)
+	if practice_form.is_valid():
+		return render_to_response('lambada/practice_payment.html', {'object': topic, 'dateTime': aware}, context)
+	else:
+		return render_to_response('lambada/practice_topic_detail.html', {'object': topic, 'practice_form': practice_form}, context)
 	
 	
 # Details (time, language, instructions) of a learner's particular Practice session are shown on this page. Redundant?
@@ -486,8 +464,36 @@ class PracticeDelete(DeleteView):
 def practice_rating(request, pk):
 	practice = Practice.objects.get(pk=pk)
 	if practice.user == request.user:
-		practice.rating = request.POST.get('rating')
+		rating = int(request.POST.get('rating'))
+		practice.rating = rating
 		practice.save()
+		coach = User.objects.get(username=practice.coach)
+		coach_profile = UserProfile.objects.get(user=coach)
+		try:
+			coach_rating = CoachRating.objects.get(coach=coach_profile, practice=practice)
+			coach_profile.total_coach_rating -= coach_rating.rating
+			coach_rating.rating = rating
+			coach_profile.total_coach_rating += coach_rating.rating
+	        except CoachRating.DoesNotExist:
+			coach_rating = CoachRating(coach=coach_profile, practice=practice, rating=rating)
+			coach_profile.total_coach_rating += coach_rating.rating
+		coach_rating.save()
+		coach_profile.save()
+
+		topic = practice.topic
+		try:
+			print('In Try')
+			topic_rating = TopicRating.objects.get(learner=request.user, topic=practice.topic)
+			topic.total_topic_rating -= topic_rating.rating
+			topic_rating.rating = rating
+			topic.total_topic_rating += topic_rating.rating
+		except TopicRating.DoesNotExist:
+			print('In Except')
+			topic_rating = TopicRating(learner=request.user, topic=practice.topic, rating=rating)
+			topic.total_topic_rating += topic_rating.rating
+		topic_rating.save()
+		topic.save()
+			
 		return HttpResponse("Rating added")
 	else: 
 		return("Not authorized")
@@ -535,6 +541,37 @@ def coach_practice_cancel(request, pk):
         except Practice.DoesNotExist:
                 return HttpResponse('Error: Practice session does not exist.')
 
+
+@login_required
+def coach_unavailability(request, year, month, day):
+	agg_event_list = []
+	# TO DO: Get rid of this when coach list grows.
+	calendar = Calendar.objects.all().exclude(name=request.user.username)
+	date = datetime.datetime(int(year), int(month), int(day))
+	tz = pytz.timezone(request.session['django_timezone'])
+	date = tz.localize(date)
+	for c in calendar:
+		event_list = c.event_set.all()
+		for e in event_list:
+			agg_event_list.append(e)
+	occurrences = Day(agg_event_list, date)._get_sorted_occurrences()
+	unavailability_list = []
+	unavailability_list.insert(0, date)
+	for n in range(0, 47):
+		unavailability_list.insert(n+1, unavailability_list[n] + datetime.timedelta(minutes=30))
+	
+	marker_time = unavailability_list[0]
+	for o in occurrences:
+
+		if o.start in unavailability_list:
+			while o.start < o.end:
+				print('Time slot to remove: ' + str(o.start))
+				unavailability_list.remove(o.start)
+				o.start = o.start + datetime.timedelta(minutes=30)
+	
+	for n in range(0, unavailability_list.__len__()):
+		unavailability_list[n] = str((unavailability_list[n].time()).strftime("%H:%M"))
+	return HttpResponse(json.dumps(unavailability_list))
 
 ################################
 ###

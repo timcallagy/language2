@@ -4,6 +4,15 @@
 
 {% load i18n %}
 {% load tz %}
+{% load bootstrap %}
+{% load static %}
+
+{% block extra_head %}
+	<script src="{% static "schedule/js/jquery.js" %}"></script> 
+	<script type="text/javascript" src="{% static "schedule/js/jquery-ui.js" %}"></script> 
+	<script type="text/javascript" src="{% static "schedule/js/jquery.timePicker.js" %}"></script> 
+	<script type="text/javascript" src="{% static "js/language2_dates.js" %}"></script>  
+{% endblock %}
 
 {% block top_menu %}
 	<li><a href="/dashboard/">{% trans "Dashboard" %}</a></li>
@@ -25,22 +34,33 @@
 	</div>
 	<br>
 	<h1>{{ object.headline }}</h1>
-	<!--	<form id="booking-form" class="form form-horizontal" action="/practice/{{ topic.pk }}/add/" method="post" accept-charset="utf-8"> -->
-	<form id="booking-form" class="form form-horizontal" action="/practice/book/payment/{{topic.pk }}/" method="post" accept-charset="utf-8">
-		{% csrf_token %}
-		{{ practice_form.as_table }} 
-		<p><input id="booking-btn" class="btn btn-primary" type="submit" value={% trans "Book Session" %}></p>
-	</form>
 	{% trans "Created by" %}: {{ object.created_by  }}<br>
-	{% trans "Language" %}: {{ object.language  }}<br>
-	{% trans "Date" %}: {{ object.creation_date  }}<br><br>
-	{% trans "Learner's Speaking Instructions" %}: {{ object.learners_speaking_instructions|safe  }}<br>
-	{% trans "Learner's Writing Instructions" %}: {{ object.learners_writing_instructions|safe  }}<br>
-	<br>
-	<form id="booking-form" class="form form-horizontal" action="/practice/{{ topic.pk }}/add/" method="post" accept-charset="utf-8">
+	{% trans "Language" %}: {{ object.language  }}<br><br>
+
+	{% localtime on %}
+	<div class="row">
+	<div class="col-md-5 col-md-offset-1"> 
+	<form id="booking-form" topic_pk="{{ object.pk }}" class="form form-horizontal" action="/practice/book/payment/{{ object.pk }}/" method="post" accept-charset="utf-8">
 		{% csrf_token %}
-		{{ practice_form.as_table }} 
-		<p><input id="booking-btn" class="btn btn-primary" type="submit" value={% trans "Book Session" %}></p>
+		{{ practice_form|bootstrap_horizontal }} 
+		<p><input id="booking-btn" class="btn btn-primary" type="submit" value={% trans "Book Session" %}></p><br>
+		{% get_current_timezone as TIME_ZONE %}
+		<p>Your time zone is {{ TIME_ZONE }}</p>
+		<div id="checking_unavailability" class="alert alert-warning" style="display:none;">{% trans "Checking availability..." %}</div>
+		<div id="unavailability_msg" class="alert alert-info" style="display:none;">{% trans "On that date, there are no coaches available at the following times:" %}<br><br><div id="unavailability_list"></div>
+		</div>
 	</form>
+	</div>
+	</div>
+</div>
+	{% endlocaltime %}
+
+	<h3>{% trans "Speaking Instructions" %}:</h3>
+       	{{ object.learners_speaking_instructions|safe  }}<br>
+
+	<h3>{% trans "Writing Instructions" %}:</h3>
+       	{{ object.learners_writing_instructions|safe  }}<br>
+	<br>
+
 	<br>
 {% endblock%}

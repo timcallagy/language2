@@ -19,14 +19,29 @@ from django.utils.translation import ugettext_lazy as _
 class UserProfile(models.Model):
 	user = models.OneToOneField(User)
 	payment_addr = models.CharField(max_length=255, blank=True, null=True)
-	skype_addr = models.CharField(max_length=255, blank=True, null=True)
 	picture = models.ImageField(upload_to='profile_images', blank=True)
 	timezone = models.CharField(max_length=255, blank=False, null=False, default='GMT')
 	language = models.CharField(max_length=255, blank=False, null=False, default='en')
+	total_coach_rating = models.IntegerField(null=False, default='0')
 	def __unicode__(self):
 		return self.user.username
 	#def get_absolute_url(self):
 	#	return reverse('index')
+
+class LearnerLanguage(models.Model):
+	learner = models.ForeignKey(UserProfile)
+	language = models.CharField(max_length=255, blank=False, null=False, default='en')
+
+
+class LearnerLanguage(models.Model):
+	learner = models.ForeignKey(UserProfile)
+	language = models.CharField(max_length=255, blank=False, null=False, default='en')
+
+
+class CoachLanguage(models.Model):
+	learner = models.ForeignKey(UserProfile)
+	language = models.CharField(max_length=255, blank=False, null=False, default='en')
+
 
 # Each UserProfile has many Subscriptions, each Subscription has only one UserProfile
 class Subscription(models.Model):
@@ -34,6 +49,7 @@ class Subscription(models.Model):
 
 class Rating(models.Model):
 	userProfile = models.ForeignKey(UserProfile)
+
 
 class Comment(models.Model):
 	userProfile = models.ForeignKey(UserProfile)
@@ -47,6 +63,7 @@ class Topic(models.Model):
 	learners_writing_instructions = HTMLField(_("Enter the Learner's Writing Instructions below. Click here to see an example.")) 
 	guides_speaking_instructions = HTMLField(_("Enter the Guide's information below. Click here to see an example.")) 
 	published = models.NullBooleanField(blank=True, null=True, default=False)
+	total_topic_rating = models.IntegerField(null=False, default='0')
 #	text = BleachField()
 	def get_absolute_url(self):
 		return reverse('topic_detail', kwargs={'pk': self.pk})
@@ -65,16 +82,22 @@ class Practice(models.Model):
 	writing_complete = models.BooleanField(blank=True, default=False)
 	speaking_report_published = models.BooleanField(blank=True, default=False)
 	writing_report_published = models.BooleanField(blank=True, default=False)
-	rating = models.DecimalField(null=False, default=0, max_digits=7, decimal_places=1)
+	rating = models.IntegerField(null=False, default='0')
 
 	def get_absolute_url(self):
 		return reverse('practice_list')
 
 
-#class Report(models.Model):
-#	practice = models.OneToOneField(Practice, primary_key=True)
-#	call_start_time = models.DateTimeField(blank=True, null=True)
-#	call_end_time = models.DateTimeField(blank=True, null=True)
+class CoachRating(models.Model):
+	coach = models.ForeignKey(UserProfile)
+	practice = models.ForeignKey(Practice)
+	rating = models.IntegerField(null=False, default='0')
+
+
+class TopicRating(models.Model):
+	learner = models.ForeignKey(User)
+	topic = models.ForeignKey(Topic)
+	rating = models.IntegerField(null=False, default='0')
 
 
 class LearnerRecording(models.Model):

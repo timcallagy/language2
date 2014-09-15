@@ -33,9 +33,9 @@
 </div>
 
 <div class="col-md-10 col-md-offset-1">
-
+						{% get_current_timezone as TIME_ZONE %}
+						<p>Your time zone is {{ TIME_ZONE }}</p>
 		{% block calendar %} {% endblock %}
-
 	<br>
 </div>
 

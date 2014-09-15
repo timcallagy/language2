@@ -1,12 +1,14 @@
-from django import forms
-from lambada.models import UserProfile, Topic, Practice, SpeakingError
-from django.contrib.auth.models import User
+import datetime
 import pytz
-from django.utils.translation import ugettext_lazy as _
-from language2 import settings
 from datetimewidget.widgets import DateTimeWidget
+from django import forms
+from django.contrib.auth.models import User
+from django.utils.translation import ugettext_lazy as _
 from django.forms.widgets import SplitDateTimeWidget
 from django.db import models
+from django.utils.timezone import utc
+from lambada.models import UserProfile, Topic, Practice, SpeakingError
+from language2 import settings
 #from crispy_forms.helper import FormHelper
 #from crispy_forms.layout import MultiField, Layout, Alert
 
@@ -75,7 +77,21 @@ class PracticeForm(forms.ModelForm):
 		dateTime = forms.SplitDateTimeField(input_date_formats=['%Y-%m-%d'], input_time_formats=['%H:%M'])
 
 	def clean(self):
-		self.instance.dateTime=self.cleaned_data.get('dateTime_0')
+		now = datetime.datetime.utcnow().replace(tzinfo=utc)
+		print('now: ' + str(now))
+		bookingTime = self.cleaned_data.get('dateTime')
+		print(bookingTime)
+		if now > bookingTime:
+			raise forms.ValidationError(_("That time has already passed!"))
+		latestBookingTime = bookingTime - datetime.timedelta(hours=3)
+		print(latestBookingTime)
+		if now > latestBookingTime:
+			raise forms.ValidationError(_("You can't book a lesson less than 3 hours before the lesson start time"))
+		return self.cleaned_data
+		
+#		username = self.cleaned_data.get('username')
+#		if User.objects.filter(username=username):
+#			raise forms.ValidationError(_("That username is already taken"))
 
 
 class PracticeWritingForm(forms.ModelForm):

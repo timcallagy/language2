@@ -1,15 +1,15 @@
-{% extends "schedule/base.html" %}
+{% extends "lambada/coach_settings.html" %}
 {% load i18n %}
 
-{% block body %}
+{% block calendar %}
 <h1>{% trans "Delete" %}</h1>
-{% trans "Are you sure that you really want to delete it?" %}
+{% trans "Are you sure you want to delete it?" %}
 
 <form action="." method="POST">
     {% csrf_token %}
-    {{ object }} <br/>
-    <input type="submit" value="{% trans "Delete" %}" />
-    <input type="button" value="{% trans "Cancel" %}" onclick="window.location='{{next}}'"/>
+    {{ object }} <br/><br>
+    <input class="btn btn-primary" type="submit" value="{% trans "Delete" %}" />
+    <input class="btn btn-primary" type="button" value="{% trans "Cancel" %}" onclick="window.location='{{next}}'"/>
 
     <input type="hidden" name="next" value="{{next|default:""}}"/>
 </form>

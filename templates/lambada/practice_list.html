@@ -273,7 +273,7 @@ onComplete : countdownComplete
 					</div>
 					<div class="col-md-3 col-md-offset-1">
 						<p class="text-center">{% trans "Your rating" %}
-						<input id="input-id-{{ practice.pk }}" type="number" value="{{ practice.rating }}" class="rating" practice_id="{{ practice.pk }}" min=0 max=5 step=0.5 data-size="sm" data-show-clear="false" data-show-caption="false" >
+						<input id="input-id-{{ practice.pk }}" type="number" value="{{ practice.rating }}" class="rating" practice_id="{{ practice.pk }}" min=0 max=5 step=1 data-size="sm" data-show-clear="false" data-show-caption="false" >
 					</div>
 				</div>
 				{% endlocaltime %}
